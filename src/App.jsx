@@ -2278,10 +2278,15 @@ If this is NOT a fish or the image is unclear, return:
 
   function submitCatch() {
     if (!newCatch.fish) return;
+    const now = Date.now();
     const entry = {
-      id: Date.now(),
-      ...newCatch,
+      id: now,
+      fish: newCatch.fish || "",
+      weight: newCatch.weight || "",
       location: newCatch.location || (lang === "ja" ? "場所未入力" : "Location not set"),
+      notes: newCatch.notes || "",
+      method: newCatch.method || "lure",
+      photo: newCatch.photo || null,
       user: profile.name,
       avatar: profile.avatar,
       date: { ja: "今日", en: "Today" },
@@ -2290,31 +2295,60 @@ If this is NOT a fish or the image is unclear, return:
       comments: [],
       rating: 0,
       verified: true,
-      createdAt: Date.now(),
+      createdAt: now,
     };
+
+    // Update local state immediately
     setMyCatches(p => [entry, ...p]);
     setCatches(p => [entry, ...p]);
-    // Save to Firestore (strip photo to avoid 1MB limit — store separately if needed)
-    const { photo, ...entryNoPhoto } = entry;
-    addDoc(collection(db, "catches"), { ...entryNoPhoto, hasPhoto: !!photo }).catch(console.warn);
+
+    // Save to Firestore — strip photo (too large) and simplify date
+    const firestoreEntry = {
+      id: entry.id,
+      fish: entry.fish,
+      weight: entry.weight,
+      location: entry.location,
+      notes: entry.notes,
+      method: entry.method,
+      user: entry.user,
+      avatar: entry.avatar,
+      dateJa: "今日",
+      dateEn: "Today",
+      likes: 0,
+      comments: [],
+      rating: 0,
+      verified: true,
+      createdAt: now,
+    };
+    addDoc(collection(db, "catches"), firestoreEntry)
+      .then(() => console.log("Saved to Firestore"))
+      .catch(err => console.warn("Firestore save failed:", err));
+
     setNewCatch({ fish: "", weight: "", location: "", notes: "", photo: null, method: "lure" });
-    setPhotoPreview(null); setFishIDResult(null); setLogOpen(false);
+    setPhotoPreview(null);
+    setFishIDResult(null);
+    setLogOpen(false);
   }
 
   // Load catches from Firestore on startup
   useEffect(() => {
     const q = query(collection(db, "catches"), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
-      const loaded = snap.docs.map(d => ({ ...d.data(), firestoreId: d.id }));
-      if (loaded.length > 0) {
-        setCatches(prev => {
-          // Merge: keep local entries not yet in Firestore, add Firestore entries
-          const firestoreIds = new Set(loaded.map(c => c.id));
-          const localOnly = prev.filter(c => !firestoreIds.has(c.id));
-          return [...localOnly, ...loaded];
-        });
-        setMyCatches(loaded.filter(c => c.user === profile.name));
-      }
+      const loaded = snap.docs.map(d => {
+        const data = d.data();
+        return {
+          ...data,
+          date: { ja: data.dateJa || "記録済", en: data.dateEn || "Logged" },
+          comments: data.comments || [],
+          firestoreId: d.id,
+        };
+      });
+      setCatches(prev => {
+        const firestoreIds = new Set(loaded.map(c => c.id));
+        const localOnly = prev.filter(c => !firestoreIds.has(c.id) && !c.firestoreId);
+        return [...localOnly, ...loaded];
+      });
+      setMyCatches(loaded.filter(c => c.user === profile.name));
     }, (err) => console.warn("Firestore listen error:", err));
     return () => unsub();
   }, []);
