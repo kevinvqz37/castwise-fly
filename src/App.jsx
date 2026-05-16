@@ -1493,6 +1493,131 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
 }
 
 // ─── MAP VIEW ────────────────────────────────────────────────────────────────
+// ─── LEAFLET MAP COMPONENT ───────────────────────────────────────────────────
+// Uses Leaflet + OpenStreetMap — real terrain, real tiles, no API key needed
+function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang }) {
+  const mapRef = useRef(null);
+  const leafletRef = useRef(null);
+  const markersRef = useRef([]);
+  const userMarkerRef = useRef(null);
+
+  // Load Leaflet CSS + JS once
+  useEffect(() => {
+    if (document.getElementById("leaflet-css")) return;
+    const link = document.createElement("link");
+    link.id = "leaflet-css";
+    link.rel = "stylesheet";
+    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(link);
+
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.onload = () => initMap();
+    document.head.appendChild(script);
+  }, []);
+
+  function initMap() {
+    if (!mapRef.current || leafletRef.current) return;
+    const L = window.L;
+
+    // Default center: Japan
+    const center = userLocation
+      ? [userLocation.lat, userLocation.lng]
+      : [35.68, 139.69];
+    const zoom = userLocation ? 9 : 5;
+
+    const map = L.map(mapRef.current, { zoomControl: true, attributionControl: true }).setView(center, zoom);
+
+    // OpenStreetMap tiles
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+      maxZoom: 18,
+    }).addTo(map);
+
+    leafletRef.current = map;
+    renderMarkers();
+  }
+
+  function renderMarkers() {
+    const L = window.L;
+    if (!L || !leafletRef.current) return;
+    const map = leafletRef.current;
+
+    // Clear old markers
+    markersRef.current.forEach(m => map.removeLayer(m));
+    markersRef.current = [];
+
+    // Add spot markers
+    spots.forEach(spot => {
+      const coords = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
+      if (!coords) return;
+
+      const icon = L.divIcon({
+        html: `<div style="background:#0d7377;border:3px solid white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.35);cursor:pointer">${spot.icon || "📍"}</div>`,
+        className: "",
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+      });
+
+      const marker = L.marker([coords.lat, coords.lng], { icon })
+        .addTo(map)
+        .bindPopup(`
+          <div style="font-family:sans-serif;min-width:160px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:4px">${spot.name}</div>
+            <div style="color:#0d7377;font-size:12px">🐟 ${typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")}</div>
+            <div style="color:#5a5a4a;font-size:12px">⭐ ${spot.rating} · ${typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
+            ${spot.distKm != null ? `<div style="color:#2d7a3a;font-weight:700;font-size:12px;margin-top:2px">📏 ${spot.distKm} km</div>` : ""}
+          </div>
+        `)
+        .on("click", () => setActiveSpot(spot));
+
+      markersRef.current.push(marker);
+    });
+
+    // User location marker
+    if (userLocation) {
+      if (userMarkerRef.current) map.removeLayer(userMarkerRef.current);
+      const userIcon = L.divIcon({
+        html: `<div style="background:#b82030;border:3px solid white;border-radius:50%;width:20px;height:20px;box-shadow:0 0 0 4px rgba(184,32,48,0.3)"></div>`,
+        className: "",
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+      });
+      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+        .addTo(map)
+        .bindPopup(`<div style="font-family:sans-serif;font-weight:700">${lang === "ja" ? "現在地" : "You are here"}<br><span style="font-weight:400;font-size:12px">${userLocation.display || ""}</span></div>`);
+    }
+  }
+
+  // Re-render markers when spots or location changes
+  useEffect(() => {
+    if (window.L && leafletRef.current) {
+      renderMarkers();
+    }
+  }, [spots, userLocation, lang]);
+
+  // Init map if Leaflet was already loaded
+  useEffect(() => {
+    if (window.L && !leafletRef.current && mapRef.current) {
+      initMap();
+    }
+  }, []);
+
+  // Fly to active spot when selected from list
+  useEffect(() => {
+    if (!activeSpot || !leafletRef.current) return;
+    const coords = SPOT_COORDS[activeSpot.name] || (activeSpot.lat ? { lat: activeSpot.lat, lng: activeSpot.lng } : null);
+    if (coords) leafletRef.current.flyTo([coords.lat, coords.lng], 12, { duration: 1 });
+  }, [activeSpot]);
+
+  return (
+    <div
+      ref={mapRef}
+      style={{ height: 300, borderRadius: 16, overflow: "hidden", marginBottom: 14, border: "2px solid #a0c8d0", position: "relative", zIndex: 1, background: "#e8f4f4" }}
+    />
+  );
+}
+
 function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
   const [activeSpot, setActiveSpot] = useState(null);
 
@@ -1525,45 +1650,31 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
         </div>
       )}
       <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "ピンをタップして詳細を見る" : "Tap a pin for details"}</p>
-      <div style={{ height: 240, borderRadius: 18, overflow: "hidden", position: "relative", marginBottom: 14, background: "linear-gradient(135deg,#e8f0f0,#d8e4e4)", border: "2px solid #a0c8d0" }}>
-        {[...Array(6)].map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${i * 20}%`, height: 1, background: "#f0f8f8" }} />)}
-        {[...Array(6)].map((_, i) => <div key={i} style={{ position: "absolute", top: 0, bottom: 0, left: `${i * 20}%`, width: 1, background: "#f0f8f8" }} />)}
-        <div style={{ position: "absolute", top: 12, left: 12, background: "rgba(245,240,232,0.9)", borderRadius: 8, padding: "4px 10px", fontSize: "0.95rem", color: "#0d7377" }}>{lang === "ja" ? "📍 インタラクティブマップ" : "📍 Interactive Map"}</div>
-        {spots.map((spot, i) => {
-          const x = 12 + (i % 3) * 28 + Math.sin(i) * 7;
-          const y = 22 + Math.floor(i / 3) * 38 + Math.cos(i) * 8;
-          return (
-            <div key={spot.id || i} onClick={() => setActiveSpot(activeSpot?.id === (spot.id || i) ? null : spot)} style={{ position: "absolute", left: `${x}%`, top: `${y}%`, cursor: "pointer", transition: "transform 0.2s", transform: activeSpot?.id === (spot.id || i) ? "scale(1.3)" : "scale(1)", zIndex: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: "50% 50% 50% 0", transform: "rotate(-45deg)", background: activeSpot?.id === (spot.id || i) ? "rgba(72,202,228,0.9)" : "rgba(72,202,228,0.22)", border: "3px solid #0d7377", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: activeSpot?.id === (spot.id || i) ? "0 0 20px #48cae488" : "none" }}>
-                <span style={{ transform: "rotate(45deg)", fontSize: "1.05rem" }}>{spot.icon || "📍"}</span>
-              </div>
-            </div>
-          );
-        })}
-        <div style={{ position: "absolute", left: "47%", top: "46%", zIndex: 20 }}>
-          <div style={{ width: 14, height: 14, borderRadius: "50%", background: "#b82030", border: "3px solid white", boxShadow: "0 0 10px rgba(184,32,48,0.4)" }} />
-        </div>
-        {activeSpot && (
-          <div style={{ position: "absolute", bottom: 10, left: 10, right: 10, background: "rgba(255,253,248,0.97)", border: "2px solid #70a8b8", borderRadius: 12, padding: "10px 14px", animation: "fadeUp 0.2s ease" }}>
-            <div style={{ fontWeight: 700, fontSize: "1.05rem" }}>{activeSpot.icon} {activeSpot.name}</div>
-            <div style={{ fontSize: "1rem", color: "#5a5a4a", marginTop: 3 }}>
-              🐟 {typeof activeSpot.fish === "object" ? activeSpot.fish[lang] : activeSpot.fish} · ⭐ {activeSpot.rating} · {typeof activeSpot.type === "object" ? activeSpot.type[lang] : activeSpot.type}
-              {activeSpot.distance && ` · 📏 ${activeSpot.distance}`}
-            </div>
+      {/* ── REAL LEAFLET MAP via OSM ── */}
+      <LeafletMap spots={spots} userLocation={userLocation} activeSpot={activeSpot} setActiveSpot={setActiveSpot} lang={lang} />
+      {activeSpot && (
+        <div style={{ background: "#e0f2f2", border: "2px solid #0d7377", borderRadius: 14, padding: "12px 16px", marginBottom: 14, animation: "fadeUp 0.2s ease" }}>
+          <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 4 }}>{activeSpot.icon || "📍"} {activeSpot.name}</div>
+          <div style={{ fontSize: "0.88rem", color: "#0d7377" }}>
+            🐟 {typeof activeSpot.fish === "object" ? activeSpot.fish[lang] : (activeSpot.fishName || activeSpot.fish || "")}
+            {" · "}⭐ {activeSpot.rating}
+            {" · "}{typeof activeSpot.type === "object" ? activeSpot.type[lang] : activeSpot.type}
+            {activeSpot.distKm != null && ` · 📏 ${activeSpot.distKm} km`}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {spots.map((spot, i) => (
           <div key={spot.id || i} onClick={() => setActiveSpot(spot)} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: "12px 16px", display: "flex", gap: 12, alignItems: "center", cursor: "pointer", animation: `fadeUp ${0.2 + i * 0.07}s ease both` }}>
             <div style={{ width: 42, height: 42, borderRadius: 10, background: "#e0f2f2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>{spot.icon || "📍"}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: "1.05rem" }}>{spot.name}</div>
-              <div style={{ fontSize: "1rem", color: "#5a5a4a", marginTop: 2 }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : spot.fish} · {typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
+              <div style={{ fontSize: "1rem", color: "#5a5a4a", marginTop: 2 }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")} · {typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
             </div>
             <div style={{ textAlign: "right" }}>
               <div style={{ color: "#c06a10", fontSize: "1.05rem" }}>⭐ {spot.rating}</div>
-              {spot.distance && <div style={{ color: "#5a5a4a", fontSize: "0.95rem" }}>{spot.distance}</div>}
+              {spot.distKm != null && <div style={{ color: "#0d7377", fontSize: "0.88rem", fontWeight: 700 }}>📏 {spot.distKm} km</div>}
             </div>
           </div>
         ))}
