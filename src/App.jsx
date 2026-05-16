@@ -1339,7 +1339,7 @@ function AIModal({ fish, weather, lang, onClose }) {
       const jaFallback = `🥇 本日のルアー診断\n\n🎯 第1位：バイブレーション（ゴールド系）\n水温${weather.waterTemp}℃の条件ではリアクションバイト狙いが◎。底からリフト＆フォール。\n\n🥈 第2位：シンキングペンシル\n流れのある場所でドリフト。橋脚明暗部でスロー引き。\n\n🥉 第3位：ワームリグ（クリア）\nプレッシャー高いポイントはフィネス系。1〜2gジグヘッドでデッドスロー。\n\n🔮 隠し技：カラーローテーション\nナチュラル⇔チャートで即変更。\n\n⏰ 黄金タイム：6〜8時・18〜20時`;
       const enFallback = `🥇 Today's Top Lure\n\n🎯 #1: Vibration plug (gold)\nAt ${weather.waterTemp}℃, trigger reaction bites. Lift-and-drop off the bottom.\n\n🥈 #2: Sinking pencil\nDrift through currents. Slow retrieve past bridge shadows at night.\n\n🥉 #3: Soft plastic (clear)\nFor pressured spots — deadstick a 1–2g jig head ultra-slow.\n\n🔮 Pro tip: Color rotation\nFlip between natural and chartreuse when bites stop.\n\n⏰ Golden window: 6–8am & 6–8pm`;
       try {
-        const res = await fetch("/api/claude", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
+        const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_KEY, "anthropic-version": "2023-06-01" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
         const data = await res.json(); setResponse(data.content?.[0]?.text || "");
       } catch { setResponse(lang === "ja" ? jaFallback : enFallback); }
       setLoading(false);
@@ -1368,7 +1368,7 @@ function AIFlyModal({ fish, weather, lang, currentMonth, onClose }) {
       const jaFallback = `🪶 本日のフライ診断（${currentMonth}）\n\n🥇 第1位：パラシュートアダムス #14\n水温${weather.waterTemp}℃でBWOのハッチが期待できる。くもりの光条件でパラシュートポストが見やすい。\n\n🥈 第2位：フェザントテールニンフ #14-16（ビーズヘッド）\nハッチ前後にインジケーター付きで深場をドリフト。\n\n🥉 第3位：テンカラ逆さ毛鉤 #10-12\n源流のコンパクトな渓流では竿のコントロールが活きる。テンション＆リリースで誘う。\n\n🌊 ハッチ予測\n気温14℃・水温${weather.waterTemp}℃はBWOとヒゲナガのハッチ好条件。特に夕方のライズに注目。\n\n🎋 テンカラ vs ウェスタン\n水質良好で木が多い源流ではテンカラ有利。開けた区間はウェスタンのメンディングが有効。\n\n⏰ ベストタイム：6〜9時と17〜19時のイブニングハッチを狙え！`;
       const enFallback = `🪶 Fly Fishing Forecast — ${currentMonth}\n\n🥇 #1: Parachute Adams #14\nAt ${weather.waterTemp}℃ water, BWO hatch is likely. White post stays visible in flat light.\n\n🥈 #2: Pheasant Tail Nymph #14-16 (bead head)\nBetween hatches, drift deep under an indicator.\n\n🥉 #3: Tenkara Sakasa Kebari #10-12\nIn tight headwater gorges, rod control beats line management every time.\n\n🌊 Hatch Outlook\n14℃ air, ${weather.waterTemp}℃ water — prime BWO and sedge conditions. Watch for evening rises.\n\n🎋 Tenkara vs Western\nClear water + overhanging trees → tenkara wins. Open runs → western mending has the edge.\n\n⏰ Best windows: 6–9am and the 5–7pm evening hatch.`;
       try {
-        const res = await fetch("/api/claude", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
+        const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_KEY, "anthropic-version": "2023-06-01" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
         const data = await res.json(); setResponse(data.content?.[0]?.text || "");
       } catch { setResponse(lang === "ja" ? jaFallback : enFallback); }
       setLoading(false);
@@ -1999,8 +1999,8 @@ Keep it under 220 words, emoji section headers.`;
       const enFallback = `📍 Fishing near ${locationStr}\n\n🎯 Top Spot Right Now\n${nearestSpots[0]?.name || "Nearest spot"} (${nearestSpots[0]?.distKm || "?"}km away) is your best bet this ${monthName}.\n\n🐟 Target Species\n${peakFish || "Bass and Squid"} are active. Check local water temps before heading out.\n\n💡 Local Tip\nThe 2-hour windows at dawn and dusk are everything. Weather can shift — bring layers.\n\n🚗 Worth the Drive\n${nearestSpots[1]?.name || "Next nearest"} (${nearestSpots[1]?.distKm || "?"}km) is worth it if conditions are right.`;
 
       try {
-        const res = await fetch("/api/claude", {
-          method: "POST", headers: { "Content-Type": "application/json" },
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST", headers: { "Content-Type": "application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_KEY, "anthropic-version": "2023-06-01" },
           body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200,
             messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] })
         });
@@ -2195,9 +2195,9 @@ export default function CastWiseJapan() {
       const mediaType = dataUrl.split(";")[0].split(":")[1] || "image/jpeg";
 
       try {
-        const res = await fetch("/api/claude", {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_KEY, "anthropic-version": "2023-06-01" },
           body: JSON.stringify({
             model: "claude-sonnet-4-20250514",
             max_tokens: 1000,
