@@ -1,5 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import React from "react";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
+
+// ─── FIREBASE ────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCy0qh48dgp31-2xcI1YV3R73qTJGs4tFM",
+  authDomain: "castwise-fly.firebaseapp.com",
+  projectId: "castwise-fly",
+  storageBucket: "castwise-fly.firebasestorage.app",
+  messagingSenderId: "468608071051",
+  appId: "1:468608071051:web:3d6812edbcf5aacde52b8e",
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
 
 const T = {
   appTagline: { ja: "もっと賢く釣る", en: "fish smarter · catch more" },
@@ -2263,13 +2277,47 @@ If this is NOT a fish or the image is unclear, return:
   }
 
   function submitCatch() {
-    if (!newCatch.fish || !newCatch.weight || !newCatch.location) return;
-    const entry = { id: Date.now(), ...newCatch, user: profile.name, avatar: profile.avatar, date: { ja: "今日", en: "Today" }, emoji: "🎣", likes: 0, comments: [], rating: 0, verified: true };
+    if (!newCatch.fish) return;
+    const entry = {
+      id: Date.now(),
+      ...newCatch,
+      location: newCatch.location || (lang === "ja" ? "場所未入力" : "Location not set"),
+      user: profile.name,
+      avatar: profile.avatar,
+      date: { ja: "今日", en: "Today" },
+      emoji: "🎣",
+      likes: 0,
+      comments: [],
+      rating: 0,
+      verified: true,
+      createdAt: Date.now(),
+    };
     setMyCatches(p => [entry, ...p]);
     setCatches(p => [entry, ...p]);
+    // Save to Firestore (strip photo to avoid 1MB limit — store separately if needed)
+    const { photo, ...entryNoPhoto } = entry;
+    addDoc(collection(db, "catches"), { ...entryNoPhoto, hasPhoto: !!photo }).catch(console.warn);
     setNewCatch({ fish: "", weight: "", location: "", notes: "", photo: null, method: "lure" });
     setPhotoPreview(null); setFishIDResult(null); setLogOpen(false);
   }
+
+  // Load catches from Firestore on startup
+  useEffect(() => {
+    const q = query(collection(db, "catches"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      const loaded = snap.docs.map(d => ({ ...d.data(), firestoreId: d.id }));
+      if (loaded.length > 0) {
+        setCatches(prev => {
+          // Merge: keep local entries not yet in Firestore, add Firestore entries
+          const firestoreIds = new Set(loaded.map(c => c.id));
+          const localOnly = prev.filter(c => !firestoreIds.has(c.id));
+          return [...localOnly, ...loaded];
+        });
+        setMyCatches(loaded.filter(c => c.user === profile.name));
+      }
+    }, (err) => console.warn("Firestore listen error:", err));
+    return () => unsub();
+  }, []);
 
   return (
     <div style={{ fontFamily: "'Noto Sans JP','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif", background: "#f5f0e8", minHeight: "100vh", color: "#1a1a14", maxWidth: 430, margin: "0 auto", position: "relative", boxShadow: "0 4px 40px rgba(0,0,0,0.12)", fontSize: "16px", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
@@ -2790,7 +2838,7 @@ If this is NOT a fish or the image is unclear, return:
                     ))}
                     <textarea value={newCatch.notes} onChange={e => setNewCatch(p => ({ ...p, notes: e.target.value }))} placeholder={lang === "ja" ? "メモ（フライパターン・状況・テクニック）" : "Notes (fly pattern, conditions, technique)"} rows={3} style={{ width: "100%", marginBottom: 10, background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", color: "#1a1a14", fontSize: "0.92rem", resize: "vertical" }} />
                     <div style={{ display: "flex", gap: 6 }}>
-                      <button onClick={submitCatch} style={{ flex: 2, padding: "10px", background: "#d0eae8", border: "2px solid #80b0c8", borderRadius: 9, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>{s("saveshare", lang)}</button>
+                      <button onClick={submitCatch} style={{ flex: 2, padding: "10px", background: newCatch.fish ? "#d0eae8" : "#e8e3d8", border: `2px solid ${newCatch.fish ? "#80b0c8" : "#c4bfb4"}`, borderRadius: 9, color: newCatch.fish ? "#0d7377" : "#9a9a8a", cursor: newCatch.fish ? "pointer" : "not-allowed", fontFamily: "inherit", fontWeight: 700 }}>{s("saveshare", lang)}</button>
                       <button onClick={() => { setLogOpen(false); setPhotoPreview(null); setFishIDResult(null); }} style={{ flex: 1, padding: "10px", background: "#fffdf8", border: "2px solid #d4cfc4", borderRadius: 9, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit" }}>{s("cancel", lang)}</button>
                     </div>
                   </div>
