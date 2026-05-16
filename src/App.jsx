@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import React from "react";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "firebase/firestore";
+import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 
 // ─── FIREBASE ────────────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -14,6 +15,7 @@ const firebaseConfig = {
 };
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 
 const T = {
   appTagline: { ja: "もっと賢く釣る", en: "fish smarter · catch more" },
@@ -2276,7 +2278,7 @@ If this is NOT a fish or the image is unclear, return:
     reader.readAsDataURL(file);
   }
 
-  function submitCatch() {
+  async function submitCatch() {
     if (!newCatch.fish) return;
     const now = Date.now();
     const entry = {
@@ -2302,27 +2304,51 @@ If this is NOT a fish or the image is unclear, return:
     setMyCatches(p => [entry, ...p]);
     setCatches(p => [entry, ...p]);
 
-    // Save to Firestore — strip photo (too large) and simplify date
-    const firestoreEntry = {
-      id: entry.id,
-      fish: entry.fish,
-      weight: entry.weight,
-      location: entry.location,
-      notes: entry.notes,
-      method: entry.method,
-      user: entry.user,
-      avatar: entry.avatar,
-      dateJa: "今日",
-      dateEn: "Today",
-      likes: 0,
-      comments: [],
-      rating: 0,
-      verified: true,
-      createdAt: now,
-    };
-    addDoc(collection(db, "catches"), firestoreEntry)
-      .then(() => console.log("Saved to Firestore"))
-      .catch(err => console.warn("Firestore save failed:", err));
+    // Upload photo to Firebase Storage if present, then save to Firestore
+    async function saveToFirestore(photoURL = null) {
+      const firestoreEntry = {
+        id: entry.id,
+        fish: entry.fish,
+        weight: entry.weight,
+        location: entry.location,
+        notes: entry.notes,
+        method: entry.method,
+        user: entry.user,
+        avatar: entry.avatar,
+        dateJa: "今日",
+        dateEn: "Today",
+        likes: 0,
+        comments: [],
+        rating: 0,
+        verified: true,
+        createdAt: now,
+        photoURL: photoURL || null,
+      };
+      try {
+        await addDoc(collection(db, "catches"), firestoreEntry);
+        console.log("Saved to Firestore");
+      } catch (err) {
+        console.warn("Firestore save failed:", err);
+      }
+    }
+
+    if (newCatch.photo) {
+      try {
+        const photoRef = ref(storage, `catches/${now}.jpg`);
+        await uploadString(photoRef, newCatch.photo, "data_url");
+        const photoURL = await getDownloadURL(photoRef);
+        // Update local entry with real URL
+        const entryWithPhoto = { ...entry, photo: photoURL };
+        setMyCatches(p => [entryWithPhoto, ...p.slice(1)]);
+        setCatches(p => [entryWithPhoto, ...p.slice(1)]);
+        await saveToFirestore(photoURL);
+      } catch (err) {
+        console.warn("Photo upload failed:", err);
+        await saveToFirestore(null);
+      }
+    } else {
+      await saveToFirestore(null);
+    }
 
     setNewCatch({ fish: "", weight: "", location: "", notes: "", photo: null, method: "lure" });
     setPhotoPreview(null);
@@ -2338,6 +2364,7 @@ If this is NOT a fish or the image is unclear, return:
         const data = d.data();
         return {
           ...data,
+          photo: data.photoURL || null,
           date: { ja: data.dateJa || "記録済", en: data.dateEn || "Logged" },
           comments: data.comments || [],
           firestoreId: d.id,
