@@ -2177,10 +2177,88 @@ export default function CastWiseJapan() {
     setCommentText(""); setCommentOpen(null);
   }
 
+  const [fishIDResult, setFishIDResult] = useState(null);
+  const [fishIDLoading, setFishIDLoading] = useState(false);
+
   function handlePhoto(e) {
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = ev => { setPhotoPreview(ev.target.result); setNewCatch(p => ({ ...p, photo: ev.target.result })); };
+    reader.onload = async (ev) => {
+      const dataUrl = ev.target.result;
+      setPhotoPreview(dataUrl);
+      setNewCatch(p => ({ ...p, photo: dataUrl }));
+      setFishIDResult(null);
+      setFishIDLoading(true);
+
+      // Strip the data:image/...;base64, prefix to get raw base64
+      const base64 = dataUrl.split(",")[1];
+      const mediaType = dataUrl.split(";")[0].split(":")[1] || "image/jpeg";
+
+      try {
+        const res = await fetch("/api/claude", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1000,
+            messages: [{
+              role: "user",
+              content: [
+                {
+                  type: "image",
+                  source: { type: "base64", media_type: mediaType, data: base64 }
+                },
+                {
+                  type: "text",
+                  text: `You are an expert Japanese fisheries biologist and fishing guide. Analyze this photo and respond in JSON only — no markdown, no extra text.
+
+If this is a fish photo, return:
+{
+  "isFish": true,
+  "species": { "ja": "Japanese species name", "en": "English species name" },
+  "confidence": "high|medium|low",
+  "estimatedLength": "estimated length in cm, e.g. 32cm",
+  "estimatedWeight": "estimated weight in kg, e.g. 0.8 kg",
+  "description": { "ja": "2-sentence Japanese description of the fish and any notable features visible", "en": "2-sentence English description" },
+  "regulations": {
+    "minSize": "minimum keep size in cm if known, else null",
+    "note": { "ja": "key regulation note for Japan in Japanese", "en": "key regulation note in English" }
+  },
+  "condition": { "ja": "fish condition assessment in Japanese (e.g. 状態良好・リリース推奨)", "en": "condition assessment in English" },
+  "isKeepable": true
+}
+
+If this is NOT a fish or the image is unclear, return:
+{
+  "isFish": false,
+  "message": { "ja": "説明", "en": "explanation" }
+}`
+                }
+              ]
+            }]
+          })
+        });
+
+        const data = await res.json();
+        const text = data.content?.[0]?.text || "";
+        const clean = text.replace(/```json|```/g, "").trim();
+        const result = JSON.parse(clean);
+        setFishIDResult(result);
+
+        // Auto-fill the form if fish detected with high/medium confidence
+        if (result.isFish && result.confidence !== "low") {
+          setNewCatch(p => ({
+            ...p,
+            fish: lang === "ja" ? result.species.ja : result.species.en,
+            weight: result.estimatedWeight || p.weight,
+          }));
+        }
+      } catch (err) {
+        console.warn("Fish ID failed:", err);
+        setFishIDResult({ isFish: false, message: { ja: "識別できませんでした", en: "Could not identify" } });
+      }
+      setFishIDLoading(false);
+    };
     reader.readAsDataURL(file);
   }
 
@@ -2190,7 +2268,7 @@ export default function CastWiseJapan() {
     setMyCatches(p => [entry, ...p]);
     setCatches(p => [entry, ...p]);
     setNewCatch({ fish: "", weight: "", location: "", notes: "", photo: null, method: "lure" });
-    setPhotoPreview(null); setLogOpen(false);
+    setPhotoPreview(null); setFishIDResult(null); setLogOpen(false);
   }
 
   return (
@@ -2619,9 +2697,87 @@ export default function CastWiseJapan() {
                 {logOpen && (
                   <div style={{ background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 15, padding: 13, marginBottom: 11, animation: "fadeUp 0.3s ease" }}>
                     <div style={{ fontWeight: 700, marginBottom: 10, color: "#0d7377", fontSize: "1rem" }}>🎣 {lang === "ja" ? "釣果を記録" : "Record Your Catch"}</div>
-                    <div onClick={() => fileRef.current.click()} style={{ height: 100, border: "2px dashed #a0c8d0", borderRadius: 11, marginBottom: 9, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", background: photoPreview ? "transparent" : "rgba(72,202,228,0.03)", overflow: "hidden" }}>
-                      {photoPreview ? <img src={photoPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ textAlign: "center", color: "#5a5a4a" }}><div style={{ fontSize: "1.5rem" }}>📸</div><div style={{ fontSize: "0.95rem", marginTop: 3 }}>{s("addPhoto", lang)}</div></div>}
+                    <div onClick={() => !photoPreview && fileRef.current.click()}
+                      style={{ minHeight: 110, border: "2px dashed #a0c8d0", borderRadius: 11, marginBottom: 9, cursor: photoPreview ? "default" : "pointer", background: photoPreview ? "transparent" : "#f0f8f8", overflow: "hidden", position: "relative" }}>
+                      {photoPreview ? (
+                        <>
+                          <img src={photoPreview} alt="" style={{ width: "100%", maxHeight: 160, objectFit: "cover", display: "block" }} />
+                          <button onClick={(e) => { e.stopPropagation(); setPhotoPreview(null); setFishIDResult(null); setNewCatch(p => ({ ...p, photo: null })); fileRef.current.click(); }}
+                            style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.6)", border: "none", borderRadius: 8, padding: "4px 10px", color: "white", cursor: "pointer", fontSize: "0.82rem" }}>
+                            {lang === "ja" ? "📷 変更" : "📷 Change"}
+                          </button>
+                        </>
+                      ) : (
+                        <div style={{ textAlign: "center", padding: "24px 16px", color: "#5a5a4a" }}>
+                          <div style={{ fontSize: "2rem", marginBottom: 6 }}>📸</div>
+                          <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 4 }}>
+                            {lang === "ja" ? "写真を撮影・選択" : "Take or choose a photo"}
+                          </div>
+                          <div style={{ fontSize: "0.82rem", color: "#0d7377" }}>
+                            🤖 {lang === "ja" ? "AIが魚種を自動識別します" : "AI will auto-identify the species"}
+                          </div>
+                        </div>
+                      )}
                     </div>
+
+                    {/* AI Fish ID Loading */}
+                    {fishIDLoading && (
+                      <div style={{ background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 12, padding: "14px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 12, animation: "fadeUp 0.3s ease" }}>
+                        <div style={{ fontSize: "1.8rem", animation: "spin 1s linear infinite" }}>🔍</div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#0d7377" }}>{lang === "ja" ? "AIが魚を識別中..." : "AI identifying fish..."}</div>
+                          <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>{lang === "ja" ? "種類・サイズ・規制を確認しています" : "Checking species, size & regulations"}</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AI Fish ID Result */}
+                    {fishIDResult && !fishIDLoading && (
+                      <div style={{ borderRadius: 12, marginBottom: 10, overflow: "hidden", animation: "fadeUp 0.3s ease", border: `2px solid ${fishIDResult.isFish ? (fishIDResult.isKeepable ? "#2d7a3a" : "#c06a10") : "#b82030"}` }}>
+                        {fishIDResult.isFish ? (
+                          <>
+                            <div style={{ background: fishIDResult.isKeepable ? "#d8f0d8" : "#f8e8d0", padding: "12px 14px" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                                <div>
+                                  <div style={{ fontWeight: 900, fontSize: "1.15rem" }}>{fishIDResult.species?.[lang]}</div>
+                                  <div style={{ fontSize: "0.82rem", color: "#5a5a4a", marginTop: 2 }}>{fishIDResult.species?.[lang === "ja" ? "en" : "ja"]}</div>
+                                </div>
+                                <span style={{ background: fishIDResult.confidence === "high" ? "#2d7a3a" : fishIDResult.confidence === "medium" ? "#c06a10" : "#b82030", color: "white", borderRadius: 99, padding: "3px 10px", fontSize: "0.75rem", fontWeight: 700 }}>
+                                  {fishIDResult.confidence === "high" ? (lang === "ja" ? "高精度" : "High") : fishIDResult.confidence === "medium" ? (lang === "ja" ? "中精度" : "Medium") : (lang === "ja" ? "低精度" : "Low")}
+                                </span>
+                              </div>
+                            </div>
+                            <div style={{ background: "#fffdf8", padding: "10px 14px", display: "flex", gap: 16, flexWrap: "wrap" }}>
+                              {fishIDResult.estimatedLength && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "推定サイズ" : "Est. Length"}</div><div style={{ fontWeight: 700 }}>📏 {fishIDResult.estimatedLength}</div></div>}
+                              {fishIDResult.estimatedWeight && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "推定重量" : "Est. Weight"}</div><div style={{ fontWeight: 700 }}>⚖️ {fishIDResult.estimatedWeight}</div></div>}
+                              {fishIDResult.condition && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "状態" : "Condition"}</div><div style={{ fontWeight: 700, fontSize: "0.88rem" }}>{fishIDResult.condition?.[lang]}</div></div>}
+                            </div>
+                            {fishIDResult.description?.[lang] && (
+                              <div style={{ background: "#f8f4ec", padding: "10px 14px", fontSize: "0.88rem", color: "#3a3a2a", lineHeight: 1.6 }}>{fishIDResult.description[lang]}</div>
+                            )}
+                            {fishIDResult.regulations && (
+                              <div style={{ background: fishIDResult.isKeepable ? "#d8f0d8" : "#f8e8d0", padding: "10px 14px", borderTop: "1px solid #e0dbd0" }}>
+                                <div style={{ fontWeight: 700, fontSize: "0.88rem", marginBottom: 4, color: fishIDResult.isKeepable ? "#2d7a3a" : "#c06a10" }}>
+                                  {fishIDResult.isKeepable ? "✅" : "⚠️"} {lang === "ja" ? "規制情報" : "Regulations"}
+                                  {fishIDResult.regulations.minSize && <span style={{ marginLeft: 8, fontWeight: 400, fontSize: "0.82rem" }}>{lang === "ja" ? `最小キープサイズ: ${fishIDResult.regulations.minSize}cm` : `Min keep: ${fishIDResult.regulations.minSize}cm`}</span>}
+                                </div>
+                                <div style={{ fontSize: "0.85rem", color: "#3a3a2a" }}>{fishIDResult.regulations.note?.[lang]}</div>
+                              </div>
+                            )}
+                            {fishIDResult.confidence !== "low" && (
+                              <div style={{ background: "#e0f2f2", padding: "8px 14px", fontSize: "0.82rem", color: "#0d7377", fontWeight: 600 }}>
+                                ✓ {lang === "ja" ? "魚種・重量を自動入力しました" : "Species & weight auto-filled below"}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div style={{ background: "#f8f4ec", padding: "14px", display: "flex", gap: 10, alignItems: "center" }}>
+                            <div style={{ fontSize: "1.5rem" }}>🤷</div>
+                            <div style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{fishIDResult.message?.[lang]}</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} style={{ display: "none" }} />
                     {/* Method toggle */}
                     <div style={{ display: "flex", gap: 6, marginBottom: 9 }}>
@@ -2635,7 +2791,7 @@ export default function CastWiseJapan() {
                     <textarea value={newCatch.notes} onChange={e => setNewCatch(p => ({ ...p, notes: e.target.value }))} placeholder={lang === "ja" ? "メモ（フライパターン・状況・テクニック）" : "Notes (fly pattern, conditions, technique)"} rows={3} style={{ width: "100%", marginBottom: 10, background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", color: "#1a1a14", fontSize: "0.92rem", resize: "vertical" }} />
                     <div style={{ display: "flex", gap: 6 }}>
                       <button onClick={submitCatch} style={{ flex: 2, padding: "10px", background: "#d0eae8", border: "2px solid #80b0c8", borderRadius: 9, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>{s("saveshare", lang)}</button>
-                      <button onClick={() => { setLogOpen(false); setPhotoPreview(null); }} style={{ flex: 1, padding: "10px", background: "#fffdf8", border: "2px solid #d4cfc4", borderRadius: 9, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit" }}>{s("cancel", lang)}</button>
+                      <button onClick={() => { setLogOpen(false); setPhotoPreview(null); setFishIDResult(null); }} style={{ flex: 1, padding: "10px", background: "#fffdf8", border: "2px solid #d4cfc4", borderRadius: 9, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit" }}>{s("cancel", lang)}</button>
                     </div>
                   </div>
                 )}
