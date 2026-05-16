@@ -986,81 +986,178 @@ const LEADERBOARD = [
   { rank: 7, user: "アジングプロ", avatar: "🎯", points: 6190, catches: 298, topFish: { ja: "アジ", en: "Mackerel" }, badge: "⭐", streak: 9 },
 ];
 
-const WEATHER = { temp: 14, feels: 11, condition: { ja: "くもり時々晴れ", en: "Partly Cloudy" }, humidity: 71, wind: { ja: "北北東 4m/s", en: "NNE 4m/s" }, fishingIndex: 88, moonPhase: { ja: "上弦の月 🌔", en: "Waxing Gibbous 🌔" }, waterTemp: 11, waterClarity: { ja: "澄み", en: "Clear" }, flow: { ja: "やや速い", en: "Moderate-Fast" }, uvIndex: 2, hourly: [{ time: "6時", temp: 10, icon: "🌤️", fishing: 92 }, { time: "8時", temp: 12, icon: "⛅", fishing: 96 }, { time: "10時", temp: 14, icon: "🌤️", fishing: 85 }, { time: "12時", temp: 16, icon: "☀️", fishing: 68 }, { time: "14時", temp: 17, icon: "☀️", fishing: 62 }, { time: "16時", temp: 15, icon: "⛅", fishing: 79 }, { time: "18時", temp: 13, icon: "🌅", fishing: 94 }, { time: "20時", temp: 10, icon: "🌙", fishing: 88 }], tides: [{ time: "5:38", type: "high" }, { time: "12:04", type: "low" }, { time: "18:22", type: "high" }] };
-
-// ─── SPOT COORDINATES ────────────────────────────────────────────────────────
-// Real lat/lng for every fishing spot in the app
-const SPOT_COORDS = {
-  "長良川（岐阜）":         { lat: 35.41,  lng: 136.72 },
-  "奥多摩川（東京）":       { lat: 35.79,  lng: 139.09 },
-  "神流川（群馬）":         { lat: 36.25,  lng: 138.95 },
-  "四万十川（高知）":       { lat: 33.09,  lng: 132.93 },
-  "琵琶湖（滋賀）":         { lat: 35.27,  lng: 136.07 },
-  "亀山ダム（千葉）":       { lat: 35.23,  lng: 140.05 },
-  "相模湖（神奈川）":       { lat: 35.62,  lng: 139.16 },
-  "球磨川（熊本）":         { lat: 32.48,  lng: 130.71 },
-  "只見川（福島）":         { lat: 37.34,  lng: 139.23 },
-  "庄川（富山）":           { lat: 36.56,  lng: 137.05 },
-  "東京湾・運河エリア":     { lat: 35.63,  lng: 139.78 },
-  "大阪湾・尼崎運河":       { lat: 34.72,  lng: 135.41 },
-  "多摩川河口（神奈川）":   { lat: 35.55,  lng: 139.75 },
-  "早川（山梨・南アルプス）":{ lat: 35.45, lng: 138.38 },
-  "只見川源流（福島）":     { lat: 37.20,  lng: 139.05 },
-  "黒部川（富山）":         { lat: 36.88,  lng: 137.62 },
-  "明石海峡（兵庫）":       { lat: 34.62,  lng: 135.01 },
-  "三河湾（愛知）":         { lat: 34.75,  lng: 137.11 },
-  "若狭湾（福井）":         { lat: 35.57,  lng: 135.77 },
-  "真鶴港（神奈川）":       { lat: 35.32,  lng: 139.13 },
-  "和歌山・雑賀崎":         { lat: 34.20,  lng: 135.15 },
-  "長崎・野母崎":           { lat: 32.58,  lng: 129.75 },
-  "九十九里浜（千葉）":     { lat: 35.59,  lng: 140.42 },
-  "鹿島灘（茨城）":         { lat: 36.14,  lng: 140.66 },
-  "遠州灘（静岡）":         { lat: 34.70,  lng: 137.84 },
-  "亀山湖（千葉）":         { lat: 35.23,  lng: 140.05 },
-  "印旛沼（千葉）":         { lat: 35.73,  lng: 140.20 },
-  "霞ヶ浦（茨城）":         { lat: 36.02,  lng: 140.39 },
-  "利根川（千葉/茨城）":    { lat: 35.87,  lng: 140.60 },
-  "河口湖（山梨）":         { lat: 35.50,  lng: 138.75 },
-  "日光・中禅寺湖（栃木）": { lat: 36.74,  lng: 139.48 },
-  "忍野八海（山梨）":       { lat: 35.46,  lng: 138.85 },
-  "芦ノ湖（神奈川）":       { lat: 35.19,  lng: 139.02 },
-  "佐賀・唐津沖":           { lat: 33.45,  lng: 129.97 },
-  "三重・英虞湾":           { lat: 34.30,  lng: 136.85 },
-  "高知・室戸岬":           { lat: 33.25,  lng: 134.16 },
-  "富山湾（富山）":         { lat: 36.80,  lng: 137.20 },
-  "鳥取・境港沖":           { lat: 35.54,  lng: 133.23 },
-  "長崎・壱岐沖":           { lat: 33.75,  lng: 129.69 },
-  "神奈川・三浦半島磯":     { lat: 35.13,  lng: 139.62 },
-  "和歌山・白浜磯":         { lat: 33.68,  lng: 135.37 },
-  "長崎・五島列島":         { lat: 32.70,  lng: 128.84 },
-  "大分・蒲江地磯":         { lat: 32.78,  lng: 132.00 },
-  "高知・足摺岬":           { lat: 32.73,  lng: 132.98 },
-  "静岡・御前崎":           { lat: 34.60,  lng: 138.22 },
-  "横浜港・山下ふ頭":       { lat: 35.44,  lng: 139.65 },
-  "神戸港・ポートアイランド":{ lat: 34.67, lng: 135.20 },
-  "松山港（愛媛）":         { lat: 33.85,  lng: 132.70 },
+// ─── WEATHER UTILS ───────────────────────────────────────────────────────────
+// WMO weather code → condition label + icon
+// https://open-meteo.com/en/docs#weathervariables
+const WMO_CONDITIONS = {
+  0:  { ja: "快晴",           en: "Clear Sky",        icon: "☀️" },
+  1:  { ja: "ほぼ晴れ",       en: "Mainly Clear",     icon: "🌤️" },
+  2:  { ja: "時々くもり",     en: "Partly Cloudy",    icon: "⛅" },
+  3:  { ja: "くもり",         en: "Overcast",         icon: "☁️" },
+  45: { ja: "霧",             en: "Foggy",            icon: "🌫️" },
+  48: { ja: "霧氷",           en: "Icy Fog",          icon: "🌫️" },
+  51: { ja: "霧雨（弱）",     en: "Light Drizzle",    icon: "🌦️" },
+  53: { ja: "霧雨",           en: "Drizzle",          icon: "🌦️" },
+  55: { ja: "霧雨（強）",     en: "Heavy Drizzle",    icon: "🌧️" },
+  61: { ja: "小雨",           en: "Light Rain",       icon: "🌧️" },
+  63: { ja: "雨",             en: "Rain",             icon: "🌧️" },
+  65: { ja: "大雨",           en: "Heavy Rain",       icon: "🌧️" },
+  71: { ja: "小雪",           en: "Light Snow",       icon: "🌨️" },
+  73: { ja: "雪",             en: "Snow",             icon: "❄️" },
+  75: { ja: "大雪",           en: "Heavy Snow",       icon: "❄️" },
+  80: { ja: "にわか雨",       en: "Rain Showers",     icon: "🌦️" },
+  81: { ja: "にわか雨（強）", en: "Heavy Showers",    icon: "⛈️" },
+  95: { ja: "雷雨",           en: "Thunderstorm",     icon: "⛈️" },
+  99: { ja: "ひょうを伴う雷雨", en: "Hail Thunderstorm", icon: "⛈️" },
 };
 
-// Haversine distance in km between two lat/lng points
-function distKm(lat1, lng1, lat2, lng2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function wmoToCondition(code) {
+  return WMO_CONDITIONS[code] || { ja: "天気情報なし", en: "Unknown", icon: "🌡️" };
 }
 
-// Enrich spots array with real distance from user location
-function enrichSpots(spots, userLat, userLng) {
-  return spots.map(sp => {
-    const coords = SPOT_COORDS[sp.name];
-    if (!coords || !userLat) return { ...sp, distKm: null };
-    return { ...sp, distKm: Math.round(distKm(userLat, userLng, coords.lat, coords.lng)) };
-  }).sort((a, b) => {
-    if (a.distKm === null) return 1;
-    if (b.distKm === null) return -1;
-    return a.distKm - b.distKm;
+// Wind direction degrees → compass label
+function windDir(deg, lang) {
+  const dirs = lang === "ja"
+    ? ["北","北北東","北東","東北東","東","東南東","南東","南南東","南","南南西","南西","西南西","西","西北西","北西","北北西"]
+    : ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
+// Fishing index 0-100 based on weather conditions
+function calcFishingIndex(wmoCode, windspeed, temp, isDay) {
+  let score = 80;
+  // Rain penalty
+  if (wmoCode >= 61 && wmoCode <= 67) score -= 20;
+  if (wmoCode >= 80) score -= 15;
+  if (wmoCode >= 95) score -= 30;
+  // Overcast is good for fishing
+  if (wmoCode === 2 || wmoCode === 3) score += 5;
+  // Strong wind penalty
+  if (windspeed > 30) score -= 25;
+  else if (windspeed > 20) score -= 15;
+  else if (windspeed > 10) score -= 5;
+  else if (windspeed < 5) score += 5; // calm is great
+  // Temperature
+  if (temp < 5 || temp > 35) score -= 10;
+  if (temp >= 10 && temp <= 25) score += 5;
+  // Overcast+mild = ideal
+  if ((wmoCode === 2 || wmoCode === 3) && temp >= 10 && temp <= 22) score += 8;
+  return Math.min(100, Math.max(10, Math.round(score)));
+}
+
+// Estimate moon phase emoji from date
+function moonPhaseEmoji(lang) {
+  const phases = [
+    { ja: "新月 🌑", en: "New Moon 🌑" },
+    { ja: "三日月 🌒", en: "Waxing Crescent 🌒" },
+    { ja: "上弦の月 🌓", en: "First Quarter 🌓" },
+    { ja: "十三夜 🌔", en: "Waxing Gibbous 🌔" },
+    { ja: "満月 🌕", en: "Full Moon 🌕" },
+    { ja: "十六夜 🌖", en: "Waning Gibbous 🌖" },
+    { ja: "下弦の月 🌗", en: "Last Quarter 🌗" },
+    { ja: "有明月 🌘", en: "Waning Crescent 🌘" },
+  ];
+  const epoch = new Date("2000-01-06").getTime(); // known new moon
+  const cycle = 29.53 * 24 * 60 * 60 * 1000;
+  const phase = Math.floor(((Date.now() - epoch) % cycle) / cycle * 8);
+  return phases[phase][lang];
+}
+
+// Build hourly data from Open-Meteo hourly arrays for today only
+function buildHourlySlots(times, temps, codes, lat) {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const TARGET_HOURS = [6, 8, 10, 12, 14, 16, 18, 20];
+  const slots = [];
+  TARGET_HOURS.forEach(hr => {
+    const timeStr = `${todayStr}T${String(hr).padStart(2,"0")}:00`;
+    const idx = times.indexOf(timeStr);
+    if (idx < 0) return;
+    const code = codes[idx];
+    const cond = wmoToCondition(code);
+    const fi = calcFishingIndex(code, 0, temps[idx], hr >= 6 && hr <= 18);
+    slots.push({
+      time: `${hr}${lat > 0 ? "時" : "h"}`,
+      temp: Math.round(temps[idx]),
+      icon: cond.icon,
+      fishing: fi,
+    });
   });
+  return slots.length ? slots : [
+    { time: "6時", temp: 14, icon: "🌤️", fishing: 85 },
+    { time: "12時", temp: 18, icon: "☀️", fishing: 70 },
+    { time: "18時", temp: 15, icon: "⛅", fishing: 88 },
+  ];
+}
+
+// Fallback static weather (shown while loading or if fetch fails)
+const WEATHER_FALLBACK = {
+  temp: 18, feels: 16,
+  condition: { ja: "取得中...", en: "Loading..." },
+  humidity: 65, wind: { ja: "－", en: "－" },
+  fishingIndex: 75, moonPhase: { ja: "取得中...", en: "Loading..." },
+  waterTemp: null, waterClarity: { ja: "－", en: "－" },
+  flow: { ja: "－", en: "－" }, uvIndex: null,
+  hourly: [], tides: [],
+  loaded: false,
+};
+
+// Hook that fetches real weather from Open-Meteo
+function useRealWeather(userLocation) {
+  const [weather, setWeather] = useState(WEATHER_FALLBACK);
+
+  useEffect(() => {
+    if (!userLocation) return;
+    const { lat, lng } = userLocation;
+
+    (async () => {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}` +
+          `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,windspeed_10m,winddirection_10m,uv_index,surface_pressure` +
+          `&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto&forecast_days=1` +
+          `&models=jma_seamless`; // JMA model — best for Japan
+
+        const res = await fetch(url);
+        const d = await res.json();
+        const c = d.current;
+        const code = c.weather_code;
+        const cond = wmoToCondition(code);
+        const windspd = Math.round(c.windspeed_10m * 1000 / 3600 * 10) / 10; // km/h → m/s
+        const windDirLabel = windDir(c.winddirection_10m, "ja");
+        const windDirLabelEn = windDir(c.winddirection_10m, "en");
+        const fi = calcFishingIndex(code, c.windspeed_10m, c.temperature_2m, true);
+        const hourly = buildHourlySlots(d.hourly.time, d.hourly.temperature_2m, d.hourly.weather_code, lat);
+
+        setWeather({
+          temp: Math.round(c.temperature_2m),
+          feels: Math.round(c.apparent_temperature),
+          condition: { ja: cond.ja, en: cond.en },
+          conditionIcon: cond.icon,
+          humidity: c.relative_humidity_2m,
+          wind: {
+            ja: `${windDirLabel} ${windspd.toFixed(1)}m/s`,
+            en: `${windDirLabelEn} ${windspd.toFixed(1)}m/s`,
+          },
+          fishingIndex: fi,
+          moonPhase: { ja: moonPhaseEmoji("ja"), en: moonPhaseEmoji("en") },
+          uvIndex: c.uv_index !== undefined ? Math.round(c.uv_index) : "－",
+          waterTemp: null, // would need marine API
+          waterClarity: { ja: "現地確認を", en: "Check locally" },
+          flow: { ja: "現地確認を", en: "Check locally" },
+          hourly,
+          tides: [], // would need tide API
+          loaded: true,
+          lat, lng,
+        });
+      } catch (err) {
+        console.warn("Weather fetch failed:", err);
+        // Keep fallback but mark as attempted
+        setWeather(w => ({ ...w, condition: { ja: "取得失敗", en: "Unavailable" }, loaded: true }));
+      }
+    })();
+  }, [userLocation?.lat, userLocation?.lng]);
+
+  return weather;
 }
 
 const MAP_SPOTS = [
@@ -1684,20 +1781,44 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
 }
 
 // ─── WEATHER VIEW ─────────────────────────────────────────────────────────────
-function WeatherView({ lang }) {
-  const fi = WEATHER.fishingIndex, fiColor = fi >= 80 ? "#74c69d" : fi >= 60 ? "#f4a261" : "#e63946";
+function WeatherView({ lang, weather }) {
+  const WEATHER = weather || {};
+  const fi = WEATHER.fishingIndex ?? 75;
+  const fiColor = fi >= 80 ? "#2d7a3a" : fi >= 60 ? "#c06a10" : "#b82030";
   const fiMsg = fi >= 80 ? s("excellent", lang) : fi >= 60 ? s("good", lang) : s("fair", lang);
+
+  const isLoading = !WEATHER.loaded;
+
   return (
     <div style={{ animation: "fadeUp 0.4s ease" }}>
-      <h2 style={{ margin: "0 0 4px", fontSize: "1.2rem" }}>{lang === "ja" ? "釣り天気予報" : "Fishing Weather"}</h2>
-      <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "今日のアングラー向け気象情報" : "Today's forecast for anglers"}</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+        <h2 style={{ margin: 0, fontSize: "1.2rem" }}>{lang === "ja" ? "釣り天気予報" : "Fishing Weather"}</h2>
+        {WEATHER.loaded ? (
+          <span style={{ fontSize: "0.78rem", color: "#0d7377", fontWeight: 600 }}>🌐 Open-Meteo · JMA</span>
+        ) : (
+          <span style={{ fontSize: "0.78rem", color: "#7a7a6a" }}>⏳ {lang === "ja" ? "位置情報待ち..." : "Waiting for GPS..."}</span>
+        )}
+      </div>
+      <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "現在地のリアル気象データ" : "Live weather at your location"}</p>
+
+      {isLoading && (
+        <div style={{ background: "#f0f8f8", border: "2px solid #a0c8d0", borderRadius: 16, padding: 20, marginBottom: 14, textAlign: "center" }}>
+          <div style={{ fontSize: "2.5rem", animation: "spin 2s linear infinite", display: "inline-block", marginBottom: 8 }}>🌤️</div>
+          <div style={{ fontWeight: 700, color: "#0d7377", marginBottom: 4 }}>
+            {lang === "ja" ? "天気データを取得中..." : "Fetching live weather..."}
+          </div>
+          <div style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>
+            {lang === "ja" ? "📍 位置情報を許可してください" : "📍 Please allow location access"}
+          </div>
+        </div>
+      )}
       <div style={{ background: "linear-gradient(135deg,#e0f2f2,#f0ebe0)", border: "1px solid rgba(72,202,228,0.22)", borderRadius: 20, padding: 18, marginBottom: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <div style={{ fontSize: "2.8rem", lineHeight: 1, fontWeight: 700 }}>{WEATHER.temp}℃</div>
             <div style={{ fontSize: "0.92rem", color: "#5a5a4a" }}>{lang === "ja" ? `体感${WEATHER.feels}℃` : `Feels ${WEATHER.feels}℃`} · {WEATHER.condition[lang]}</div>
             <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {[{ icon: "💨", v: WEATHER.wind[lang] }, { icon: "💧", v: `${WEATHER.humidity}%` }, { icon: "🌡️", v: `${lang === "ja" ? "水温" : "Water"}: ${WEATHER.waterTemp}℃` }, { icon: "🌙", v: WEATHER.moonPhase[lang] }].map(i => <span key={i.v} style={{ fontSize: "1rem", color: "#3a3a2a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{i.icon} {i.v}</span>)}
+              {[{ icon: "💨", v: WEATHER.wind?.[lang] || "－" }, { icon: "💧", v: `${WEATHER.humidity ?? "－"}%` }, { icon: "🌡️", v: WEATHER.waterTemp != null ? `${lang === "ja" ? "水温" : "Water"}: ${WEATHER.waterTemp}℃` : (lang === "ja" ? "水温: 現地確認" : "Water: check locally") }, { icon: "🌙", v: WEATHER.moonPhase?.[lang] || "－" }].map(i => <span key={i.v} style={{ fontSize: "1rem", color: "#3a3a2a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{i.icon} {i.v}</span>)}
             </div>
           </div>
           <ScoreRing score={fi} lang={lang} />
@@ -1710,7 +1831,7 @@ function WeatherView({ lang }) {
       <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
         <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em" }}>{lang === "ja" ? "時間別釣り指数" : "HOURLY FISHING INDEX"}</div>
         <div style={{ display: "flex", gap: 5, overflowX: "auto", paddingBottom: 4 }}>
-          {WEATHER.hourly.map(h => (
+          {(WEATHER.hourly || []).map(h => (
             <div key={h.time} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, minWidth: 42 }}>
               <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{h.time}</div>
               <div style={{ fontSize: "1rem" }}>{h.icon}</div>
@@ -1725,9 +1846,9 @@ function WeatherView({ lang }) {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
         {[
-          { icon: "🌊", la: { ja: "水温", en: "Water Temp" }, v: `${WEATHER.waterTemp}℃`, sub: { ja: "フライ最適: 8-16℃", en: "Fly optimal: 8–16℃" } },
-          { icon: "👁️", la: { ja: "水質", en: "Clarity" }, v: WEATHER.waterClarity[lang], sub: { ja: "ナチュラル系有効", en: "Natural colors work" } },
-          { icon: "💨", la: { ja: "流れ", en: "Current" }, v: WEATHER.flow[lang], sub: { ja: "ドリフト有効", en: "Good for drifting" } },
+          { icon: "🌊", la: { ja: "水温", en: "Water Temp" }, v: WEATHER.waterTemp != null ? `${WEATHER.waterTemp}℃` : (lang === "ja" ? "現地確認" : "Check locally"), sub: { ja: "フライ最適: 8-16℃", en: "Fly optimal: 8–16℃" } },
+          { icon: "👁️", la: { ja: "水質", en: "Clarity" }, v: WEATHER.waterClarity?.[lang] || "－", sub: { ja: "ナチュラル系有効", en: "Natural colors work" } },
+          { icon: "💨", la: { ja: "流れ", en: "Current" }, v: WEATHER.flow?.[lang] || "－", sub: { ja: "ドリフト有効", en: "Good for drifting" } },
           { icon: "🦋", la: { ja: "ハッチ予測", en: "Hatch Outlook" }, v: { ja: "BWO期待大", en: "BWO likely" }[lang], sub: { ja: "夕方のライズに注目", en: "Watch for evening rises" } },
         ].map(c => (
           <div key={c.la.ja} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: "12px 14px" }}>
@@ -1740,7 +1861,7 @@ function WeatherView({ lang }) {
       </div>
       <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16 }}>
         <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em" }}>{lang === "ja" ? "潮汐" : "TIDES"}</div>
-        {WEATHER.tides.map(td => (
+        {(WEATHER.tides || []).map(td => (
           <div key={td.time} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: "#fffdf8", borderRadius: 10, marginBottom: 6 }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <span style={{ fontSize: "1rem" }}>{td.type === "high" ? "🌊" : "🏖️"}</span>
@@ -1899,10 +2020,14 @@ export default function CastWiseJapan() {
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [pendingTab, setPendingTab] = useState(null);
   // Location state
-  const [userLocation, setUserLocation] = useState(null); // { lat, lng, city }
+  const [userLocation, setUserLocation] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [showLocalAI, setShowLocalAI] = useState(false);
+
+  // Live weather from Open-Meteo — updates when location is known
+  const WEATHER = useRealWeather(userLocation);
+
   const fileRef = useRef();
 
   // Request GPS on first load
@@ -2304,7 +2429,7 @@ export default function CastWiseJapan() {
         {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} />}
 
         {/* ── WEATHER ── */}
-        {tab === "Weather" && <WeatherView lang={lang} />}
+        {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} />}
 
         {/* ── COMMUNITY ── */}
         {tab === "Community" && (
