@@ -988,12 +988,92 @@ const LEADERBOARD = [
 
 const WEATHER = { temp: 14, feels: 11, condition: { ja: "くもり時々晴れ", en: "Partly Cloudy" }, humidity: 71, wind: { ja: "北北東 4m/s", en: "NNE 4m/s" }, fishingIndex: 88, moonPhase: { ja: "上弦の月 🌔", en: "Waxing Gibbous 🌔" }, waterTemp: 11, waterClarity: { ja: "澄み", en: "Clear" }, flow: { ja: "やや速い", en: "Moderate-Fast" }, uvIndex: 2, hourly: [{ time: "6時", temp: 10, icon: "🌤️", fishing: 92 }, { time: "8時", temp: 12, icon: "⛅", fishing: 96 }, { time: "10時", temp: 14, icon: "🌤️", fishing: 85 }, { time: "12時", temp: 16, icon: "☀️", fishing: 68 }, { time: "14時", temp: 17, icon: "☀️", fishing: 62 }, { time: "16時", temp: 15, icon: "⛅", fishing: 79 }, { time: "18時", temp: 13, icon: "🌅", fishing: 94 }, { time: "20時", temp: 10, icon: "🌙", fishing: 88 }], tides: [{ time: "5:38", type: "high" }, { time: "12:04", type: "low" }, { time: "18:22", type: "high" }] };
 
+// ─── SPOT COORDINATES ────────────────────────────────────────────────────────
+// Real lat/lng for every fishing spot in the app
+const SPOT_COORDS = {
+  "長良川（岐阜）":         { lat: 35.41,  lng: 136.72 },
+  "奥多摩川（東京）":       { lat: 35.79,  lng: 139.09 },
+  "神流川（群馬）":         { lat: 36.25,  lng: 138.95 },
+  "四万十川（高知）":       { lat: 33.09,  lng: 132.93 },
+  "琵琶湖（滋賀）":         { lat: 35.27,  lng: 136.07 },
+  "亀山ダム（千葉）":       { lat: 35.23,  lng: 140.05 },
+  "相模湖（神奈川）":       { lat: 35.62,  lng: 139.16 },
+  "球磨川（熊本）":         { lat: 32.48,  lng: 130.71 },
+  "只見川（福島）":         { lat: 37.34,  lng: 139.23 },
+  "庄川（富山）":           { lat: 36.56,  lng: 137.05 },
+  "東京湾・運河エリア":     { lat: 35.63,  lng: 139.78 },
+  "大阪湾・尼崎運河":       { lat: 34.72,  lng: 135.41 },
+  "多摩川河口（神奈川）":   { lat: 35.55,  lng: 139.75 },
+  "早川（山梨・南アルプス）":{ lat: 35.45, lng: 138.38 },
+  "只見川源流（福島）":     { lat: 37.20,  lng: 139.05 },
+  "黒部川（富山）":         { lat: 36.88,  lng: 137.62 },
+  "明石海峡（兵庫）":       { lat: 34.62,  lng: 135.01 },
+  "三河湾（愛知）":         { lat: 34.75,  lng: 137.11 },
+  "若狭湾（福井）":         { lat: 35.57,  lng: 135.77 },
+  "真鶴港（神奈川）":       { lat: 35.32,  lng: 139.13 },
+  "和歌山・雑賀崎":         { lat: 34.20,  lng: 135.15 },
+  "長崎・野母崎":           { lat: 32.58,  lng: 129.75 },
+  "九十九里浜（千葉）":     { lat: 35.59,  lng: 140.42 },
+  "鹿島灘（茨城）":         { lat: 36.14,  lng: 140.66 },
+  "遠州灘（静岡）":         { lat: 34.70,  lng: 137.84 },
+  "亀山湖（千葉）":         { lat: 35.23,  lng: 140.05 },
+  "印旛沼（千葉）":         { lat: 35.73,  lng: 140.20 },
+  "霞ヶ浦（茨城）":         { lat: 36.02,  lng: 140.39 },
+  "利根川（千葉/茨城）":    { lat: 35.87,  lng: 140.60 },
+  "河口湖（山梨）":         { lat: 35.50,  lng: 138.75 },
+  "日光・中禅寺湖（栃木）": { lat: 36.74,  lng: 139.48 },
+  "忍野八海（山梨）":       { lat: 35.46,  lng: 138.85 },
+  "芦ノ湖（神奈川）":       { lat: 35.19,  lng: 139.02 },
+  "佐賀・唐津沖":           { lat: 33.45,  lng: 129.97 },
+  "三重・英虞湾":           { lat: 34.30,  lng: 136.85 },
+  "高知・室戸岬":           { lat: 33.25,  lng: 134.16 },
+  "富山湾（富山）":         { lat: 36.80,  lng: 137.20 },
+  "鳥取・境港沖":           { lat: 35.54,  lng: 133.23 },
+  "長崎・壱岐沖":           { lat: 33.75,  lng: 129.69 },
+  "神奈川・三浦半島磯":     { lat: 35.13,  lng: 139.62 },
+  "和歌山・白浜磯":         { lat: 33.68,  lng: 135.37 },
+  "長崎・五島列島":         { lat: 32.70,  lng: 128.84 },
+  "大分・蒲江地磯":         { lat: 32.78,  lng: 132.00 },
+  "高知・足摺岬":           { lat: 32.73,  lng: 132.98 },
+  "静岡・御前崎":           { lat: 34.60,  lng: 138.22 },
+  "横浜港・山下ふ頭":       { lat: 35.44,  lng: 139.65 },
+  "神戸港・ポートアイランド":{ lat: 34.67, lng: 135.20 },
+  "松山港（愛媛）":         { lat: 33.85,  lng: 132.70 },
+};
+
+// Haversine distance in km between two lat/lng points
+function distKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// Enrich spots array with real distance from user location
+function enrichSpots(spots, userLat, userLng) {
+  return spots.map(sp => {
+    const coords = SPOT_COORDS[sp.name];
+    if (!coords || !userLat) return { ...sp, distKm: null };
+    return { ...sp, distKm: Math.round(distKm(userLat, userLng, coords.lat, coords.lng)) };
+  }).sort((a, b) => {
+    if (a.distKm === null) return 1;
+    if (b.distKm === null) return -1;
+    return a.distKm - b.distKm;
+  });
+}
+
 const MAP_SPOTS = [
-  { id: 1, name: "隅田川水門", fish: { ja: "シーバス", en: "Seabass" }, rating: 4.7, type: { ja: "河口", en: "Estuary" }, distance: "1.8 km", icon: "🦈" },
-  { id: 2, name: "お台場海浜公園", fish: { ja: "アジ・メバル", en: "Aji & Rockfish" }, rating: 4.5, type: { ja: "港湾", en: "Harbor" }, distance: "3.2 km", icon: "🐟" },
-  { id: 3, name: "荒川・葛西水門", fish: { ja: "シーバス", en: "Seabass" }, rating: 4.8, type: { ja: "河口", en: "Estuary" }, distance: "5.6 km", icon: "🦈" },
-  { id: 4, name: "多摩川・丸子橋", fish: { ja: "シーバス・バス", en: "Seabass & Bass" }, rating: 4.6, type: { ja: "河川", en: "River" }, distance: "8.0 km", icon: "🐟" },
-  { id: 5, name: "奥多摩川・白丸", fish: { ja: "ヤマメ（フライ）", en: "Yamame (fly fishing)" }, rating: 4.9, type: { ja: "渓流", en: "Stream" }, distance: "42 km", icon: "🪶" },
+  { id: 1, name: "隅田川水門",      fish: { ja: "シーバス",       en: "Seabass"         }, rating: 4.7, type: { ja: "河口",   en: "Estuary" }, icon: "🦈", lat: 35.694, lng: 139.803 },
+  { id: 2, name: "お台場海浜公園",  fish: { ja: "アジ・メバル",   en: "Aji & Rockfish"  }, rating: 4.5, type: { ja: "港湾",   en: "Harbor"  }, icon: "🐟", lat: 35.627, lng: 139.775 },
+  { id: 3, name: "荒川・葛西水門",  fish: { ja: "シーバス",       en: "Seabass"         }, rating: 4.8, type: { ja: "河口",   en: "Estuary" }, icon: "🦈", lat: 35.652, lng: 139.862 },
+  { id: 4, name: "多摩川・丸子橋",  fish: { ja: "シーバス・バス", en: "Seabass & Bass"  }, rating: 4.6, type: { ja: "河川",   en: "River"   }, icon: "🐟", lat: 35.578, lng: 139.670 },
+  { id: 5, name: "奥多摩川・白丸",  fish: { ja: "ヤマメ（フライ）",en: "Yamame (fly)"   }, rating: 4.9, type: { ja: "渓流",   en: "Stream"  }, icon: "🪶", lat: 35.793, lng: 139.093 },
+  { id: 6, name: "琵琶湖・南湖",    fish: { ja: "バス・ヘラブナ", en: "Bass & Herabuna" }, rating: 4.9, type: { ja: "湖",     en: "Lake"    }, icon: "🐟", lat: 35.100, lng: 135.920 },
+  { id: 7, name: "明石海峡",        fish: { ja: "マダイ・ブリ",   en: "Madai & Buri"   }, rating: 5.0, type: { ja: "海峡",   en: "Channel" }, icon: "🐟", lat: 34.618, lng: 135.012 },
+  { id: 8, name: "佐賀・唐津沖",    fish: { ja: "アオリイカ",     en: "Squid"          }, rating: 5.0, type: { ja: "沿岸",   en: "Coast"   }, icon: "🦑", lat: 33.450, lng: 129.970 },
+  { id: 9, name: "長良川（岐阜）",  fish: { ja: "アユ・ヤマメ",   en: "Ayu & Yamame"   }, rating: 5.0, type: { ja: "清流",   en: "River"   }, icon: "🐠", lat: 35.410, lng: 136.720 },
+  { id: 10, name: "四万十川（高知）",fish: { ja: "アユ・テナガエビ",en: "Ayu & Prawn"   }, rating: 4.9, type: { ja: "清流",   en: "River"   }, icon: "🐠", lat: 33.090, lng: 132.930 },
 ];
 
 // ─── SEASONAL COMPONENTS ─────────────────────────────────────────────────────
@@ -1413,14 +1493,37 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
 }
 
 // ─── MAP VIEW ────────────────────────────────────────────────────────────────
-function MapView({ selectedFish, lang }) {
+function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
   const [activeSpot, setActiveSpot] = useState(null);
-  const spots = selectedFish
-    ? selectedFish.spots.map((sp, i) => ({ ...sp, id: i + 100, fish: selectedFish.name, icon: selectedFish.emoji, distance: `${(1 + i * 3.2).toFixed(1)} km` }))
+
+  const rawSpots = selectedFish
+    ? selectedFish.spots.map((sp, i) => ({ ...sp, id: i + 100, fishName: selectedFish.name, icon: selectedFish.emoji || "📍" }))
     : MAP_SPOTS;
+
+  const spots = rawSpots.map(sp => {
+    const coords = SPOT_COORDS[sp.name] || (sp.lat ? { lat: sp.lat, lng: sp.lng } : null);
+    if (!coords || !userLocation) return { ...sp, distKm: null };
+    return { ...sp, distKm: Math.round(distKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng)) };
+  }).sort((a, b) => (a.distKm ?? 9999) - (b.distKm ?? 9999));
+TS;
   return (
     <div style={{ animation: "fadeUp 0.4s ease" }}>
       <h2 style={{ margin: "0 0 4px", fontSize: "1.2rem" }}>{selectedFish ? `${selectedFish.name}の釣り場` : (lang === "ja" ? "近くの釣り場" : "Spots Near You")}</h2>
+      {/* Location status bar */}
+      {userLocation ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 10, marginBottom: 10, cursor: "pointer" }} onClick={onOpenLocalAI}>
+          <span style={{ fontSize: "1rem" }}>📍</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0d7377" }}>{userLocation.display}</div>
+            <div style={{ fontSize: "0.8rem", color: "#5a5a4a" }}>{lang === "ja" ? "タップしてAI近場診断" : "Tap for AI nearby spots"}</div>
+          </div>
+          <span style={{ color: "#0d7377", fontSize: "1rem" }}>→</span>
+        </div>
+      ) : (
+        <div style={{ padding: "8px 12px", background: "#f5f0e8", border: "2px solid #d4cfc4", borderRadius: 10, marginBottom: 10, fontSize: "0.88rem", color: "#7a7a6a" }}>
+          📍 {lang === "ja" ? "位置情報を許可すると距離順に並びます" : "Allow location to sort by distance"}
+        </div>
+      )}
       <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "ピンをタップして詳細を見る" : "Tap a pin for details"}</p>
       <div style={{ height: 240, borderRadius: 18, overflow: "hidden", position: "relative", marginBottom: 14, background: "linear-gradient(135deg,#e8f0f0,#d8e4e4)", border: "2px solid #a0c8d0" }}>
         {[...Array(6)].map((_, i) => <div key={i} style={{ position: "absolute", left: 0, right: 0, top: `${i * 20}%`, height: 1, background: "#f0f8f8" }} />)}
@@ -1540,6 +1643,119 @@ function WeatherView({ lang }) {
   );
 }
 
+// ─── LOCAL AI ADVISOR ────────────────────────────────────────────────────────
+function LocalAIAdvisor({ userLocation, lang, weather, onClose }) {
+  const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  // Get nearest spots with distance
+  const nearestSpots = MAP_SPOTS.map(sp => ({
+    ...sp,
+    distKm: userLocation ? Math.round(distKm(userLocation.lat, userLocation.lng, sp.lat, sp.lng)) : null
+  })).sort((a, b) => (a.distKm ?? 9999) - (b.distKm ?? 9999)).slice(0, 5);
+
+  // Get peak fish for current month
+  const peakFish = FISH_DATA.map(f => ({ fish: f, tip: getSeasonalTip(f.id) }))
+    .filter(x => x.tip && x.tip.urgency === "peak")
+    .map(x => lang === "ja" ? x.fish.name : x.fish.nameEn).join("、");
+
+  useEffect(() => {
+    (async () => {
+      const locationStr = userLocation?.display || (lang === "ja" ? "現在地不明" : "unknown location");
+      const spotsStr = nearestSpots.map(s => `${s.name}（${s.distKm}km）`).join("、");
+      const spotsStrEn = nearestSpots.map(s => `${s.name} (${s.distKm}km)`).join(", ");
+      const monthName = MONTH_NAMES[lang][CURRENT_MONTH];
+
+      const jaPrompt = `あなたは日本の地元釣りガイドです。以下の情報をもとに、釣りアドバイスをしてください。
+
+📍 現在地: ${locationStr}
+🗓️ 月: ${monthName}
+🌡️ 天気: 気温${weather.temp}℃・水温${weather.waterTemp}℃・${weather.condition.ja}・釣り指数${weather.fishingIndex}/100
+🐟 今月の旬な魚: ${peakFish || "ブラックバス、アオリイカ"}
+📍 近くの釣り場TOP5: ${spotsStr}
+
+以下を教えてください:
+1. 今日・今月、${locationStr}周辺で最もおすすめの釣り場（理由付き）
+2. そこで釣れる魚と今日のベストルアー・エサ
+3. 地元ならではのコツや注意点（地形・潮・季節感）
+4. 遠征する価値がある少し遠めのスポット（もしあれば）
+
+200〜250字で、絵文字セクション分け、日本語で。`;
+
+      const enPrompt = `You are a local Japanese fishing guide. Give fishing advice based on:
+
+📍 Location: ${locationStr}
+🗓️ Month: ${monthName}
+🌡️ Conditions: ${weather.temp}℃ air, ${weather.waterTemp}℃ water, ${weather.condition.en}, fishing index ${weather.fishingIndex}/100
+🐟 In-season fish this month: ${peakFish || "Largemouth Bass, Squid"}
+📍 Nearest fishing spots: ${spotsStrEn}
+
+Cover: 1) Best nearby spot right now (with reason) 2) Target species and top lure/bait for today 3) Local tips — terrain, tides, seasonal notes 4) One worth-the-drive spot if applicable.
+
+Keep it under 220 words, emoji section headers.`;
+
+      const jaFallback = `📍 ${locationStr}周辺の釣り情報\n\n🎯 今月のおすすめスポット\n最寄りの${nearestSpots[0]?.name || "釣り場"}（${nearestSpots[0]?.distKm || "?"}km）がベスト。${monthName}はシーズン的に最高の時期です。\n\n🐟 狙い目の魚\n${peakFish || "バス・イカ"}が活発。地元の水温・潮を確認してから出発しよう。\n\n💡 地元のコツ\n早朝と夕方の2時間が勝負。天気が変わりやすい時期なので防寒具を忘れずに。\n\n🚗 遠征スポット\n${nearestSpots[1]?.name || "近隣スポット"}（${nearestSpots[1]?.distKm || "?"}km）も狙い目。`;
+
+      const enFallback = `📍 Fishing near ${locationStr}\n\n🎯 Top Spot Right Now\n${nearestSpots[0]?.name || "Nearest spot"} (${nearestSpots[0]?.distKm || "?"}km away) is your best bet this ${monthName}.\n\n🐟 Target Species\n${peakFish || "Bass and Squid"} are active. Check local water temps before heading out.\n\n💡 Local Tip\nThe 2-hour windows at dawn and dusk are everything. Weather can shift — bring layers.\n\n🚗 Worth the Drive\n${nearestSpots[1]?.name || "Next nearest"} (${nearestSpots[1]?.distKm || "?"}km) is worth it if conditions are right.`;
+
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200,
+            messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] })
+        });
+        const data = await res.json();
+        setResponse(data.content?.[0]?.text || "");
+      } catch { setResponse(lang === "ja" ? jaFallback : enFallback); }
+      setLoading(false);
+    })();
+  }, []);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "flex-end" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fffdf8", borderRadius: "24px 24px 0 0", padding: "24px 20px 48px", width: "100%", maxHeight: "85vh", overflowY: "auto", animation: "slideUp 0.3s ease", border: "2px solid #d4cfc4", borderBottom: "none" }}>
+        {/* Handle bar */}
+        <div style={{ width: 40, height: 4, borderRadius: 99, background: "#d4cfc4", margin: "0 auto 20px" }} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: "1.15rem", color: "#1a1a14" }}>
+              📍 {lang === "ja" ? "近くの釣り場AI診断" : "Nearby Spots AI"}
+            </div>
+            <div style={{ fontSize: "0.88rem", color: "#0d7377", marginTop: 3 }}>
+              Claude AI · {userLocation?.display || (lang === "ja" ? "位置情報取得中" : "Getting location...")}
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: "#f0ebe0", border: "2px solid #d4cfc4", borderRadius: 10, padding: "6px 14px", color: "#5a5a4a", cursor: "pointer", fontWeight: 700, fontSize: "0.9rem" }}>✕</button>
+        </div>
+
+        {/* Nearest spots strip */}
+        <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 16, paddingBottom: 4 }}>
+          {nearestSpots.map((sp, i) => (
+            <div key={sp.id} style={{ flexShrink: 0, background: i === 0 ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${i === 0 ? "#0d7377" : "#d4cfc4"}`, borderRadius: 12, padding: "8px 12px", minWidth: 120 }}>
+              <div style={{ fontSize: "1rem" }}>{sp.icon}</div>
+              <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#1a1a14", marginTop: 2, lineHeight: 1.2 }}>{sp.name}</div>
+              <div style={{ fontSize: "0.78rem", color: i === 0 ? "#0d7377" : "#7a7a6a", fontWeight: i === 0 ? 700 : 400 }}>
+                {sp.distKm !== null ? `${sp.distKm} km` : "---"}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "40px 20px" }}>
+            <div style={{ fontSize: "2.5rem", animation: "spin 1s linear infinite", display: "inline-block" }}>📍</div>
+            <p style={{ color: "#5a5a4a", marginTop: 12, fontSize: "0.95rem" }}>
+              {lang === "ja" ? "あなたの周辺を分析中..." : "Analysing spots near you..."}
+            </p>
+          </div>
+        ) : (
+          <div style={{ fontSize: "0.95rem", lineHeight: 1.8, color: "#1a1a14", whiteSpace: "pre-wrap" }}>{response}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN APP ────────────────────────────────────────────────────────────────
 export default function CastWiseJapan() {
   const [lang, setLang] = useState("ja");
@@ -1571,7 +1787,36 @@ export default function CastWiseJapan() {
   const [bonusPoints, setBonusPoints] = useState(0);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [pendingTab, setPendingTab] = useState(null);
+  // Location state
+  const [userLocation, setUserLocation] = useState(null); // { lat, lng, city }
+  const [locationError, setLocationError] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [showLocalAI, setShowLocalAI] = useState(false);
   const fileRef = useRef();
+
+  // Request GPS on first load
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        // Reverse geocode to get city name
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+          const data = await res.json();
+          const city = data.address?.city || data.address?.town || data.address?.municipality || data.address?.county || "";
+          const pref = data.address?.state || "";
+          setUserLocation({ lat, lng, city, pref, display: city ? `${city}${pref ? "・" + pref : ""}` : `${lat.toFixed(2)}, ${lng.toFixed(2)}` });
+        } catch {
+          setUserLocation({ lat, lng, city: "", pref: "", display: `${lat.toFixed(2)}, ${lng.toFixed(2)}` });
+        }
+        setLocationLoading(false);
+      },
+      (err) => { setLocationError(err.message); setLocationLoading(false); },
+      { timeout: 10000, maximumAge: 300000 }
+    );
+  }, []);
 
   const TABS_DATA = [
     { key: "Explore", ja: "探す", en: "Explore", icon: "🐟" },
@@ -1699,6 +1944,11 @@ export default function CastWiseJapan() {
           <div style={{ display: "flex", gap: 6 }}>
             <button onClick={() => setLang(l => l === "ja" ? "en" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#1a1a14", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
               {lang === "ja" ? "EN" : "日本語"}
+            </button>
+            {/* Location / AI nearby button */}
+            <button onClick={() => setShowLocalAI(true)} style={{ background: userLocation ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${userLocation ? "#0d7377" : "#c4bfb4"}`, borderRadius: 8, padding: "6px 10px", color: userLocation ? "#0d7377" : "#7a7a6a", cursor: "pointer", fontSize: "0.88rem", fontWeight: 700, position: "relative" }}>
+              {locationLoading ? "⏳" : "📍"}
+              {userLocation && <span style={{ position: "absolute", top: -4, right: -4, width: 8, height: 8, borderRadius: "50%", background: "#2d7a3a", border: "2px solid #f5f0e8" }} />}
             </button>
             {isPremium ? (
               <div style={{ background: "#ece0f8", border: "2px solid #c0a0e0", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#6040a0", fontWeight: 700 }}>👑 PRO</div>
@@ -1928,7 +2178,7 @@ export default function CastWiseJapan() {
                     ))}
                   </div>
                 )}
-                {gearTab === "map" && <MapView selectedFish={selectedFish} lang={lang} />}
+                {gearTab === "map" && <MapView selectedFish={selectedFish} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} />}
               </>
             )}
           </div>
@@ -1940,7 +2190,7 @@ export default function CastWiseJapan() {
         )}
 
         {/* ── MAP ── */}
-        {tab === "Map" && <MapView selectedFish={null} lang={lang} />}
+        {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} />}
 
         {/* ── WEATHER ── */}
         {tab === "Weather" && <WeatherView lang={lang} />}
@@ -2222,6 +2472,7 @@ export default function CastWiseJapan() {
       {showFlyAI && <AIFlyModal fish={flyAIFish} weather={WEATHER} lang={lang} currentMonth={lang === "ja" ? HATCH_CALENDAR[2].month.ja : HATCH_CALENDAR[2].month.en} onClose={() => setShowFlyAI(false)} />}
       {showInterstitial && <InterstitialAd lang={lang} onClose={closeInterstitial} onWatchReward={() => { setShowInterstitial(false); setShowRewarded(true); }} />}
       {showRewarded && <RewardedAdModal lang={lang} onComplete={() => { setShowRewarded(false); setBonusPoints(p => p + 100); if (pendingTab) { setTab(pendingTab); setPendingTab(null); } }} onClose={() => { setShowRewarded(false); if (pendingTab) { setTab(pendingTab); setPendingTab(null); } }} />}
+      {showLocalAI && <LocalAIAdvisor userLocation={userLocation} lang={lang} weather={WEATHER} onClose={() => setShowLocalAI(false)} />}
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, height: 1, background: "linear-gradient(90deg,transparent,#c4bfb4,transparent)", pointerEvents: "none", zIndex: 100 }} />
     </div>
   );
