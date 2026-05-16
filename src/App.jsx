@@ -2078,7 +2078,8 @@ export default function CastWiseJapan() {
   const [tab, setTab] = useState("Explore");
   const [selectedFish, setSelectedFish] = useState(null);
   const [gearTab, setGearTab] = useState("gear");
-  const [catches, setCatches] = useState(MOCK_CATCHES);
+  const [catches, setCatches] = useState([]);
+  const [catchesLoading, setCatchesLoading] = useState(true);
   const [liked, setLiked] = useState({});
   const [newCatch, setNewCatch] = useState({ fish: "", weight: "", location: "", notes: "", photo: null, method: "lure" });
   const [myCatches, setMyCatches] = useState([]);
@@ -2370,12 +2371,10 @@ If this is NOT a fish or the image is unclear, return:
           firestoreId: d.id,
         };
       });
-      setCatches(prev => {
-        const firestoreIds = new Set(loaded.map(c => c.id));
-        const localOnly = prev.filter(c => !firestoreIds.has(c.id) && !c.firestoreId);
-        return [...localOnly, ...loaded];
-      });
+      // If Firestore has data use it, otherwise show mock catches
+      setCatches(loaded.length > 0 ? loaded : MOCK_CATCHES);
       setMyCatches(loaded.filter(c => c.user === profile.name));
+      setCatchesLoading(false);
     }, (err) => console.warn("Firestore listen error:", err));
     return () => unsub();
   }, []);
@@ -2703,6 +2702,17 @@ If this is NOT a fish or the image is unclear, return:
               </div>
               <div style={{ color: "#c06a10" }}>→</div>
             </div>
+            {catchesLoading ? (
+              <div style={{ textAlign: "center", padding: "40px 20px", color: "#5a5a4a" }}>
+                <div style={{ fontSize: "2rem", animation: "spin 1s linear infinite", display: "inline-block", marginBottom: 8 }}>🎣</div>
+                <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "釣果を読み込み中..." : "Loading catches..."}</div>
+              </div>
+            ) : catches.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "40px 20px", color: "#5a5a4a" }}>
+                <div style={{ fontSize: "2rem", marginBottom: 8 }}>🐟</div>
+                <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "まだ釣果がありません" : "No catches yet — be the first!"}</div>
+              </div>
+            ) : null}
             {catches.map((c, i) => (
               <React.Fragment key={c.id}>
                 {i === 2 && !isPremium && <BannerAd lang={lang} />}
