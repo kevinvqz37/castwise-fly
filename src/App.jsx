@@ -1,3 +1,33 @@
+// ─── GOOGLE ADSENSE ──────────────────────────────────────────────────────────
+const ADSENSE_CLIENT = "ca-pub-3240929444279838";
+const ADSENSE_SLOT_BANNER = "9110475933";
+const ADSENSE_SLOT_INTERSTITIAL = "8144878629";
+
+function loadAdSense() {
+  if (document.getElementById("adsense-script")) return;
+  const script = document.createElement("script");
+  script.id = "adsense-script";
+  script.async = true;
+  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
+  script.crossOrigin = "anonymous";
+  document.head.appendChild(script);
+}
+
+function AdSenseBanner({ slot = ADSENSE_SLOT_BANNER }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    loadAdSense();
+    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+  }, []);
+  return (
+    <div ref={ref} style={{ margin: "10px 0", overflow: "hidden", minHeight: 60 }}>
+      <ins className="adsbygoogle" style={{ display: "block" }}
+        data-ad-client={ADSENSE_CLIENT} data-ad-slot={slot}
+        data-ad-format="auto" data-full-width-responsive="true" />
+    </div>
+  );
+}
+
 import { useState, useEffect, useRef } from "react";
 import React from "react";
 import { initializeApp } from "firebase/app";
@@ -652,64 +682,60 @@ const AD_CAMPAIGNS = [
   { id: 6, brand: "PRO釣りナビ", brandEn: "PRO CastWise", tagline: { ja: "広告なしでアプリを楽しもう！月額￥480", en: "Go ad-free for ¥480/month" }, cta: { ja: "アップグレード", en: "Upgrade" }, bg: "#1a0a2a", accent: "#9060e0", logo: "👑", type: "premium" },
 ];
 
-function BannerAd({ lang, onDismiss }) {
-  const [ad] = useState(() => AD_CAMPAIGNS[Math.floor(Math.random() * AD_CAMPAIGNS.length)]);
-  const [visible, setVisible] = useState(true);
-  if (!visible) return null;
-  return (
-    <div style={{ position: "relative", margin: "10px 0", borderRadius: 12, overflow: "hidden", background: ad.bg, border: `1px solid ${ad.accent}44`, animation: "fadeUp 0.3s ease" }}>
-      <div style={{ position: "absolute", top: 4, right: 4, zIndex: 2 }}>
-        <button onClick={() => { setVisible(false); onDismiss?.(); }} style={{ background: "#d4cfc4", border: "none", borderRadius: 6, padding: "2px 7px", color: "#5a5a4a", cursor: "pointer", fontSize: "0.95rem" }}>✕</button>
-      </div>
-      <div style={{ padding: "10px 12px", display: "flex", gap: 10, alignItems: "center" }}>
-        <div style={{ fontSize: "1.6rem", flexShrink: 0 }}>{ad.logo}</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
-            <span style={{ fontSize: "0.95rem", color: "#5a5a4a", background: "#fffdf8", borderRadius: 4, padding: "1px 5px" }}>{lang === "ja" ? "広告" : "AD"}</span>
-            <span style={{ fontWeight: 700, fontSize: "0.92rem", color: ad.accent }}>{lang === "ja" ? ad.brand : ad.brandEn}</span>
-          </div>
-          <div style={{ fontSize: "1rem", color: "#3a3a2a", lineHeight: 1.3 }}>{ad.tagline[lang]}</div>
-        </div>
-        <button style={{ flexShrink: 0, background: ad.accent, border: "none", borderRadius: 8, padding: "6px 10px", color: "#fff", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700 }}>{ad.cta[lang]}</button>
-      </div>
-    </div>
-  );
+function BannerAd({ lang, onDismiss, isPremium }) {
+  if (isPremium) return null;
+  return <AdSenseBanner />;
 }
 
-function InterstitialAd({ lang, onClose, onWatchReward }) {
+
+function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
   const [countdown, setCountdown] = useState(5);
-  const [ad] = useState(() => AD_CAMPAIGNS[Math.floor(Math.random() * AD_CAMPAIGNS.length)]);
+  const adRef = useRef(null);
+
   useEffect(() => {
     if (countdown <= 0) return;
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(t);
   }, [countdown]);
+
+  useEffect(() => {
+    loadAdSense();
+    try {
+      if (adRef.current) {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      }
+    } catch (e) {}
+  }, []);
+
+  if (isPremium) { onClose(); return null; }
+
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ width: "100%", maxWidth: 390, background: ad.bg, border: `2px solid ${ad.accent}66`, borderRadius: 24, overflow: "hidden", animation: "fadeUp 0.4s ease" }}>
-        {/* Ad badge */}
-        <div style={{ background: "#f8f4ec", padding: "8px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{lang === "ja" ? "スポンサー広告" : "Sponsored"}</span>
-          <span style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{lang === "ja" ? `${countdown > 0 ? countdown + "秒後にスキップ" : "スキップ可能"}` : `${countdown > 0 ? `Skip in ${countdown}s` : "Ready to skip"}`}</span>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div style={{ width: "100%", maxWidth: 390, background: "#fffdf8", borderRadius: 24, overflow: "hidden", animation: "fadeUp 0.4s ease" }}>
+        <div style={{ background: "#f8f4ec", padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "スポンサー広告" : "Sponsored"}</span>
+          <span style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{countdown > 0 ? (lang === "ja" ? `${countdown}秒後にスキップ` : `Skip in ${countdown}s`) : (lang === "ja" ? "スキップ可能" : "Ready to skip")}</span>
         </div>
-        {/* Big visual */}
-        <div style={{ height: 180, background: `linear-gradient(135deg, ${ad.bg}, ${ad.accent}22)`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 20 }}>
-          <div style={{ fontSize: "4rem", animation: "float 2s ease-in-out infinite" }}>{ad.logo}</div>
-          <div style={{ fontWeight: 700, fontSize: "1.4rem", color: ad.accent, textAlign: "center" }}>{lang === "ja" ? ad.brand : ad.brandEn}</div>
-          <div style={{ fontSize: "1.05rem", color: "#3a3a2a", textAlign: "center", lineHeight: 1.5 }}>{ad.tagline[lang]}</div>
+        <div ref={adRef} style={{ minHeight: 200, padding: "8px 0" }}>
+          <ins
+            className="adsbygoogle"
+            style={{ display: "block" }}
+            data-ad-client={ADSENSE_CLIENT}
+            data-ad-slot={ADSENSE_SLOT_INTERSTITIAL}
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          />
         </div>
-        {/* Actions */}
-        <div style={{ padding: 16, display: "flex", gap: 10 }}>
-          <button style={{ flex: 2, padding: "12px", background: ad.accent, border: "none", borderRadius: 12, color: "#fff", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>{ad.cta[lang]}</button>
-          <button onClick={countdown <= 0 ? onClose : undefined} style={{ flex: 1, padding: "12px", background: countdown <= 0 ? "#d4cfc4" : "#fffdf8", border: "2px solid #d4cfc4", borderRadius: 12, color: countdown <= 0 ? "#e8e0d0" : "#4a5a6a", cursor: countdown <= 0 ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "1.05rem" }}>
-            {countdown > 0 ? `${countdown}s` : (lang === "ja" ? "スキップ" : "Skip")}
+        <div style={{ padding: "12px 16px", display: "flex", gap: 10 }}>
+          <button onClick={countdown <= 0 ? onClose : undefined}
+            style={{ flex: 2, padding: "12px", background: countdown <= 0 ? "#d4cfc4" : "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 12, color: countdown <= 0 ? "#1a1a14" : "#9a9a8a", cursor: countdown <= 0 ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
+            {countdown > 0 ? `${countdown}s` : (lang === "ja" ? "スキップ →" : "Skip →")}
           </button>
         </div>
-        {/* Rewarded option */}
         {onWatchReward && (
           <div style={{ padding: "0 16px 16px" }}>
-            <button onClick={onWatchReward} style={{ width: "100%", padding: "10px", background: "#d0ead8", border: "2px solid #80c098", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 600 }}>
-              🎁 {lang === "ja" ? "動画を見て+50ポイントをゲット！" : "Watch full ad for +50 bonus points!"}
+            <button onClick={onWatchReward} style={{ width: "100%", padding: "10px", background: "#d0ead8", border: "2px solid #80c098", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 600 }}>
+              🎁 {lang === "ja" ? "広告を最後まで見て+50ポイント！" : "Watch full ad for +50 bonus points!"}
             </button>
           </div>
         )}
@@ -717,7 +743,6 @@ function InterstitialAd({ lang, onClose, onWatchReward }) {
     </div>
   );
 }
-
 function RewardedAdModal({ lang, onComplete, onClose }) {
   const [phase, setPhase] = useState("intro"); // intro | watching | complete
   const [progress, setProgress] = useState(0);
@@ -1496,6 +1521,7 @@ const SPOT_COORDS = {
   // Kanto
   "東京湾・竹芝周辺":        { lat: 35.655, lng: 139.763 },
   "芦ノ湖（神奈川）":        { lat: 35.19,  lng: 139.02 },
+  "矢部川（八女）":           { lat: 33.21,  lng: 130.71 },
   // Other
   "長良川（岐阜・友釣り）":  { lat: 35.41,  lng: 136.72 },
   "琵琶湖（滋賀）":          { lat: 35.27,  lng: 136.07 },
@@ -1556,7 +1582,7 @@ const MAP_SPOTS = [
 
   // ── CHUBU ─────────────────────────────────────────────────────────────────
   { id: 35, name: "長良川（岐阜・友釣り）", region: "chubu", pref: "岐阜", fish: { ja: "アユ", en: "Ayu (Sweetfish)" }, rating: 5.0, type: { ja: "清流", en: "Clear River" }, icon: "🐠", lat: 35.41, lng: 136.72, bestSeason: { ja: "6〜10月", en: "Jun–Oct" }, access: { ja: "岐阜市・郡上八幡など各漁協管轄区で遊漁券購入", en: "Buy permits at fishing cooperatives in Gifu city and Gujo-Hachiman" }, tip: { ja: "日本三大清流のひとつ。友釣りの聖地。郡上エリアは特に大型が出る。", en: "One of Japan's three great clear rivers. The mecca of tomozuri ayu fishing. Big fish in the Gujo area." } },
-  { id: 36, name: "奥多摩川（東京）",      region: "kanto", pref: "東京", fish: { ja: "ヤマメ・イワナ・ニジマス", en: "Yamame, Iwana & Rainbow Trout" }, rating: 4.8, type: { ja: "渓流", en: "Mountain Stream" }, icon: "🪶", lat: 35.79, lng: 139.09, bestSeason: { ja: "3〜9月", en: "Mar–Sep" }, access: { ja: "JR奥多摩駅から徒歩・バス。遊漁券¥1,700/日", en: "From JR Okutama Station by foot or bus. Permit ¥1,700/day" }, tip: { ja: "東京から2時間でフライフィッシング。ライズを見てマッチザハッチが基本。", en: "Fly fishing just 2hrs from Tokyo. Match-the-hatch to rising fish is the standard approach." } },
+  { id: 37, name: "矢部川（八女）", region: "kyushu", pref: "福岡", fish: { ja: "アユ・ヤマメ", en: "Ayu & Yamame" }, rating: 4.9, type: { ja: "清流", en: "Clear River" }, icon: "🐠", lat: 33.21, lng: 130.71, bestSeason: { ja: "6〜10月（アユ）", en: "Jun–Oct (Ayu)" }, access: { ja: "八女市内から車20分。矢部川漁協で遊漁券購入（¥1,500/日）", en: "20min drive from Yame city. Buy permit at Yabeji Fishing Cooperative (¥1,500/day)" }, tip: { ja: "九州屈指の清流アユ河川。中流域の瀬が友釣りの一級ポイント。水質が澄んでいるため天然アユの魚影が濃い。早朝の霧の中での友釣りは格別。", en: "One of Kyushu's finest clear-water ayu rivers. Mid-river rapids are prime for tomozuri. Crystal clear water holds dense populations of wild ayu. Early morning tomozuri in the mist is unforgettable." } },
 ];
 
 
@@ -3013,12 +3039,12 @@ If this is NOT a fish or the image is unclear, return:
                 <React.Fragment key={fish.id}>
                   {i === 4 && !isPremium && (
                     <div style={{ gridColumn: "1 / -1" }}>
-                      <BannerAd lang={lang} />
+                      <BannerAd lang={lang} isPremium={isPremium} />
                     </div>
                   )}
                   {i === 10 && !isPremium && (
                     <div style={{ gridColumn: "1 / -1" }}>
-                      <BannerAd lang={lang} />
+                      <BannerAd lang={lang} isPremium={isPremium} />
                     </div>
                   )}
                 <div onClick={() => { setSelectedFish(fish); switchTab("FishGuide"); setGearTab("gear"); }}
@@ -3082,7 +3108,7 @@ If this is NOT a fish or the image is unclear, return:
                   <button onClick={() => setShowAI(true)} style={{ flex: 1, padding: "11px", background: "#e0f2f2", border: "2px solid #70a8b8", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🤖 AI {lang === "ja" ? "ルアー診断" : "Lure AI"}</button>
                   {selectedFish.flyFriendly && <button onClick={() => { setFlyAIFish(selectedFish); setShowFlyAI(true); }} style={{ flex: 1, padding: "11px", background: "#d8f0e0", border: "2px solid #80c098", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🪶 AI {lang === "ja" ? "フライ診断" : "Fly AI"}</button>}
                 </div>
-                {!isPremium && <BannerAd lang={lang} />}
+                {!isPremium && <BannerAd lang={lang} isPremium={isPremium} />}
 
                 <div style={{ display: "flex", gap: 5, marginBottom: 12 }}>
                   {[{ k: "gear", ja: "🎣 タックル", en: "🎣 Gear" }, { k: "spots", ja: "📍 釣り場", en: "📍 Spots" }, { k: "map", ja: "🗺️ マップ", en: "🗺️ Map" }].map(tt => (
@@ -3185,7 +3211,7 @@ If this is NOT a fish or the image is unclear, return:
             ) : null}
             {catches.map((c, i) => (
               <React.Fragment key={c.id}>
-                {i === 2 && !isPremium && <BannerAd lang={lang} />}
+                {i === 2 && !isPremium && <BannerAd lang={lang} isPremium={isPremium} />}
                 <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 17, overflow: "hidden", marginBottom: 13, animation: `fadeUp ${0.18 + i * 0.07}s ease both` }}>
                 <div style={{ height: 140, background: "linear-gradient(135deg,#e8e3d8,#d8d3c8)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                   {c.photo ? <img src={c.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ animation: "float 3s ease-in-out infinite" }}><FishIllustration fishId={FISH_DATA.find(f=>f.name===c.fish)?.id || 1} size={100} /></div>}
@@ -3519,7 +3545,7 @@ If this is NOT a fish or the image is unclear, return:
 
       {showAI && selectedFish && <AIModal fish={selectedFish} weather={WEATHER} lang={lang} onClose={() => setShowAI(false)} />}
       {showFlyAI && <AIFlyModal fish={flyAIFish} weather={WEATHER} lang={lang} currentMonth={lang === "ja" ? HATCH_CALENDAR[2].month.ja : HATCH_CALENDAR[2].month.en} onClose={() => setShowFlyAI(false)} />}
-      {showInterstitial && <InterstitialAd lang={lang} onClose={closeInterstitial} onWatchReward={() => { setShowInterstitial(false); setShowRewarded(true); }} />}
+      {showInterstitial && <InterstitialAd lang={lang} isPremium={isPremium} onClose={closeInterstitial} onWatchReward={() => { setShowInterstitial(false); setShowRewarded(true); }} />}
       {showRewarded && <RewardedAdModal lang={lang} onComplete={() => { setShowRewarded(false); setBonusPoints(p => p + 100); if (pendingTab) { setTab(pendingTab); setPendingTab(null); } }} onClose={() => { setShowRewarded(false); if (pendingTab) { setTab(pendingTab); setPendingTab(null); } }} />}
       {showLocalAI && <LocalAIAdvisor userLocation={userLocation} lang={lang} weather={WEATHER} onClose={() => setShowLocalAI(false)} />}
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, height: 1, background: "linear-gradient(90deg,transparent,#c4bfb4,transparent)", pointerEvents: "none", zIndex: 100 }} />
