@@ -687,6 +687,27 @@ function BannerAd({ lang, onDismiss, isPremium }) {
   return <AdSenseBanner />;
 }
 
+// ─── AMAZON AFFILIATE ────────────────────────────────────────────────────────
+const AMAZON_TAG = "castwise-22";
+
+function amazonLink(searchQuery) {
+  const query = encodeURIComponent(searchQuery + " 釣り");
+  return `https://www.amazon.co.jp/s?k=${query}&tag=${AMAZON_TAG}`;
+}
+
+function LureTag({ lure, lang }) {
+  return (
+    <a href={amazonLink(lure)} target="_blank" rel="noopener noreferrer"
+      style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#fff8e8", border: "2px solid #f0a020", borderRadius: 99, padding: "4px 12px", fontSize: "0.82rem", color: "#c06a10", fontWeight: 700, textDecoration: "none", cursor: "pointer" }}
+      onClick={e => e.stopPropagation()}>
+      🎯 {lure}
+      <span style={{ fontSize: "0.7rem", color: "#f0a020" }}>Amazon↗</span>
+    </a>
+  );
+}
+
+
+
 
 function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
   const [countdown, setCountdown] = useState(5);
@@ -1616,7 +1637,7 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
         <p style={{ margin: "0 0 8px", fontSize: "0.88rem", color: style.text, lineHeight: 1.5 }}>{tip.tip[lang]}</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
           {tip.hotLures[lang].map(l => (
-            <span key={l} style={{ background: "rgba(255,255,255,0.6)", border: `1px solid ${style.border}`, borderRadius: 99, padding: "3px 10px", fontSize: "0.8rem", color: style.text, fontWeight: 600 }}>🎯 {l}</span>
+            <LureTag key={l} lure={l} lang={lang} />
           ))}
         </div>
       </div>
@@ -1637,7 +1658,7 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
       <div style={{ fontSize: "0.8rem", color: style.text, fontWeight: 700, marginBottom: 6 }}>{lang === "ja" ? "🎯 今月のホットルアー" : "🎯 Hot Lures Right Now"}</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {tip.hotLures[lang].map(l => (
-          <span key={l} style={{ background: "rgba(255,255,255,0.7)", border: `2px solid ${style.border}`, borderRadius: 99, padding: "4px 12px", fontSize: "0.82rem", color: style.text, fontWeight: 600 }}>{l}</span>
+          <LureTag key={l} lure={l} lang={lang} />
         ))}
       </div>
     </div>
@@ -3125,9 +3146,9 @@ If this is NOT a fish or the image is unclear, return:
                       </div>
                     ))}
                     <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 11, padding: 13 }}>
-                      <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 7 }}>🎯 {lang === "ja" ? "ルアー・エサ" : "Lures & Bait"}</div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                        {selectedFish.gear.lures.map(l => <span key={l} style={{ background: selectedFish.color + "44", border: `1px solid ${selectedFish.accent}33`, borderRadius: 99, padding: "3px 10px", fontSize: "0.95rem", color: selectedFish.accent }}>{l}</span>)}
+                      <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 7 }}>🎯 {lang === "ja" ? "ルアー・エサ — タップしてAmazonで確認" : "Lures & Bait — tap to shop on Amazon"}</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {selectedFish.gear.lures.map(l => <LureTag key={l} lure={l} lang={lang} />)}
                       </div>
                     </div>
                     <div style={{ background: "linear-gradient(135deg,rgba(13,115,119,0.08),transparent)", border: "2px solid #a0c8d0", borderRadius: 12, padding: 14, marginTop: 4 }}>
