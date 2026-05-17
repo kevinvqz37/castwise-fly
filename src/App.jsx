@@ -1462,20 +1462,102 @@ const SPOT_COORDS = {
   "琵琶湖・南湖":            { lat: 35.100, lng: 135.920 },
   "明石海峡":                { lat: 34.618, lng: 135.012 },
   "長良川（岐阜）":          { lat: 35.410, lng: 136.720 },
-};
+  // Kyushu spots
+  "北山湖（佐賀）":          { lat: 33.43,  lng: 130.18 },
+  "伊万里湾":                { lat: 33.27,  lng: 129.88 },
+  "七山渓流（佐賀）":        { lat: 33.49,  lng: 130.02 },
+  "玄界灘（佐賀側）":        { lat: 33.60,  lng: 130.05 },
+  "博多湾・シーサイドももち":{ lat: 33.59,  lng: 130.35 },
+  "玄界島・能古島周辺":      { lat: 33.65,  lng: 130.22 },
+  "福岡市海釣り公園":        { lat: 33.58,  lng: 130.27 },
+  "今津湾・室見川河口":      { lat: 33.56,  lng: 130.31 },
+  "糸島・二丈周辺磯":        { lat: 33.53,  lng: 130.18 },
+  "遠賀川（北九州）":        { lat: 33.87,  lng: 130.66 },
+  "長崎・五島列島":          { lat: 32.70,  lng: 128.84 },
+  "長崎・壱岐沖":            { lat: 33.75,  lng: 129.69 },
+  "長崎・野母崎":            { lat: 32.58,  lng: 129.75 },
+  "対馬":                    { lat: 34.20,  lng: 129.29 },
+  "天草・牛深":              { lat: 32.19,  lng: 130.03 },
+  "緑川・加勢川（熊本）":    { lat: 32.73,  lng: 130.72 },
+  "大分・蒲江地磯":          { lat: 32.78,  lng: 132.00 },
+  "別府湾・臼杵湾":          { lat: 33.22,  lng: 131.62 },
+  "大分・姫島":              { lat: 33.72,  lng: 131.65 },
+  "日向灘・延岡沖":          { lat: 32.58,  lng: 131.66 },
+  "高千穂・五ヶ瀬川":        { lat: 32.71,  lng: 131.30 },
+  "宮崎・木崎浜サーフ":      { lat: 31.88,  lng: 131.44 },
+  "錦江湾（鹿児島）":        { lat: 31.40,  lng: 130.67 },
+  "屋久島":                  { lat: 30.35,  lng: 130.64 },
+  "甑島（薩摩川内）":        { lat: 31.80,  lng: 129.84 },
+  // Hokkaido
+  "知床半島・羅臼沖":        { lat: 44.02,  lng: 145.00 },
+  "支笏湖（北海道）":        { lat: 42.75,  lng: 141.35 },
+  "阿寒川（北海道）":        { lat: 43.45,  lng: 144.13 },
+  "十勝川（北海道）":        { lat: 42.80,  lng: 143.10 },
+  // Kanto
+  "東京湾・竹芝周辺":        { lat: 35.655, lng: 139.763 },
+  "芦ノ湖（神奈川）":        { lat: 35.19,  lng: 139.02 },
+  // Other
+  "長良川（岐阜・友釣り）":  { lat: 35.41,  lng: 136.72 },
+  "琵琶湖（滋賀）":          { lat: 35.27,  lng: 136.07 },
 
 const MAP_SPOTS = [
-  { id: 1, name: "隅田川水門",      fish: { ja: "シーバス",       en: "Seabass"         }, rating: 4.7, type: { ja: "河口",   en: "Estuary" }, icon: "🦈", lat: 35.694, lng: 139.803 },
-  { id: 2, name: "お台場海浜公園",  fish: { ja: "アジ・メバル",   en: "Aji & Rockfish"  }, rating: 4.5, type: { ja: "港湾",   en: "Harbor"  }, icon: "🐟", lat: 35.627, lng: 139.775 },
-  { id: 3, name: "荒川・葛西水門",  fish: { ja: "シーバス",       en: "Seabass"         }, rating: 4.8, type: { ja: "河口",   en: "Estuary" }, icon: "🦈", lat: 35.652, lng: 139.862 },
-  { id: 4, name: "多摩川・丸子橋",  fish: { ja: "シーバス・バス", en: "Seabass & Bass"  }, rating: 4.6, type: { ja: "河川",   en: "River"   }, icon: "🐟", lat: 35.578, lng: 139.670 },
-  { id: 5, name: "奥多摩川・白丸",  fish: { ja: "ヤマメ（フライ）",en: "Yamame (fly)"   }, rating: 4.9, type: { ja: "渓流",   en: "Stream"  }, icon: "🪶", lat: 35.793, lng: 139.093 },
-  { id: 6, name: "琵琶湖・南湖",    fish: { ja: "バス・ヘラブナ", en: "Bass & Herabuna" }, rating: 4.9, type: { ja: "湖",     en: "Lake"    }, icon: "🐟", lat: 35.100, lng: 135.920 },
-  { id: 7, name: "明石海峡",        fish: { ja: "マダイ・ブリ",   en: "Madai & Buri"   }, rating: 5.0, type: { ja: "海峡",   en: "Channel" }, icon: "🐟", lat: 34.618, lng: 135.012 },
-  { id: 8, name: "佐賀・唐津沖",    fish: { ja: "アオリイカ",     en: "Squid"          }, rating: 5.0, type: { ja: "沿岸",   en: "Coast"   }, icon: "🦑", lat: 33.450, lng: 129.970 },
-  { id: 9, name: "長良川（岐阜）",  fish: { ja: "アユ・ヤマメ",   en: "Ayu & Yamame"   }, rating: 5.0, type: { ja: "清流",   en: "River"   }, icon: "🐠", lat: 35.410, lng: 136.720 },
-  { id: 10, name: "四万十川（高知）",fish: { ja: "アユ・テナガエビ",en: "Ayu & Prawn"   }, rating: 4.9, type: { ja: "清流",   en: "River"   }, icon: "🐠", lat: 33.090, lng: 132.930 },
+  // ── SAGA ──────────────────────────────────────────────────────────────────
+  { id: 1,  name: "佐賀・唐津沖",        region: "kyushu", pref: "佐賀", fish: { ja: "アオリイカ・マダイ", en: "Squid & Red Bream" }, rating: 5.0, type: { ja: "沿岸・ボート", en: "Coast/Boat" }, icon: "🦑", lat: 33.45, lng: 129.97, bestSeason: { ja: "春・秋", en: "Spring & Autumn" }, access: { ja: "唐津港から出船", en: "Charter from Karatsu Port" }, tip: { ja: "エギ3.5号ピンクが唐津の定番。春の親イカは2kgオーバーも。", en: "Pink egi #3.5 is standard at Karatsu. Spring spawning squid often exceed 2kg." } },
+  { id: 2,  name: "北山湖（佐賀）",      region: "kyushu", pref: "佐賀", fish: { ja: "ブラックバス・ヘラブナ", en: "Bass & Herabuna" }, rating: 4.8, type: { ja: "ダム湖", en: "Reservoir" }, icon: "🐟", lat: 33.43, lng: 130.18, bestSeason: { ja: "春・秋", en: "Spring & Autumn" }, access: { ja: "佐賀市内から車30分。レンタルボートあり。", en: "30min drive from Saga city. Rental boats available." }, tip: { ja: "九州屈指のバス釣り場。春のスポーニング期は岸から大型が狙える。", en: "One of Kyushu's top bass spots. Big fish from shore during spring spawn." } },
+  { id: 3,  name: "伊万里湾",            region: "kyushu", pref: "佐賀", fish: { ja: "クロダイ・メバル・カサゴ", en: "Black Bream & Rockfish" }, rating: 4.6, type: { ja: "湾・磯", en: "Bay & Rock" }, icon: "🐟", lat: 33.27, lng: 129.88, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "伊万里市内から車15分", en: "15min drive from Imari city" }, tip: { ja: "湾内の牡蠣棚周りにクロダイが多い。フカセ釣りで数釣り可能。", en: "Black bream stack around oyster farms in the bay. Float fishing yields numbers." } },
+  { id: 4,  name: "七山渓流（佐賀）",    region: "kyushu", pref: "佐賀", fish: { ja: "ヤマメ・イワナ", en: "Yamame & Iwana" }, rating: 4.7, type: { ja: "渓流", en: "Mountain Stream" }, icon: "🪶", lat: 33.49, lng: 130.02, bestSeason: { ja: "3〜9月", en: "Mar–Sep" }, access: { ja: "唐津市七山地区。遊漁券要（¥1,500/日）", en: "Karatsu city, Shichiyama area. Permit required (¥1,500/day)" }, tip: { ja: "九州では数少ないヤマメの渓流。早朝のドライフライが最高。", en: "One of Kyushu's rare Yamame streams. Early morning dry fly fishing is excellent." } },
+  { id: 5,  name: "玄界灘（佐賀側）",   region: "kyushu", pref: "佐賀", fish: { ja: "ブリ・ヒラマサ・マダイ", en: "Yellowtail & Red Bream" }, rating: 4.9, type: { ja: "沖合", en: "Offshore" }, icon: "🦈", lat: 33.60, lng: 130.05, bestSeason: { ja: "秋〜冬", en: "Autumn–Winter" }, access: { ja: "呼子港・唐津港から出船。遊漁船多数。", en: "Charter from Yobuko or Karatsu Port. Many charter boats available." }, tip: { ja: "玄界灘の青物は日本屈指の引き。ジギング・タイラバ両方使える。", en: "Genkai Sea pelagics are among Japan's strongest fighters. Both jigging and taira work." } },
+
+  // ── FUKUOKA ───────────────────────────────────────────────────────────────
+  { id: 6,  name: "博多湾・シーサイドももち", region: "kyushu", pref: "福岡", fish: { ja: "シーバス・チヌ", en: "Seabass & Black Bream" }, rating: 4.5, type: { ja: "港湾・護岸", en: "Harbor" }, icon: "🦈", lat: 33.59, lng: 130.35, bestSeason: { ja: "春・秋", en: "Spring & Autumn" }, access: { ja: "福岡市内。地下鉄唐人町駅から徒歩15分", en: "Fukuoka city. 15min walk from Tojinmachi subway station" }, tip: { ja: "夜の常夜灯周りにシーバスが集まる。バチパターンは3〜4月が最盛。", en: "Seabass gather under harbor lights at night. Worm hatch pattern peaks March–April." } },
+  { id: 7,  name: "玄界島・能古島周辺",  region: "kyushu", pref: "福岡", fish: { ja: "アジ・メバル・クロ", en: "Mackerel & Rockfish" }, rating: 4.7, type: { ja: "離島・磯", en: "Island Shore" }, icon: "🐟", lat: 33.65, lng: 130.22, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "姪浜港からフェリー（能古島20分・玄界島40分）", en: "Ferry from Meinohama Port (20min to Nokonoshima, 40min to Genkaijima)" }, tip: { ja: "能古島は家族でも楽しめる。玄界島の磯はクロ（メジナ）の名ポイント。", en: "Nokonoshima suits families. Genkaijima rocky shores are famous for Mejina." } },
+  { id: 8,  name: "福岡市海釣り公園",    region: "kyushu", pref: "福岡", fish: { ja: "アジ・サバ・チヌ", en: "Mackerel & Bream" }, rating: 4.4, type: { ja: "管理釣り場", en: "Managed Fishery" }, icon: "🎣", lat: 33.58, lng: 130.27, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "福岡市西区。料金：大人¥1,000/4時間", en: "Nishi-ku, Fukuoka. Fee: ¥1,000/4hrs adults" }, tip: { ja: "初心者・ファミリーに最適。道具レンタルあり。指導スタッフ常駐。", en: "Perfect for beginners and families. Gear rental and on-site instruction available." } },
+  { id: 9,  name: "今津湾・室見川河口",  region: "kyushu", pref: "福岡", fish: { ja: "シーバス・ヒラメ", en: "Seabass & Flounder" }, rating: 4.6, type: { ja: "河口・干潟", en: "Estuary & Mudflat" }, icon: "🦈", lat: 33.56, lng: 130.31, bestSeason: { ja: "秋〜冬", en: "Autumn–Winter" }, access: { ja: "福岡市西区。JR今宿駅から車10分", en: "Nishi-ku, Fukuoka. 10min from JR Imajuku Station" }, tip: { ja: "干潟のヒラメは満潮前後2時間が狙い目。シンキングミノーをスロー引き。", en: "Flounder hit for 2hrs either side of high tide. Slow-retrieve sinking minnow." } },
+  { id: 10, name: "糸島・二丈周辺磯",    region: "kyushu", pref: "福岡", fish: { ja: "クロダイ・メジナ・アオリイカ", en: "Bream & Squid" }, rating: 4.8, type: { ja: "磯", en: "Rocky Shore" }, icon: "🐟", lat: 33.53, lng: 130.18, bestSeason: { ja: "通年（秋が最盛）", en: "Year-round (peak autumn)" }, access: { ja: "JR筑前前原駅から車20分", en: "20min drive from JR Chikuzen-Maebaru Station" }, tip: { ja: "イカメタルとエギングで秋のアオリが炸裂。磯クロは冬も通じる。", en: "Egi and ikametal for autumn squid explosions. Shore Mejina fishes well through winter." } },
+  { id: 11, name: "遠賀川（北九州）",    region: "kyushu", pref: "福岡", fish: { ja: "シーバス・バス", en: "Seabass & Bass" }, rating: 4.5, type: { ja: "河川", en: "River" }, icon: "🦈", lat: 33.87, lng: 130.66, bestSeason: { ja: "春〜秋", en: "Spring–Autumn" }, access: { ja: "北九州市〜中間市。各橋梁から徒歩アクセス可", en: "Kitakyushu to Nakama. Walkable from major bridges" }, tip: { ja: "河口から30kmにわたりシーバスが入る。橋脚明暗部が最重要ポイント。", en: "Seabass run 30km upstream. Bridge shadow edges are prime." } },
+
+  // ── NAGASAKI ──────────────────────────────────────────────────────────────
+  { id: 12, name: "長崎・五島列島",       region: "kyushu", pref: "長崎", fish: { ja: "クロ・マダイ・ヒラマサ", en: "Mejina, Bream & Amberjack" }, rating: 5.0, type: { ja: "離島磯", en: "Remote Island Shore" }, icon: "🐟", lat: 32.70, lng: 128.84, bestSeason: { ja: "秋〜春", en: "Autumn–Spring" }, access: { ja: "長崎港からフェリー（福江島まで3時間30分）", en: "Ferry from Nagasaki Port (3.5hrs to Fukue Island)" }, tip: { ja: "日本の磯釣り聖地。クロ（メジナ）の全国大会も開催される。渡船要予約。", en: "Japan's rock fishing mecca. National Mejina tournaments held here. Charter boat essential." } },
+  { id: 13, name: "長崎・壱岐沖",         region: "kyushu", pref: "長崎", fish: { ja: "ブリ・ヒラマサ・マグロ", en: "Yellowtail & Bluefin Tuna" }, rating: 4.9, type: { ja: "沖合", en: "Offshore" }, icon: "🦈", lat: 33.75, lng: 129.69, bestSeason: { ja: "夏〜秋", en: "Summer–Autumn" }, access: { ja: "郷ノ浦港・印通寺港から出船", en: "Charter from Gonoura or Intoji Port" }, tip: { ja: "壱岐沖のクロマグロは国際的に有名。ジギングで100kg超も。", en: "Iki's bluefin tuna fishing is world-famous. 100kg+ fish on jigs is not uncommon." } },
+  { id: 14, name: "長崎・野母崎",          region: "kyushu", pref: "長崎", fish: { ja: "アオリイカ・根魚", en: "Squid & Rockfish" }, rating: 4.8, type: { ja: "磯・地磯", en: "Shore Reef" }, icon: "🦑", lat: 32.58, lng: 129.75, bestSeason: { ja: "春・秋", en: "Spring & Autumn" }, access: { ja: "長崎市内から車40分。無料駐車場あり。", en: "40min drive from Nagasaki city. Free parking." }, tip: { ja: "長崎市最南端の地磯。エギング春のアオリが大型。カサゴ・キジハタも豊富。", en: "Nagasaki's southernmost shore reef. Big spring squid. Also excellent for grouper." } },
+  { id: 15, name: "対馬",                  region: "kyushu", pref: "長崎", fish: { ja: "ヒラマサ・クロ・ヤリイカ", en: "Amberjack & Mejina" }, rating: 5.0, type: { ja: "離島磯・沖合", en: "Remote Island" }, icon: "🦈", lat: 34.20, lng: 129.29, bestSeason: { ja: "春〜秋", en: "Spring–Autumn" }, access: { ja: "長崎港からフェリー（厳原まで6時間）", en: "Ferry from Nagasaki Port (6hrs to Izuhara)" }, tip: { ja: "日本海の孤島で超大型ヒラマサが狙える。10kgオーバーも珍しくない。", en: "Remote Japan Sea island for giant Hiramasa amberjack. 10kg+ is not unusual." } },
+
+  // ── KUMAMOTO ──────────────────────────────────────────────────────────────
+  { id: 16, name: "球磨川（熊本）",        region: "kyushu", pref: "熊本", fish: { ja: "アユ・シーバス", en: "Ayu & Seabass" }, rating: 5.0, type: { ja: "清流・河川", en: "River" }, icon: "🐠", lat: 32.48, lng: 130.71, bestSeason: { ja: "6〜10月（アユ）", en: "Jun–Oct (Ayu)" }, access: { ja: "人吉・八代市内各所から徒歩アクセス可", en: "Walk-in access from Hitoyoshi and Yatsushiro city" }, tip: { ja: "日本三大急流のひとつ。友釣りの名川。上流は清流、下流はシーバス。", en: "One of Japan's three great rapid rivers. Famous for tomozuri ayu. Seabass in lower reaches." } },
+  { id: 17, name: "天草・牛深",            region: "kyushu", pref: "熊本", fish: { ja: "マダイ・アオリイカ・根魚", en: "Bream, Squid & Grouper" }, rating: 4.9, type: { ja: "離島磯・沿岸", en: "Island & Coast" }, icon: "🐟", lat: 32.19, lng: 130.03, bestSeason: { ja: "通年（秋が最盛）", en: "Year-round (peak autumn)" }, access: { ja: "熊本市内から車2時間。天草四郎シティから渡船", en: "2hrs drive from Kumamoto city. Charter from Amakusa" }, tip: { ja: "天草の海は魚影が濃い。イシグロ・アラなどの高級根魚も多数。", en: "Amakusa seas are fish-dense. Prized grouper species including Ishiguroi and Ara." } },
+  { id: 18, name: "緑川・加勢川（熊本）", region: "kyushu", pref: "熊本", fish: { ja: "シーバス・バス", en: "Seabass & Bass" }, rating: 4.4, type: { ja: "河川", en: "River" }, icon: "🦈", lat: 32.73, lng: 130.72, bestSeason: { ja: "春〜秋", en: "Spring–Autumn" }, access: { ja: "熊本市内。各橋梁から徒歩アクセス可", en: "Kumamoto city. Walk-in from major bridges" }, tip: { ja: "市街地に近く通いやすい。春のバチパターンはシーバスが爆発する。", en: "Convenient city access. Worm hatch pattern triggers seabass explosions in spring." } },
+
+  // ── OITA ──────────────────────────────────────────────────────────────────
+  { id: 19, name: "大分・蒲江地磯",        region: "kyushu", pref: "大分", fish: { ja: "ハマチ・ブリ・ヒラスズキ", en: "Yellowtail & Shore Seabass" }, rating: 5.0, type: { ja: "地磯", en: "Shore Reef" }, icon: "🦈", lat: 32.78, lng: 132.00, bestSeason: { ja: "夏〜秋", en: "Summer–Autumn" }, access: { ja: "佐伯市蒲江町。国道388号沿い各地磯へ徒歩アクセス", en: "Kamae, Saiki city. Walk-in from Rte 388 to various shore reefs" }, tip: { ja: "九州ショアジギングの聖地。夜明けの一投が全て。100gジグを全力投入。", en: "Kyushu shore jigging mecca. The first cast at dawn is everything. 100g jig, max distance." } },
+  { id: 20, name: "別府湾・臼杵湾",        region: "kyushu", pref: "大分", fish: { ja: "マダイ・チヌ・ヒラメ", en: "Red Bream & Flounder" }, rating: 4.6, type: { ja: "湾・サーフ", en: "Bay & Surf" }, icon: "🐟", lat: 33.22, lng: 131.62, bestSeason: { ja: "春・秋", en: "Spring & Autumn" }, access: { ja: "大分市・別府市各港から出船", en: "Charter boats from Oita and Beppu ports" }, tip: { ja: "タイラバで大型マダイが狙える。テトラ帯のチヌはウキフカセで。", en: "Large red bream on taira rigs. Float fishing for Black Bream around tetrapods." } },
+  { id: 21, name: "大分・姫島",            region: "kyushu", pref: "大分", fish: { ja: "アオリイカ・クロ", en: "Squid & Mejina" }, rating: 4.8, type: { ja: "離島", en: "Island" }, icon: "🦑", lat: 33.72, lng: 131.65, bestSeason: { ja: "春・秋", en: "Spring & Autumn" }, access: { ja: "伊美港からフェリー15分", en: "15min ferry from Imi Port" }, tip: { ja: "透明度抜群の海でエギングが楽しめる。磯クロも人気。早めの予約推奨。", en: "Crystal clear water for eging. Shore Mejina also popular. Book accommodation early." } },
+
+  // ── MIYAZAKI ──────────────────────────────────────────────────────────────
+  { id: 22, name: "日向灘・延岡沖",        region: "kyushu", pref: "宮崎", fish: { ja: "カンパチ・ブリ・マグロ", en: "Amberjack & Tuna" }, rating: 4.9, type: { ja: "沖合", en: "Offshore" }, icon: "🦈", lat: 32.58, lng: 131.66, bestSeason: { ja: "夏〜秋", en: "Summer–Autumn" }, access: { ja: "延岡市内各港から出船。遊漁船多数。", en: "Multiple charter boats from Nobeoka city ports" }, tip: { ja: "日向灘はカンパチの一級ポイント。深場の大型ジギングが主流。", en: "Hyuga-nada Sea is prime for large Kanpachi. Deep jigging for large specimens." } },
+  { id: 23, name: "高千穂・五ヶ瀬川",      region: "kyushu", pref: "宮崎", fish: { ja: "ヤマメ・アユ", en: "Yamame & Ayu" }, rating: 4.8, type: { ja: "渓流・清流", en: "Mountain Stream" }, icon: "🪶", lat: 32.71, lng: 131.30, bestSeason: { ja: "3〜10月", en: "Mar–Oct" }, access: { ja: "高千穂峡付近。遊漁券要（漁協で購入）", en: "Near Takachiho Gorge. Permit required (buy from fishing cooperative)" }, tip: { ja: "神話の里の清流でヤマメが釣れる感動。テンカラも楽しめる。", en: "Catch Yamame in the legendary waters of Takachiho. Tenkara is also excellent here." } },
+  { id: 24, name: "宮崎・木崎浜サーフ",   region: "kyushu", pref: "宮崎", fish: { ja: "ヒラメ・青物", en: "Flounder & Pelagics" }, rating: 4.7, type: { ja: "サーフ", en: "Surf" }, icon: "🏄", lat: 31.88, lng: 131.44, bestSeason: { ja: "秋〜冬", en: "Autumn–Winter" }, access: { ja: "宮崎市内から車30分。駐車場完備。", en: "30min drive from Miyazaki city. Parking available." }, tip: { ja: "宮崎サーフの代名詞。ヒラメの実績が高い。離岸流を丁寧に探すこと。", en: "The icon of Miyazaki surf fishing. High track record for Flounder. Hunt rip currents carefully." } },
+
+  // ── KAGOSHIMA ─────────────────────────────────────────────────────────────
+  { id: 25, name: "錦江湾（鹿児島）",      region: "kyushu", pref: "鹿児島", fish: { ja: "ブリ・カンパチ・マダイ", en: "Yellowtail & Red Bream" }, rating: 4.8, type: { ja: "湾・沖合", en: "Bay & Offshore" }, icon: "🦈", lat: 31.40, lng: 130.67, bestSeason: { ja: "秋〜冬", en: "Autumn–Winter" }, access: { ja: "鹿児島市内各港から出船", en: "Charter from Kagoshima city ports" }, tip: { ja: "桜島を背景に竿を出す絶景ポイント。カンパチは60〜80cm級も。", en: "Fish with Sakurajima volcano as your backdrop. Kanpachi to 60–80cm regularly taken." } },
+  { id: 26, name: "屋久島",                region: "kyushu", pref: "鹿児島", fish: { ja: "GT・カスミアジ・シイラ", en: "Giant Trevally & Mahi-Mahi" }, rating: 5.0, type: { ja: "離島・沖合", en: "Remote Island" }, icon: "🦈", lat: 30.35, lng: 130.64, bestSeason: { ja: "夏〜秋", en: "Summer–Autumn" }, access: { ja: "鹿児島港からフェリー4時間 or 飛行機35分", en: "4hr ferry or 35min flight from Kagoshima" }, tip: { ja: "GTを含むトロピカル系の大型魚が狙える。ポッパーへの炸裂バイトが迫力満点。", en: "Target GT and tropical species. Topwater popper strikes are explosive and powerful." } },
+  { id: 27, name: "甑島（薩摩川内）",      region: "kyushu", pref: "鹿児島", fish: { ja: "ヒラマサ・クロ・アオリイカ", en: "Amberjack & Mejina" }, rating: 5.0, type: { ja: "離島磯", en: "Remote Island Shore" }, icon: "🐟", lat: 31.80, lng: 129.84, bestSeason: { ja: "春〜秋", en: "Spring–Autumn" }, access: { ja: "川内港からフェリー2時間30分", en: "2.5hr ferry from Sendai Port" }, tip: { ja: "ヒラマサの磯釣りで全国的に有名。10kgオーバーが普通に出る夢の磯。", en: "Nationally famous for shore-caught Hiramasa amberjack. 10kg+ are regularly taken." } },
+
+  // ── HOKKAIDO ──────────────────────────────────────────────────────────────
+  { id: 28, name: "知床半島・羅臼沖",      region: "hokkaido", pref: "北海道", fish: { ja: "カラフトマス・カジキ・ヒラメ", en: "Pink Salmon & Marlin" }, rating: 5.0, type: { ja: "沖合・磯", en: "Offshore & Shore" }, icon: "🐠", lat: 44.02, lng: 145.00, bestSeason: { ja: "夏〜秋", en: "Summer–Autumn" }, access: { ja: "羅臼港から各種遊漁船。世界自然遺産内。", en: "Charter from Rausu Port. Within World Heritage site." }, tip: { ja: "知床の海は魚影が圧倒的に濃い。カジキ・ヒラメ・マス類が同時に狙える聖地。", en: "Shiretoko has some of Japan's most fish-dense waters. Marlin, flounder, and salmon all coexist." } },
+  { id: 29, name: "支笏湖（北海道）",      region: "hokkaido", pref: "北海道", fish: { ja: "ニジマス・ヒメマス・アメマス", en: "Rainbow Trout & Char" }, rating: 4.9, type: { ja: "カルデラ湖", en: "Caldera Lake" }, icon: "🪶", lat: 42.75, lng: 141.35, bestSeason: { ja: "通年（冬はワカサギ氷上）", en: "Year-round (ice fishing winter)" }, access: { ja: "新千歳空港から車40分。周辺にレンタルボートあり。", en: "40min drive from New Chitose Airport. Rental boats at lake." }, tip: { ja: "透明度日本一の湖。ニジマス60cm超がルアーで狙える。飛鱒（ヒメマス）は秋に爆発。", en: "Japan's clearest lake. 60cm+ rainbow trout on lures. Himemasu kokanee salmon peak in autumn." } },
+  { id: 30, name: "阿寒川（北海道）",      region: "hokkaido", pref: "北海道", fish: { ja: "ニジマス・アメマス", en: "Rainbow Trout & White Spotted Char" }, rating: 4.9, type: { ja: "C&R指定区", en: "Catch & Release Section" }, icon: "🪶", lat: 43.45, lng: 144.13, bestSeason: { ja: "4〜10月", en: "Apr–Oct" }, access: { ja: "釧路市阿寒町。C&R区は遊漁券無料（特定区間）", en: "Akan, Kushiro. C&R section is permit-free in designated stretch" }, tip: { ja: "C&R区は大型ニジマスの楽園。60〜70cmが当たり前のドリームフィッシャリー。", en: "The C&R section holds monster rainbows. 60–70cm fish are the norm at this dream fishery." } },
+  { id: 31, name: "十勝川（北海道）",      region: "hokkaido", pref: "北海道", fish: { ja: "イトウ・ニジマス・サケ", en: "Sakhalin Taimen & Salmon" }, rating: 5.0, type: { ja: "大河川", en: "Large River" }, icon: "🪶", lat: 42.80, lng: 143.10, bestSeason: { ja: "春・秋", en: "Spring & Autumn" }, access: { ja: "帯広市から各アクセスポイントへ車30〜60分", en: "30–60min drive from Obihiro to various access points" }, tip: { ja: "日本最大の淡水魚イトウが狙える数少ない場所。1mオーバーも現実。専門ガイドを推奨。", en: "One of Japan's few places to target Sakhalin Taimen over 1m. Guide strongly recommended." } },
+
+  // ── KANTO ─────────────────────────────────────────────────────────────────
+  { id: 32, name: "東京湾・竹芝周辺",     region: "kanto", pref: "東京", fish: { ja: "シーバス・タチウオ", en: "Seabass & Scabbardfish" }, rating: 4.5, type: { ja: "港湾", en: "Harbor" }, icon: "🦈", lat: 35.655, lng: 139.763, bestSeason: { ja: "秋（タチウオ）・通年（シーバス）", en: "Autumn (Tachiuo) / Year-round (Seabass)" }, access: { ja: "ゆりかもめ竹芝駅すぐ", en: "Adjacent to Yurikamome Takeshiba Station" }, tip: { ja: "タチウオはテンヤ釣りで秋に爆釣。シーバスは橋脚明暗部を狙う。", en: "Scabbardfish (Tachiuo) on tenya rigs go explosive in autumn. Seabass at bridge shadow edges." } },
+  { id: 33, name: "芦ノ湖（神奈川）",     region: "kanto", pref: "神奈川", fish: { ja: "ブラウントラウト・ニジマス・ブラックバス", en: "Brown Trout & Rainbow Trout" }, rating: 4.9, type: { ja: "湖", en: "Lake" }, icon: "🪶", lat: 35.19, lng: 139.02, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "箱根ロープウェイ桃源台駅からすぐ。レンタルボート多数。", en: "Near Hakone Ropeway Togendai. Many rental boats available." }, tip: { ja: "ブラウントラウト釣りで有名。芦ノ湖特有のフライフィッシング文化がある。", en: "Famous for Brown Trout. Has its own distinct fly fishing culture and tradition." } },
+  { id: 34, name: "琵琶湖（滋賀）",       region: "kansai", pref: "滋賀", fish: { ja: "ブラックバス（キャッチ&リリース禁止）", en: "Largemouth Bass (Mandatory Kill)" }, rating: 5.0, type: { ja: "湖", en: "Lake" }, icon: "🐟", lat: 35.27, lng: 136.07, bestSeason: { ja: "春・秋", en: "Spring & Autumn" }, access: { ja: "大津・草津・彦根など各地からボートアクセス", en: "Boat access from Otsu, Kusatsu, Hikone and beyond" }, tip: { ja: "日本最大の湖。バスの聖地だが滋賀県条例でリリース禁止。持ち帰り必須。", en: "Japan's largest lake and bass mecca. Mandatory kill under Shiga Prefecture ordinance — no release." } },
+
+  // ── CHUBU ─────────────────────────────────────────────────────────────────
+  { id: 35, name: "長良川（岐阜・友釣り）", region: "chubu", pref: "岐阜", fish: { ja: "アユ", en: "Ayu (Sweetfish)" }, rating: 5.0, type: { ja: "清流", en: "Clear River" }, icon: "🐠", lat: 35.41, lng: 136.72, bestSeason: { ja: "6〜10月", en: "Jun–Oct" }, access: { ja: "岐阜市・郡上八幡など各漁協管轄区で遊漁券購入", en: "Buy permits at fishing cooperatives in Gifu city and Gujo-Hachiman" }, tip: { ja: "日本三大清流のひとつ。友釣りの聖地。郡上エリアは特に大型が出る。", en: "One of Japan's three great clear rivers. The mecca of tomozuri ayu fishing. Big fish in the Gujo area." } },
+  { id: 36, name: "奥多摩川（東京）",      region: "kanto", pref: "東京", fish: { ja: "ヤマメ・イワナ・ニジマス", en: "Yamame, Iwana & Rainbow Trout" }, rating: 4.8, type: { ja: "渓流", en: "Mountain Stream" }, icon: "🪶", lat: 35.79, lng: 139.09, bestSeason: { ja: "3〜9月", en: "Mar–Sep" }, access: { ja: "JR奥多摩駅から徒歩・バス。遊漁券¥1,700/日", en: "From JR Okutama Station by foot or bus. Permit ¥1,700/day" }, tip: { ja: "東京から2時間でフライフィッシング。ライズを見てマッチザハッチが基本。", en: "Fly fishing just 2hrs from Tokyo. Match-the-hatch to rising fish is the standard approach." } },
 ];
+
 
 // ─── SEASONAL COMPONENTS ─────────────────────────────────────────────────────
 function SeasonalBadge({ fishId, lang }) {
@@ -2021,10 +2103,20 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang }) {
 
 function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
   const [activeSpot, setActiveSpot] = useState(null);
+  const [regionFilter, setRegionFilter] = useState("kyushu");
+
+  const REGIONS = [
+    { key: "kyushu",   ja: "九州",   en: "Kyushu",   emoji: "🌋" },
+    { key: "hokkaido", ja: "北海道", en: "Hokkaido",  emoji: "🏔️" },
+    { key: "kanto",    ja: "関東",   en: "Kanto",     emoji: "🗼" },
+    { key: "kansai",   ja: "関西",   en: "Kansai",    emoji: "⛩️" },
+    { key: "chubu",    ja: "中部",   en: "Chubu",     emoji: "🗻" },
+    { key: "all",      ja: "全国",   en: "All Japan", emoji: "🗾" },
+  ];
 
   const rawSpots = selectedFish
     ? selectedFish.spots.map((sp, i) => ({ ...sp, id: i + 100, fishName: selectedFish.name, icon: selectedFish.emoji || "📍" }))
-    : MAP_SPOTS;
+    : MAP_SPOTS.filter(sp => regionFilter === "all" || sp.region === regionFilter);
 
   const spots = rawSpots.map(sp => {
     const coords = SPOT_COORDS[sp.name] || (sp.lat ? { lat: sp.lat, lng: sp.lng } : null);
@@ -2035,6 +2127,17 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
   return (
     <div style={{ animation: "fadeUp 0.4s ease" }}>
       <h2 style={{ margin: "0 0 4px", fontSize: "1.2rem" }}>{selectedFish ? `${selectedFish.name}の釣り場` : (lang === "ja" ? "近くの釣り場" : "Spots Near You")}</h2>
+
+      {/* Region filter chips — only show when not filtering by fish */}
+      {!selectedFish && (
+        <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 10, paddingBottom: 2 }}>
+          {REGIONS.map(r => (
+            <button key={r.key} onClick={() => setRegionFilter(r.key)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 99, border: `2px solid ${regionFilter === r.key ? "#0d7377" : "#d4cfc4"}`, background: regionFilter === r.key ? "#e0f2f2" : "#f5f0e8", color: regionFilter === r.key ? "#0d7377" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: regionFilter === r.key ? 700 : 400 }}>
+              {r.emoji} {r[lang]}
+            </button>
+          ))}
+        </div>
+      )}
       {/* Location status bar */}
       {userLocation ? (
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 10, marginBottom: 10, cursor: "pointer" }} onClick={onOpenLocalAI}>
@@ -2066,17 +2169,33 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {spots.length === 0 && (
+          <div style={{ textAlign: "center", padding: "30px 20px", color: "#7a7a6a" }}>
+            <div style={{ fontSize: "2rem", marginBottom: 8 }}>🗺️</div>
+            <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "このエリアのスポットは準備中です" : "Spots for this area coming soon"}</div>
+          </div>
+        )}
         {spots.map((spot, i) => (
-          <div key={spot.id || i} onClick={() => setActiveSpot(spot)} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: "12px 16px", display: "flex", gap: 12, alignItems: "center", cursor: "pointer", animation: `fadeUp ${0.2 + i * 0.07}s ease both` }}>
-            <div style={{ width: 42, height: 42, borderRadius: 10, background: "#e0f2f2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>{spot.icon || "📍"}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: "1.05rem" }}>{spot.name}</div>
-              <div style={{ fontSize: "1rem", color: "#5a5a4a", marginTop: 2 }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")} · {typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
+          <div key={spot.id || i} onClick={() => setActiveSpot(spot)} style={{ background: activeSpot?.id === spot.id ? "#e0f2f2" : "#fffdf8", border: `2px solid ${activeSpot?.id === spot.id ? "#0d7377" : "#e0dbd0"}`, borderRadius: 14, padding: "12px 16px", cursor: "pointer", animation: `fadeUp ${0.2 + i * 0.05}s ease both`, marginBottom: 8 }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: spot.tip ? 8 : 0 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#e0f2f2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", flexShrink: 0 }}>{spot.icon || "📍"}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 2 }}>{spot.name}</div>
+                <div style={{ fontSize: "0.85rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")} · {typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
+                {spot.pref && <div style={{ fontSize: "0.78rem", color: "#9a9a8a", marginTop: 1 }}>📌 {spot.pref}</div>}
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <div style={{ color: "#c06a10", fontSize: "1rem", fontWeight: 700 }}>⭐ {spot.rating}</div>
+                {spot.distKm != null && <div style={{ color: "#0d7377", fontSize: "0.85rem", fontWeight: 700 }}>📏 {spot.distKm} km</div>}
+                {spot.bestSeason && <div style={{ fontSize: "0.72rem", color: "#7a7a6a" }}>{spot.bestSeason[lang]}</div>}
+              </div>
             </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ color: "#c06a10", fontSize: "1.05rem" }}>⭐ {spot.rating}</div>
-              {spot.distKm != null && <div style={{ color: "#0d7377", fontSize: "0.88rem", fontWeight: 700 }}>📏 {spot.distKm} km</div>}
-            </div>
+            {spot.tip && activeSpot?.id === spot.id && (
+              <div style={{ background: "#f5f0e8", borderRadius: 10, padding: "8px 12px", fontSize: "0.85rem", color: "#3a3a2a", lineHeight: 1.6 }}>
+                💡 {spot.tip[lang]}
+                {spot.access && <div style={{ marginTop: 4, fontSize: "0.78rem", color: "#0d7377" }}>🚗 {spot.access[lang]}</div>}
+              </div>
+            )}
           </div>
         ))}
       </div>
