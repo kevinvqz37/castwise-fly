@@ -1118,7 +1118,23 @@ const WEATHER_FALLBACK = {
   loaded: false,
 };
 
-// ─── FISHING REGULATIONS DATABASE ────────────────────────────────────────────
+// ─── LOCAL STORAGE PERSISTENCE ───────────────────────────────────────────────
+function useLocalStorage(key, defaultValue) {
+  const [value, setValue] = useState(() => {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored !== null ? JSON.parse(stored) : defaultValue;
+    } catch { return defaultValue; }
+  });
+  function setAndStore(newVal) {
+    const val = typeof newVal === "function" ? newVal(value) : newVal;
+    setValue(val);
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  }
+  return [value, setAndStore];
+}
+
+
 const REGULATIONS = {
   "ブラックバス":  { minSize: null, bag: null, note: { ja: "リリース禁止の河川・湖あり（琵琶湖など）。各県の漁業規則を確認すること。", en: "Mandatory kill in some waters (e.g. Lake Biwa). Check prefectural fisheries rules." }, seasons: "year-round" },
   "アユ":         { minSize: 15,   bag: null, note: { ja: "河川ごとに遊漁券が必要（¥1,500〜¥2,200/日）。禁漁期：11月〜5月（多くの河川）。", en: "Daily fishing permit required (¥1,500–2,200). Closed season: Nov–May on most rivers." }, seasons: "Jun–Oct" },
@@ -2377,21 +2393,22 @@ Keep it under 220 words, emoji section headers.`;
 
 // ─── MAIN APP ────────────────────────────────────────────────────────────────
 export default function CastWiseJapan() {
-  const [lang, setLang] = useState("ja");
+  const [lang, setLang] = useLocalStorage("castwise_lang", "ja");
   const [tab, setTab] = useState("Explore");
   const [selectedFish, setSelectedFish] = useState(null);
   const [gearTab, setGearTab] = useState("gear");
   const [catches, setCatches] = useState([]);
   const [catchesLoading, setCatchesLoading] = useState(true);
-  const [liked, setLiked] = useState({});
+  const [liked, setLiked] = useLocalStorage("castwise_liked", {});
   const [newCatch, setNewCatch] = useState({ fish: "", weight: "", location: "", notes: "", photo: null, method: "lure" });
   const [myCatches, setMyCatches] = useState([]);
   const [logOpen, setLogOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(null);
   const [commentText, setCommentText] = useState("");
   const [search, setSearch] = useState("");
-  const [filterDiff, setFilterDiff] = useState("all");
-  const [filterFly, setFilterFly] = useState(false);
+  const [filterDiff, setFilterDiff] = useLocalStorage("castwise_filterdiff", "all");
+  const [filterCat, setFilterCat] = useLocalStorage("castwise_filtercat", "all");
+  const [filterFly, setFilterFly] = useLocalStorage("castwise_filterfly", false);
   const [showAI, setShowAI] = useState(false);
   const [showFlyAI, setShowFlyAI] = useState(false);
   const [flyAIFish, setFlyAIFish] = useState(null);
@@ -2399,12 +2416,12 @@ export default function CastWiseJapan() {
   const [profileTab, setProfileTab] = useState("catches");
   const [photoPreview, setPhotoPreview] = useState(null);
   const [editProfile, setEditProfile] = useState(false);
-  const [profile, setProfile] = useState({ name: lang === "ja" ? "あなたの名前" : "Your Name", bio: lang === "ja" ? "渓流フライマン🪶" : "Mountain stream fly fisher 🪶", avatar: "🪶", catches: 8, followers: 52, following: 29 });
+  const [profile, setProfile] = useLocalStorage("castwise_profile", { name: "あなたの名前", bio: "渓流フライマン🪶", avatar: "🪶", catches: 8, followers: 52, following: 29 });
   // Ad system state
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [showRewarded, setShowRewarded] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
-  const [bonusPoints, setBonusPoints] = useState(0);
+  const [isPremium, setIsPremium] = useLocalStorage("castwise_premium", false);
+  const [bonusPoints, setBonusPoints] = useLocalStorage("castwise_points", 0);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [pendingTab, setPendingTab] = useState(null);
   // Location state
@@ -2481,7 +2498,7 @@ export default function CastWiseJapan() {
 
   const diffMap = { all: { ja: "すべて", en: "All" }, beginner: { ja: "初心者", en: "Beginner" }, intermediate: { ja: "中級者", en: "Intermediate" }, advanced: { ja: "上級者", en: "Advanced" } };
   const catMap = { all: { ja: "すべて", en: "All" }, freshwater: { ja: "淡水", en: "Freshwater" }, saltwater: { ja: "海水", en: "Saltwater" }, shore: { ja: "ショア", en: "Shore" } };
-  const [filterCat, setFilterCat] = useState("all");
+
 
   const FISH_CATS = { 1:"freshwater", 2:"freshwater", 3:"freshwater", 4:"saltwater", 5:"freshwater", 6:"saltwater", 7:"saltwater", 8:"saltwater", 9:"freshwater", 10:"freshwater", 11:"freshwater", 12:"saltwater", 13:"saltwater", 14:"saltwater", 15:"shore", 16:"saltwater" };
 
