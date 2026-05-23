@@ -16,30 +16,31 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
-// ─── TRANSLATIONS ──────────────────────────────────────────────────────────
+
+// ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
 const T = {
-  appTagline: { ja: 'もっと賢く釣る', en: 'fish smarter · catch more' },
-  whatFishing: { ja: '何を釣りますか？', en: 'What are you fishing for?' },
-  selectSpecies: { ja: '魚を選んでギア＆釣り場を確認', en: 'Select a species for gear & spots' },
-  search: { ja: '魚を検索...', en: 'Search fish...' },
-  aiAdvisor: { ja: '🤖 今日のAIルアー診断 →', en: '🤖 AI Lure Advice →' },
-  aiFlyAdvisor: { ja: '🪰 今日のAIフライ診断 →', en: '🪰 AI Fly Pattern Advice →' },
-  proTip: { ja: 'プロのコツ', en: 'Pro Tip' },
-  back: { ja: '← 戻る', en: '← Back' },
-  browsefish: { ja: '魚を探す →', en: 'Browse Fish →' },
+  appTagline: { ja: "もっと賢く釣る", en: "fish smarter · catch more" },
+  whatFishing: { ja: "何を釣りますか？", en: "What are you fishing for?" },
+  selectSpecies: { ja: "魚を選んでギア＆釣り場を確認", en: "Select a species for gear & spots" },
+  search: { ja: "魚を検索...", en: "Search fish..." },
+  aiAdvisor: { ja: "🤖 今日のAIルアー診断 →", en: "🤖 AI Lure Advice →" },
+  aiFlyAdvisor: { ja: "🪰 今日のAIフライ診断 →", en: "🪰 AI Fly Pattern Advice →" },
+  proTip: { ja: "プロのコツ", en: "Pro Tip" },
+  back: { ja: "← 戻る", en: "← Back" },
+  browsefish: { ja: "魚を探す →", en: "Browse Fish →" },
   noCatchYet: { ja: "まだ釣果がありません。\n釣りに行きましょう！", en: "No catches yet.\nGet out there!" },
-  logCatch: { ja: '📸 釣果を記録する', en: '📸 Log a Catch' },
-  saveshare: { ja: '保存＆シェア', en: 'Save & Share' },
-  cancel: { ja: 'キャンセル', en: 'Cancel' },
-  excellent: { ja: '🔥 今日は最高の釣り日和！', en: '🔥 Excellent fishing today!' },
-  good: { ja: '👍 良い条件 — 釣りに行こう', en: '👍 Good conditions — go fish' },
-  fair: { ja: '😐 まずまず — 深場を狙って', en: '😐 Fair — fish deep or wait' },
-  keepFishing: { ja: '🔥 上位を目指して釣り続けよう！', en: '🔥 Keep fishing to climb the ranks!' },
-  verified: { ja: '✓ 認証済', en: '✓ Verified' },
-  addComment: { ja: 'コメントを追加...', en: 'Add a comment...' },
-  addPhoto: { ja: 'タップして写真を追加', en: 'Tap to add photo' },
-  edit: { ja: '編集', en: 'Edit' },
-  save: { ja: '保存', en: 'Save' },
+  logCatch: { ja: "📸 釣果を記録する", en: "📸 Log a Catch" },
+  saveshare: { ja: "保存＆シェア", en: "Save & Share" },
+  cancel: { ja: "キャンセル", en: "Cancel" },
+  excellent: { ja: "🔥 今日は最高の釣り日和！", en: "🔥 Excellent fishing today!" },
+  good: { ja: "👍 良い条件 — 釣りに行こう", en: "👍 Good conditions — go fish" },
+  fair: { ja: "😐 まずまず — 深場を狙って", en: "😐 Fair — fish deep or wait" },
+  keepFishing: { ja: "🔥 上位を目指して釣り続けよう！", en: "🔥 Keep fishing to climb the ranks!" },
+  verified: { ja: "✓ 認証済", en: "✓ Verified" },
+  addComment: { ja: "コメントを追加...", en: "Add a comment..." },
+  addPhoto: { ja: "タップして写真を追加", en: "Tap to add photo" },
+  edit: { ja: "編集", en: "Edit" },
+  save: { ja: "保存", en: "Save" },
 };
 function s(key, lang) { return T[key]?.[lang] || key; }
 
