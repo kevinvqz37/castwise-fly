@@ -27,9 +27,7 @@ const T = {
   proTip: { ja: 'プロのコツ', en: 'Pro Tip' },
   back: { ja: '← 戻る', en: '← Back' },
   browsefish: { ja: '魚を探す →', en: 'Browse Fish →' },
-  noCatchYet: { ja: 'まだ釣果がありません。
-釣りに行きましょう！', en: 'No catches yet.
-Get out there!' },
+  noCatchYet: { ja: "まだ釣果がありません。\n釣りに行きましょう！", en: "No catches yet.\nGet out there!" },
   logCatch: { ja: '📸 釣果を記録する', en: '📸 Log a Catch' },
   saveshare: { ja: '保存＆シェア', en: 'Save & Share' },
   cancel: { ja: 'キャンセル', en: 'Cancel' },
