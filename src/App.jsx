@@ -589,7 +589,207 @@ function use7DayForecast(userLocation) {
   return forecast;
 }
 
-// ─── ACTIVE USERS SYSTEM ─────────────────────────────────────────────────────
+// ─── LINE SHARING ────────────────────────────────────────────────────────────
+function shareToLINE(catch_, lang) {
+  const text = lang === "ja"
+    ? `🎣 釣れた！\n魚種: ${catch_.fish}\n重量: ${catch_.weight}\n場所: ${catch_.location}\n\n釣りナビPROで記録 → https://castwise-fly.vercel.app`
+    : `🎣 Got one!\nSpecies: ${catch_.fish}\nWeight: ${catch_.weight}\nLocation: ${catch_.location}\n\nLogged on CastWise Japan → https://castwise-fly.vercel.app`;
+  const url = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
+  window.open(url, "_blank");
+}
+
+function shareToTwitter(catch_, lang) {
+  const text = lang === "ja"
+    ? `🎣 ${catch_.fish} ${catch_.weight}を釣りました！📍${catch_.location} #釣りナビPRO #釣り #fishing`
+    : `🎣 Caught a ${catch_.fish} weighing ${catch_.weight} at ${catch_.location}! #CastWiseJapan #fishing #Japan`;
+  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  window.open(url, "_blank");
+}
+
+// ─── PERSONAL RECORDS / TROPHY ROOM ─────────────────────────────────────────
+function getTrophyRoom(catches) {
+  const records = {};
+  catches.forEach(c => {
+    if (!c.fish || !c.weight) return;
+    const weightNum = parseFloat(c.weight.replace(/[^0-9.]/g, ""));
+    if (isNaN(weightNum)) return;
+    if (!records[c.fish] || weightNum > records[c.fish].weight) {
+      records[c.fish] = { ...c, weight: weightNum, weightStr: c.weight, date: c.date };
+    }
+  });
+  return Object.values(records).sort((a, b) => b.weight - a.weight);
+}
+
+function TrophyRoom({ catches, lang, onSelectFish, FISH_DATA }) {
+  const records = getTrophyRoom(catches);
+  if (records.length === 0) return (
+    <div style={{ textAlign: "center", padding: "40px 20px", color: "#5a5a4a" }}>
+      <div style={{ fontSize: "3rem", marginBottom: 12 }}>🏆</div>
+      <div style={{ fontWeight: 700, fontSize: "1.05rem", marginBottom: 8 }}>{lang === "ja" ? "まだ記録がありません" : "No records yet"}</div>
+      <div style={{ fontSize: "0.9rem" }}>{lang === "ja" ? "釣果を記録すると自動的に最大記録が更新されます" : "Log catches to build your trophy room"}</div>
+    </div>
+  );
+  return (
+    <div>
+      <div style={{ fontSize: "0.88rem", color: "#5a5a4a", marginBottom: 12 }}>
+        {lang === "ja" ? `${records.length}魚種の自己記録` : `Personal records for ${records.length} species`}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {records.map((r, i) => {
+          const fish = FISH_DATA.find(f => f.name === r.fish || f.nameEn === r.fish);
+          return (
+            <div key={r.fish} style={{ background: i === 0 ? "#fff8e8" : "#fffdf8", border: `2px solid ${i === 0 ? "#f0a020" : "#e0dbd0"}`, borderRadius: 14, padding: "12px 16px", display: "flex", gap: 12, alignItems: "center" }}>
+              <div style={{ fontSize: "1.5rem", minWidth: 32, textAlign: "center" }}>
+                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "🎣"}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: "1rem" }}>{r.fish}</div>
+                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>📅 {r.date?.[lang] || r.date}</div>
+                {r.location && <div style={{ fontSize: "0.78rem", color: "#7a7a6a" }}>📍 {r.location}</div>}
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontWeight: 900, fontSize: "1.2rem", color: i === 0 ? "#c06a10" : "#0d7377" }}>⚖️ {r.weightStr}</div>
+                <div style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? "自己ベスト" : "Personal best"}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── TIDAL FISHING CALENDAR ───────────────────────────────────────────────────
+function TidalCalendar({ lang, userLocation }) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
+
+  const lunarCycle = 29.53 * 24 * 60 * 60 * 1000;
+  const knownNewMoon = new Date("2024-01-11").getTime();
+
+  function getDayScore(day) {
+    const date = new Date(year, month, day);
+    const phase = ((date.getTime() - knownNewMoon) % lunarCycle) / lunarCycle;
+    const dayOfWeek = date.getDay();
+    let score = 60;
+    // Full moon and new moon are best for fishing
+    if (phase < 0.05 || phase > 0.95) score += 25; // new moon
+    else if (phase > 0.45 && phase < 0.55) score += 20; // full moon
+    else if (phase > 0.20 && phase < 0.30) score += 10; // first quarter
+    else if (phase > 0.70 && phase < 0.80) score += 10; // last quarter
+    // Weekend bonus
+    if (dayOfWeek === 0 || dayOfWeek === 6) score += 5;
+    return Math.min(99, score);
+  }
+
+  const monthNames = {
+    ja: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
+    en: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+  };
+  const dayNames = {
+    ja: ["日","月","火","水","木","金","土"],
+    en: ["S","M","T","W","T","F","S"]
+  };
+
+  // Find best days
+  const dayScores = Array.from({length: daysInMonth}, (_, i) => ({ day: i+1, score: getDayScore(i+1) }));
+  const bestDays = [...dayScores].sort((a,b) => b.score - a.score).slice(0, 5).map(d => d.day);
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <h3 style={{ margin: 0, fontSize: "1.05rem" }}>🗓️ {monthNames[lang][month]} {year}</h3>
+        <div style={{ fontSize: "0.82rem", color: "#0d7377" }}>{lang === "ja" ? "月齢ベース釣り指数" : "Lunar-based fishing index"}</div>
+      </div>
+
+      {/* Day headers */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3, marginBottom: 3 }}>
+        {dayNames[lang].map((d, i) => (
+          <div key={i} style={{ textAlign: "center", fontSize: "0.75rem", color: i === 0 ? "#b82030" : i === 6 ? "#1565a0" : "#7a7a6a", fontWeight: 700, padding: "4px 0" }}>{d}</div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
+        {Array.from({length: firstDay}, (_, i) => <div key={`empty-${i}`} />)}
+        {dayScores.map(({ day, score }) => {
+          const isToday = day === now.getDate();
+          const isBest = bestDays.includes(day);
+          const bg = score >= 85 ? "#d8f0d8" : score >= 75 ? "#f8f0d0" : "#f5f0e8";
+          const color = score >= 85 ? "#2d7a3a" : score >= 75 ? "#c06a10" : "#7a7a6a";
+          return (
+            <div key={day} style={{ background: isToday ? "#e0f2f2" : bg, border: `${isToday ? 2 : 1}px solid ${isToday ? "#0d7377" : isBest ? "#a0d0a0" : "#e0dbd0"}`, borderRadius: 8, padding: "5px 2px", textAlign: "center", position: "relative" }}>
+              {isBest && <div style={{ position: "absolute", top: 1, right: 2, fontSize: "0.55rem" }}>⭐</div>}
+              <div style={{ fontSize: "0.8rem", fontWeight: isToday ? 900 : 400, color: isToday ? "#0d7377" : "#1a1a14" }}>{day}</div>
+              <div style={{ fontSize: "0.68rem", fontWeight: 700, color }}>{score}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Best days summary */}
+      <div style={{ marginTop: 14, background: "#d8f0d8", border: "2px solid #a0d0a0", borderRadius: 12, padding: "10px 14px" }}>
+        <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#2d7a3a", marginBottom: 6 }}>
+          ⭐ {lang === "ja" ? "今月のベスト釣り日" : "Best fishing days this month"}
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {bestDays.sort((a,b)=>a-b).map(d => (
+            <span key={d} style={{ background: "#2d7a3a", color: "white", borderRadius: 99, padding: "3px 10px", fontSize: "0.82rem", fontWeight: 700 }}>
+              {monthNames[lang][month]}{d}日 ({getDayScore(d)})
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 8, fontSize: "0.75rem", color: "#9a9a8a", textAlign: "center" }}>
+        {lang === "ja" ? "※月齢・潮汐パターンに基づく推定値" : "Based on lunar cycle & tidal patterns"}
+      </div>
+    </div>
+  );
+}
+
+// ─── FISHING JOURNAL ──────────────────────────────────────────────────────────
+// Full trip notes beyond just catches
+function useFishingJournal() {
+  const [journal, setJournal] = useLocalStorage("castwise_journal", []);
+
+  function addEntry(entry) {
+    const newEntry = { ...entry, id: Date.now(), createdAt: Date.now() };
+    setJournal(prev => [newEntry, ...prev]);
+    return newEntry;
+  }
+
+  function deleteEntry(id) {
+    setJournal(prev => prev.filter(e => e.id !== id));
+  }
+
+  return { journal, addEntry, deleteEntry };
+}
+
+// ─── TENKARA SPECIALIST MODE ──────────────────────────────────────────────────
+const TENKARA_RODS = [
+  { length: 3.0, target: { ja: "小渓流・源流", en: "Small streams & headwaters" }, line: "3.0〜3.3m", tip: { ja: "木が多い狭い渓流に最適。コントロール重視。", en: "Best for tight tree-lined streams. Precision over distance." } },
+  { length: 3.3, target: { ja: "標準渓流", en: "Standard mountain streams" }, line: "3.3〜3.6m", tip: { ja: "最も汎用的なサイズ。迷ったらこれ。", en: "Most versatile size. Default choice for most Japanese streams." } },
+  { length: 3.6, target: { ja: "中〜大渓流", en: "Medium to large streams" }, line: "3.6〜4.0m", tip: { ja: "開けた渓流で遠投が必要な時。", en: "When you need extra reach on open water." } },
+  { length: 3.9, target: { ja: "大渓流・本流", en: "Large rivers & main stems" }, line: "4.0〜4.5m", tip: { ja: "本流のアユ・大型ヤマメに。腕力が必要。", en: "For main-stem ayu and large Yamame. Requires strong wrist." } },
+  { length: 4.5, target: { ja: "本流・テンカラ遠投", en: "Long-line tenkara" }, line: "4.5〜5.0m", tip: { ja: "上級者向け。大型河川の対岸を狙う。", en: "Advanced only. Targeting far banks on large rivers." } },
+];
+
+const TENKARA_KNOTS = [
+  { name: { ja: "テンカラ結び（ラインtoロッド）", en: "Tenkara Hitch (line to rod)" }, steps: { ja: ["ラインをリリアンに通す", "ループを作る", "ループの中にラインを通す", "きつく締める", "端を2〜3cm残してカット"], en: ["Thread line through lillian", "Form a loop", "Pass line end through loop", "Tighten firmly", "Leave 2–3cm tail and cut"] }, difficulty: "beginner" },
+  { name: { ja: "フロロ結び（ラインtoティペット）", en: "Fluorocarbon Join" }, steps: { ja: ["ラインとティペットを20cm重ねる", "両方を一緒に輪にする", "輪の中に3〜4回通す", "両端を引いて締める", "余分をカット"], en: ["Overlap line and tippet 20cm", "Form loop with both", "Pass through loop 3–4 times", "Pull both ends to tighten", "Trim excess"] }, difficulty: "beginner" },
+  { name: { ja: "ユニノット（毛鉤結び）", en: "Uni Knot (fly attachment)" }, steps: { ja: ["ティペットをフックアイに通す", "ティペットでループを作る", "ループの中に5〜6回巻く", "端を引いて締める", "アイに向けてスライド"], en: ["Thread tippet through hook eye", "Form loop with tippet", "Wrap through loop 5–6 times", "Pull end to tighten", "Slide knot to eye"] }, difficulty: "beginner" },
+];
+
+const LINE_FORMULA = {
+  ja: "ライン長さ = 竿の長さ × 1.0〜1.3（源流は短め、開けた渓流は長め）",
+  en: "Line length = Rod length × 1.0–1.3 (shorter for headwaters, longer for open streams)"
+};
+
+
 // Writes user location to Firestore every 2 minutes while app is open
 // Each document expires after 10 minutes (checked client-side)
 const ACTIVE_USER_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -1223,6 +1423,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
     { k: "hatch", ja: "🦋 ハッチカレンダー", en: "🦋 Hatch Calendar" },
     { k: "cast", ja: "🎋 キャスト技術", en: "🎋 Cast Techniques" },
     { k: "tenkara", ja: "⛰️ テンカラ", en: "⛰️ Tenkara" },
+    { k: "tenkarapro", ja: "🎋 テンカラ道場", en: "🎋 Tenkara Pro" },
   ];
 
   const typeFilters = [
@@ -1419,7 +1620,59 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
         </div>
       )}
 
-      {flyTab === "tenkara" && (
+      {flyTab === "tenkarapro" && (
+        <div style={{ animation: "fadeUp 0.4s ease" }}>
+          <div style={{ background: "linear-gradient(135deg,rgba(45,106,79,0.12),rgba(116,198,157,0.06))", border: "2px solid #a0d0b0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
+            <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: 4 }}>🎋 {lang === "ja" ? "テンカラ道場" : "Tenkara Dojo"}</div>
+            <div style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "竿選び・ライン計算・結び方・渓流ガイド" : "Rod selection · Line formula · Knots · Stream guide"}</div>
+          </div>
+
+          {/* Rod selector */}
+          <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 10, color: "#2d7a3a" }}>🎋 {lang === "ja" ? "竿の長さガイド" : "Rod Length Guide"}</div>
+            {TENKARA_RODS.map(rod => (
+              <div key={rod.length} style={{ background: "#f5f0e8", borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                  <span style={{ fontWeight: 700, fontSize: "1.05rem" }}>🎋 {rod.length}m</span>
+                  <span style={{ fontSize: "0.82rem", color: "#0d7377", background: "#e0f2f2", borderRadius: 99, padding: "2px 8px" }}>{lang === "ja" ? `ライン: ${rod.line}` : `Line: ${rod.line}`}</span>
+                </div>
+                <div style={{ fontSize: "0.88rem", color: "#2d7a3a", fontWeight: 600, marginBottom: 2 }}>📍 {rod.target[lang]}</div>
+                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>💡 {rod.tip[lang]}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Line formula */}
+          <div style={{ background: "#e0f0e8", border: "2px solid #a0d0b0", borderRadius: 14, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 8, color: "#2d7a3a" }}>📏 {lang === "ja" ? "ライン長さの公式" : "Line Length Formula"}</div>
+            <div style={{ fontSize: "0.88rem", color: "#1a4a22", lineHeight: 1.7, fontWeight: 600 }}>{LINE_FORMULA[lang]}</div>
+            <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {[3.0, 3.3, 3.6, 3.9, 4.5].map(len => (
+                <div key={len} style={{ background: "#fffdf8", border: "1px solid #a0d0b0", borderRadius: 8, padding: "6px 10px", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>{len}m竿</div>
+                  <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#2d7a3a" }}>{len.toFixed(1)}〜{(len * 1.3).toFixed(1)}m</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Knots */}
+          <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 10, color: "#2d7a3a" }}>🪢 {lang === "ja" ? "テンカラの結び方" : "Tenkara Knots"}</div>
+            {TENKARA_KNOTS.map((knot, ki) => (
+              <div key={ki} style={{ background: "#f5f0e8", borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
+                <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: 8 }}>{knot.name[lang]}</div>
+                {knot.steps[lang].map((step, si) => (
+                  <div key={si} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 4 }}>
+                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#2d7a3a", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.72rem", fontWeight: 700, flexShrink: 0 }}>{si+1}</div>
+                    <div style={{ fontSize: "0.83rem", color: "#3a3a2a", paddingTop: 2 }}>{step}</div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
         <div>
           <div style={{ background: "linear-gradient(135deg, rgba(72,202,228,0.08))", border: "2px solid #a0d0b0", borderRadius: 18, padding: 18, marginBottom: 14 }}>
             <div style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 6 }}>🎋 {lang === "ja" ? "テンカラとは" : "What is Tenkara?"}</div>
@@ -2124,6 +2377,10 @@ export default function CastWiseJapan() {
   const { isOnline } = useOfflineMode();
   useFishingAlerts(WEATHER, userLocation, lang);
 
+  const { journal, addEntry, deleteEntry } = useFishingJournal();
+  const [journalOpen, setJournalOpen] = useState(false);
+  const [journalEntry, setJournalEntry] = useState({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 });
+
   // Active users & location sharing
   const [locationSharing, setLocationSharing] = useLocalStorage("castwise_sharing", false);
   const userId = useRef(getOrCreateUserId()).current;
@@ -2788,7 +3045,8 @@ If this is NOT a fish or the image is unclear, return:
                   <div style={{ display: "flex", gap: 6 }}>
                     <button onClick={() => toggleLike(c.id)} style={{ flex: 1, padding: "7px", background: liked[c.id] ? "rgba(230,57,70,0.13)" : "#fffdf8", border: `2px solid ${liked[c.id] ? "#b82030" : "#e0dbd0"}`, borderRadius: 8, color: liked[c.id] ? "#e63946" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem" }}>{liked[c.id] ? "❤️" : "🤍"} {c.likes}</button>
                     <button onClick={() => setCommentOpen(commentOpen === c.id ? null : c.id)} style={{ flex: 1, padding: "7px", background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 8, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem" }}>💬 {c.comments.length}</button>
-                    <button style={{ padding: "7px 10px", background: "#e8f4f4", border: "2px solid #a0c8d0", borderRadius: 8, color: "#0d7377", cursor: "pointer", fontSize: "1.05rem" }}>⭐</button>
+                    <button onClick={() => shareToLINE(c, lang)} style={{ padding: "7px 10px", background: "#d8f0d8", border: "2px solid #06c755", borderRadius: 8, color: "#06c755", cursor: "pointer", fontSize: "1.05rem", fontWeight: 700 }}>LINE</button>
+                    <button onClick={() => shareToTwitter(c, lang)} style={{ padding: "7px 10px", background: "#e8f0f8", border: "2px solid #1da1f2", borderRadius: 8, color: "#1da1f2", cursor: "pointer", fontSize: "1.05rem" }}>𝕏</button>
                   </div>
                   {commentOpen === c.id && (
                     <div style={{ marginTop: 8, display: "flex", gap: 6, animation: "fadeUp 0.2s ease" }}>
@@ -2848,7 +3106,7 @@ If this is NOT a fish or the image is unclear, return:
             </div>
 
             <div style={{ display: "flex", gap: 5, marginBottom: 13 }}>
-              {[{ k: "catches", ja: "🎣 釣果記録", en: "🎣 My Catches" }, { k: "leaderboard", ja: "🏆 ランキング", en: "🏆 Leaderboard" }, { k: "pro", ja: "👑 PRO", en: "👑 PRO" }].map(pt => (
+              {[{ k: "catches", ja: "🎣 釣果記録", en: "🎣 My Catches" }, { k: "trophy", ja: "🏆 記録", en: "🏆 Records" }, { k: "calendar", ja: "🗓️ 釣り暦", en: "🗓️ Calendar" }, { k: "journal", ja: "📓 日誌", en: "📓 Journal" }, { k: "leaderboard", ja: "👑 ランク", en: "👑 Rank" }, { k: "pro", ja: "💎 PRO", en: "💎 PRO" }].map(pt => (
                 <button key={pt.k} onClick={() => setProfileTab(pt.k)} style={{ flex: 1, padding: "8px", borderRadius: 9, border: `1px solid ${profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.6)" : "#0d7377") : "#d4cfc4"}`, background: profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.15)" : "rgba(72,202,228,0.1)") : "transparent", color: profileTab === pt.k ? (pt.k === "pro" ? "#9060e0" : "#0d7377") : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: profileTab === pt.k ? 700 : 400 }}>{pt[lang]}</button>
               ))}
             </div>
@@ -2994,7 +3252,79 @@ If this is NOT a fish or the image is unclear, return:
               </>
             )}
 
-            {profileTab === "leaderboard" && (
+            {profileTab === "trophy" && (
+              <div style={{ animation: "fadeUp 0.4s ease" }}>
+                <h3 style={{ margin: "0 0 12px", fontSize: "1.1rem" }}>🏆 {lang === "ja" ? "魚種別自己記録" : "Personal Best Records"}</h3>
+                <TrophyRoom catches={[...myCatches, ...catches.filter(c => c.user === profile.name)]} lang={lang} FISH_DATA={FISH_DATA} />
+              </div>
+            )}
+
+            {profileTab === "calendar" && (
+              <div style={{ animation: "fadeUp 0.4s ease" }}>
+                <TidalCalendar lang={lang} userLocation={userLocation} />
+              </div>
+            )}
+
+            {profileTab === "journal" && (
+              <div style={{ animation: "fadeUp 0.4s ease" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <h3 style={{ margin: 0, fontSize: "1.1rem" }}>📓 {lang === "ja" ? "釣り日誌" : "Fishing Journal"}</h3>
+                  <button onClick={() => setJournalOpen(!journalOpen)} style={{ background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 10, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 700 }}>
+                    + {lang === "ja" ? "新しい日誌" : "New Entry"}
+                  </button>
+                </div>
+
+                {journalOpen && (
+                  <div style={{ background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 14, padding: 14, marginBottom: 14, animation: "fadeUp 0.3s ease" }}>
+                    <input value={journalEntry.title} onChange={e => setJournalEntry(p => ({...p, title: e.target.value}))} placeholder={lang === "ja" ? "タイトル（例：矢部川 朝の部）" : "Title (e.g. Yabeji River morning session)"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                    <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                      <input value={journalEntry.weather} onChange={e => setJournalEntry(p => ({...p, weather: e.target.value}))} placeholder={lang === "ja" ? "天気" : "Weather"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                      <input value={journalEntry.water} onChange={e => setJournalEntry(p => ({...p, water: e.target.value}))} placeholder={lang === "ja" ? "水温・水量" : "Water temp/level"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                    </div>
+                    <input value={journalEntry.flies} onChange={e => setJournalEntry(p => ({...p, flies: e.target.value}))} placeholder={lang === "ja" ? "使用フライ・ルアー" : "Flies/lures used"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                    <textarea value={journalEntry.notes} onChange={e => setJournalEntry(p => ({...p, notes: e.target.value}))} placeholder={lang === "ja" ? "メモ・観察・気づき..." : "Notes, observations, insights..."} rows={4} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem", resize: "vertical" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                      <span style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "評価:" : "Rating:"}</span>
+                      {[1,2,3,4,5].map(s => (
+                        <button key={s} onClick={() => setJournalEntry(p => ({...p, rating: s}))} style={{ fontSize: "1.3rem", background: "none", border: "none", cursor: "pointer", opacity: s <= journalEntry.rating ? 1 : 0.3 }}>⭐</button>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button onClick={() => { if (journalEntry.title) { addEntry(journalEntry); setJournalEntry({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 }); setJournalOpen(false); } }} style={{ flex: 2, padding: "10px", background: "#d0eae8", border: "2px solid #80b0c8", borderRadius: 9, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>{lang === "ja" ? "保存" : "Save"}</button>
+                      <button onClick={() => setJournalOpen(false)} style={{ flex: 1, padding: "10px", background: "#fffdf8", border: "2px solid #d4cfc4", borderRadius: 9, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit" }}>{lang === "ja" ? "キャンセル" : "Cancel"}</button>
+                    </div>
+                  </div>
+                )}
+
+                {journal.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "40px 20px", color: "#5a5a4a", background: "#f8f4ec", borderRadius: 14, border: "2px dashed #d4cfc4" }}>
+                    <div style={{ fontSize: "2.5rem", marginBottom: 8 }}>📓</div>
+                    <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "まだ日誌がありません" : "No journal entries yet"}</div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {journal.map(entry => (
+                      <div key={entry.id} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: "14px 16px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                          <div style={{ fontWeight: 700, fontSize: "1rem" }}>{entry.title}</div>
+                          <button onClick={() => deleteEntry(entry.id)} style={{ background: "none", border: "none", color: "#b82030", cursor: "pointer", fontSize: "1rem", padding: "0 4px" }}>✕</button>
+                        </div>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+                          {entry.weather && <span style={{ fontSize: "0.8rem", background: "#e0f2f2", borderRadius: 99, padding: "2px 8px", color: "#0d7377" }}>⛅ {entry.weather}</span>}
+                          {entry.water && <span style={{ fontSize: "0.8rem", background: "#e0f2f2", borderRadius: 99, padding: "2px 8px", color: "#0d7377" }}>🌊 {entry.water}</span>}
+                          {entry.flies && <span style={{ fontSize: "0.8rem", background: "#f8e8d0", borderRadius: 99, padding: "2px 8px", color: "#c06a10" }}>🪶 {entry.flies}</span>}
+                        </div>
+                        {entry.notes && <div style={{ fontSize: "0.88rem", color: "#3a3a2a", lineHeight: 1.6, marginBottom: 8 }}>{entry.notes}</div>}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div>{"⭐".repeat(entry.rating)}{"☆".repeat(5 - entry.rating)}</div>
+                          <div style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{new Date(entry.createdAt).toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US")}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
               <div>
                 <div style={{ display: "flex", gap: 5, marginBottom: 11 }}>
                   {[{ k: "points", ja: "ポイント", en: "Points" }, { k: "catches", ja: "釣果数", en: "Catches" }, { k: "streak", ja: "連続日数", en: "Streak" }].map(f => (
