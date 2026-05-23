@@ -3326,6 +3326,7 @@ If this is NOT a fish or the image is unclear, return:
                 )}
               </div>
             )}
+            {profileTab === "leaderboard" && (
               <div>
                 <div style={{ display: "flex", gap: 5, marginBottom: 11 }}>
                   {[{ k: "points", ja: "ポイント", en: "Points" }, { k: "catches", ja: "釣果数", en: "Catches" }, { k: "streak", ja: "連続日数", en: "Streak" }].map(f => (
