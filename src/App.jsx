@@ -67,36 +67,35 @@ function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
   }, [countdown]);
 
   useEffect(() => {
-    loadAdSense();
-    try {
-      if (adRef.current) {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-      }
-    } catch (e) {}
+    if (!adRef.current) return;
+    const script = document.createElement("script");
+    script.src = "https://pl29535445.effectivecpmnetwork.com/6d/a2/a6/6da2a654affcf15cddf58a21344673d7.js";
+    script.async = true;
+    adRef.current.appendChild(script);
   }, []);
 
   if (isPremium) { onClose(); return null; }
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 20 }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div style={{ width: "100%", maxWidth: 390, background: "#fffdf8", borderRadius: 24, overflow: "hidden", animation: "fadeUp 0.4s ease" }}>
         <div style={{ background: "#f8f4ec", padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "スポンサー広告" : "Sponsored"}</span>
-          <span style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{countdown > 0 ? (lang === "ja" ? `${countdown}秒後にスキップ` : `Skip in ${countdown}s`) : (lang === "ja" ? "スキップ可能" : "Ready to skip")}</span>
+          <span style={{ fontSize: "0.88rem", color: "#5a5a4a", fontWeight: 700 }}>
+            {countdown > 0 ? (lang === "ja" ? `${countdown}秒後にスキップ` : `Skip in ${countdown}s`) : (lang === "ja" ? "スキップ可能 →" : "Skip now →")}
+          </span>
         </div>
-        <div ref={adRef} style={{ minHeight: 200, padding: "8px 0" }}>
-          <AdsterraBanner />
-        </div>
+        <div ref={adRef} style={{ minHeight: 250, display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f0e8", overflow: "hidden" }} />
         <div style={{ padding: "12px 16px", display: "flex", gap: 10 }}>
           <button onClick={countdown <= 0 ? onClose : undefined}
-            style={{ flex: 2, padding: "12px", background: countdown <= 0 ? "#d4cfc4" : "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 12, color: countdown <= 0 ? "#1a1a14" : "#9a9a8a", cursor: countdown <= 0 ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
-            {countdown > 0 ? `${countdown}s` : (lang === "ja" ? "スキップ →" : "Skip →")}
+            style={{ flex: 1, padding: "12px", background: countdown <= 0 ? "#e0f2f2" : "#e8e3d8", border: `2px solid ${countdown <= 0 ? "#0d7377" : "#c4bfb4"}`, borderRadius: 12, color: countdown <= 0 ? "#0d7377" : "#9a9a8a", cursor: countdown <= 0 ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
+            {countdown > 0 ? `⏱ ${countdown}s` : (lang === "ja" ? "✕ スキップ" : "✕ Skip")}
           </button>
         </div>
         {onWatchReward && (
           <div style={{ padding: "0 16px 16px" }}>
             <button onClick={onWatchReward} style={{ width: "100%", padding: "10px", background: "#d0ead8", border: "2px solid #80c098", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 600 }}>
-              🎁 {lang === "ja" ? "広告を最後まで見て+50ポイント！" : "Watch full ad for +50 bonus points!"}
+              🎁 {lang === "ja" ? "広告を見て+50ポイントゲット！" : "Watch for +50 bonus points!"}
             </button>
           </div>
         )}
