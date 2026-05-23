@@ -1673,9 +1673,8 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
           </div>
         </div>
       )}
+      {flyTab === "tenkara" && (
         <div>
-          <div style={{ background: "linear-gradient(135deg, rgba(72,202,228,0.08))", border: "2px solid #a0d0b0", borderRadius: 18, padding: 18, marginBottom: 14 }}>
-            <div style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 6 }}>🎋 {lang === "ja" ? "テンカラとは" : "What is Tenkara?"}</div>
             <p style={{ margin: "0 0 12px", fontSize: "0.95rem", color: "#3a3a2a", lineHeight: 1.7 }}>
               {lang === "ja"
                 ? "テンカラは日本発祥の伝統的なフライフィッシング。リールを使わず、竿の長さ分の固定ラインと毛鉤だけのシンプルなシステム。「一竿・一線・一毛鉤」の哲学が世界中で人気を集めている。"
