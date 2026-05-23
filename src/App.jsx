@@ -1415,7 +1415,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
   const [selPattern, setSelPattern] = useState(null);
   const [selTechnique, setSelTechnique] = useState(null);
   const [typeFilter, setTypeFilter] = useState("all");
-  const currentMonthIdx = 2; // March
+  const currentMonthIdx = new Date().getMonth(); // live current month
   const currentMonth = HATCH_CALENDAR[currentMonthIdx];
 
   const flyTabs = [
@@ -3438,7 +3438,7 @@ If this is NOT a fish or the image is unclear, return:
       </div>
 
       {showAI && selectedFish && <AIModal fish={selectedFish} weather={WEATHER} lang={lang} onClose={() => setShowAI(false)} />}
-      {showFlyAI && <AIFlyModal fish={flyAIFish} weather={WEATHER} lang={lang} currentMonth={lang === "ja" ? HATCH_CALENDAR[2].month.ja : HATCH_CALENDAR[2].month.en} onClose={() => setShowFlyAI(false)} />}
+      {showFlyAI && <AIFlyModal fish={flyAIFish} weather={WEATHER} lang={lang} currentMonth={lang === "ja" ? HATCH_CALENDAR[new Date().getMonth()].month.ja : HATCH_CALENDAR[new Date().getMonth()].month.en} onClose={() => setShowFlyAI(false)} />}
       {showInterstitial && <InterstitialAd lang={lang} isPremium={isPremium} onClose={closeInterstitial} onWatchReward={() => { setShowInterstitial(false); setShowRewarded(true); }} />}
       {showRewarded && <RewardedAdModal lang={lang} onComplete={() => { setShowRewarded(false); setBonusPoints(p => p + 100); if (pendingTab) { setTab(pendingTab); setPendingTab(null); } }} onClose={() => { setShowRewarded(false); if (pendingTab) { setTab(pendingTab); setPendingTab(null); } }} />}
       {showLocalAI && <LocalAIAdvisor userLocation={userLocation} lang={lang} weather={WEATHER} onClose={() => setShowLocalAI(false)} />}
