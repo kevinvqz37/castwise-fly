@@ -1,3 +1,22 @@
+import { useState, useEffect, useRef } from "react";
+import React from "react";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, where, getDocs, serverTimestamp, Timestamp } from "firebase/firestore";
+import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
+
+// ─── FIREBASE ────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCy0qh48dgp31-2xcI1YV3R73qTJGs4tFM",
+  authDomain: "castwise-fly.firebaseapp.com",
+  projectId: "castwise-fly",
+  storageBucket: "castwise-fly.firebasestorage.app",
+  messagingSenderId: "468608071051",
+  appId: "1:468608071051:web:3d6812edbcf5aacde52b8e",
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
+
 // ─── ADSTERRA ADS ────────────────────────────────────────────────────────────
 const ADSTERRA_KEY = "40aa13e6e14b36d178383836e1a4154e";
 
