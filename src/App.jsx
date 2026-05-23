@@ -3771,6 +3771,16 @@ If this is NOT a fish or the image is unclear, return:
       {showRewarded && <RewardedAdModal lang={lang} onComplete={() => { setShowRewarded(false); setBonusPoints(p => p + 100); if (pendingTab) { setTab(pendingTab); setPendingTab(null); } }} onClose={() => { setShowRewarded(false); if (pendingTab) { setTab(pendingTab); setPendingTab(null); } }} />}
       {showLocalAI && <LocalAIAdvisor userLocation={userLocation} lang={lang} weather={WEATHER} onClose={() => setShowLocalAI(false)} />}
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, height: 1, background: "linear-gradient(90deg,transparent,#c4bfb4,transparent)", pointerEvents: "none", zIndex: 100 }} />
+      {/* Legal footer */}
+      <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: "rgba(245,240,232,0.95)", borderTop: "1px solid #d4cfc4", padding: "6px 16px", display: "flex", justifyContent: "center", gap: 16, zIndex: 99, fontSize: "0.72rem", color: "#9a9a8a" }}>
+        <a href="/legal.html" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>プライバシーポリシー</a>
+        <span>·</span>
+        <a href="/legal.html#terms" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>利用規約</a>
+        <span>·</span>
+        <a href="/legal.html#tokushoho" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>特定商取引法</a>
+        <span>·</span>
+        <a href="/legal.html#affiliate" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>広告について</a>
+      </div>
     </div>
   );
 }
