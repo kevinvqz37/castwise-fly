@@ -3624,6 +3624,8 @@ If this is NOT a fish or the image is unclear, return:
                       </button>
                     </div>
                     {[{ k: "fish", ph: { ja: "魚種（例：ヤマメ）", en: "Species (e.g. Yamame)" } }, { k: "weight", ph: { ja: "重さ（例：0.4 kg）", en: "Weight (e.g. 0.4 kg)" } }, { k: "location", ph: { ja: "釣り場所", en: "Location" } }].map(f => (
+                      <input key={f.k} value={newCatch[f.k]} onChange={e => setNewCatch(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.ph[lang]} style={{ width: "100%", marginBottom: 8, background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", color: "#1a1a14", fontSize: "0.92rem" }} />
+                    ))}
                     <textarea value={newCatch.notes} onChange={e => setNewCatch(p => ({ ...p, notes: e.target.value }))} placeholder={lang === "ja" ? "メモ（フライパターン・状況・テクニック）" : "Notes (fly pattern, conditions, technique)"} rows={3} style={{ width: "100%", marginBottom: 10, background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", color: "#1a1a14", fontSize: "0.92rem", resize: "vertical" }} />
                     <div style={{ display: "flex", gap: 6 }}>
                       <button onClick={submitCatch} style={{ flex: 2, padding: "10px", background: newCatch.fish ? "#d0eae8" : "#e8e3d8", border: `2px solid ${newCatch.fish ? "#80b0c8" : "#c4bfb4"}`, borderRadius: 9, color: newCatch.fish ? "#0d7377" : "#9a9a8a", cursor: newCatch.fish ? "pointer" : "not-allowed", fontFamily: "inherit", fontWeight: 700 }}>{s("saveshare", lang)}</button>
