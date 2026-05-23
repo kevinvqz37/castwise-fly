@@ -2,8 +2,10 @@
 const ADSTERRA_KEY = "40aa13e6e14b36d178383836e1a4154e";
 
 function AdsterraBanner() {
-  const ref = useRef(null);
+  const id = useRef("adsterra-" + Math.random().toString(36).slice(2)).current;
+
   useEffect(() => {
+    // Set options fresh for this instance
     window.atOptions = {
       key: ADSTERRA_KEY,
       format: "iframe",
@@ -11,15 +13,20 @@ function AdsterraBanner() {
       width: 320,
       params: {},
     };
-    if (!document.getElementById("adsterra-script")) {
-      const script = document.createElement("script");
-      script.id = "adsterra-script";
-      script.src = `https://www.highperformanceformat.com/${ADSTERRA_KEY}/invoke.js`;
-      document.head.appendChild(script);
-    }
+
+    // Remove old script so it re-executes for this instance
+    const old = document.getElementById("adsterra-script");
+    if (old) old.remove();
+
+    const script = document.createElement("script");
+    script.id = "adsterra-script";
+    script.src = `https://www.highperformanceformat.com/${ADSTERRA_KEY}/invoke.js`;
+    script.async = true;
+    document.getElementById(id)?.appendChild(script);
   }, []);
+
   return (
-    <div ref={ref} style={{ margin: "10px auto", overflow: "hidden", minHeight: 52, maxWidth: 320, display: "flex", justifyContent: "center", alignItems: "center" }} />
+    <div id={id} style={{ margin: "10px auto", overflow: "hidden", minHeight: 52, maxWidth: 320, display: "flex", justifyContent: "center", alignItems: "center", background: "#f5f0e8" }} />
   );
 }
 
