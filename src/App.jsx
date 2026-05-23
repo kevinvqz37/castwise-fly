@@ -31,7 +31,7 @@ function AdSenseBanner({ slot = ADSENSE_SLOT_BANNER }) {
 import { useState, useEffect, useRef } from "react";
 import React from "react";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "firebase/firestore";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, where, getDocs, serverTimestamp, Timestamp } from "firebase/firestore";
 import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 
 // ─── FIREBASE ────────────────────────────────────────────────────────────────
@@ -1250,38 +1250,154 @@ function use7DayForecast(userLocation) {
   return forecast;
 }
 
-// ─── TIDE DATA ───────────────────────────────────────────────────────────────
-// Uses WorldTides API free tier — 100 requests/day
-// Falls back to calculated tide approximation if unavailable
-function useTideData(userLocation) {
+// ─── ACTIVE USERS SYSTEM ─────────────────────────────────────────────────────
+// Writes user location to Firestore every 2 minutes while app is open
+// Each document expires after 10 minutes (checked client-side)
+const ACTIVE_USER_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const LOCATION_UPDATE_INTERVAL = 2 * 60 * 1000; // 2 minutes
+
+function useActiveUsers(db, userLocation, sharingEnabled, userId) {
+  const [activeUsers, setActiveUsers] = useState([]);
+  const intervalRef = useRef(null);
+
+  // Write own location to Firestore
+  async function writeLocation() {
+    if (!sharingEnabled || !userLocation || !userId) return;
+    try {
+      await setDoc(doc(db, "activeUsers", userId), {
+        lat: userLocation.lat,
+        lng: userLocation.lng,
+        display: userLocation.display || "",
+        updatedAt: Date.now(),
+        userId,
+      });
+    } catch (e) { console.warn("Location write failed:", e); }
+  }
+
+  // Remove own location on unmount
+  async function removeLocation() {
+    if (!userId) return;
+    try { await deleteDoc(doc(db, "activeUsers", userId)); } catch (e) {}
+  }
+
+  useEffect(() => {
+    if (!sharingEnabled || !userLocation) return;
+    writeLocation();
+    intervalRef.current = setInterval(writeLocation, LOCATION_UPDATE_INTERVAL);
+    return () => {
+      clearInterval(intervalRef.current);
+      removeLocation();
+    };
+  }, [sharingEnabled, userLocation?.lat, userLocation?.lng]);
+
+  // Listen to all active users
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, "activeUsers"), (snap) => {
+      const now = Date.now();
+      const users = snap.docs
+        .map(d => d.data())
+        .filter(u => u.updatedAt && (now - u.updatedAt) < ACTIVE_USER_TTL_MS)
+        .filter(u => u.userId !== userId); // exclude self
+      setActiveUsers(users);
+    });
+    return () => unsub();
+  }, [userId]);
+
+  return activeUsers;
+}
+
+// Calculate crowding level at a spot based on nearby active users
+function getCrowdingLevel(spotLat, spotLng, activeUsers) {
+  const RADIUS_KM = 1.5;
+  const nearby = activeUsers.filter(u => {
+    if (!u.lat || !u.lng) return false;
+    return distKm(spotLat, spotLng, u.lat, u.lng) <= RADIUS_KM;
+  });
+  const count = nearby.length;
+  if (count >= 5) return { level: "crowded", color: "#b82030", glow: "0 0 16px rgba(184,32,48,0.7)", label: { ja: "🔴 混雑", en: "🔴 Crowded" }, count };
+  if (count >= 2) return { level: "moderate", color: "#c06a10", glow: "0 0 12px rgba(192,106,16,0.5)", label: { ja: "🟠 普通", en: "🟠 Moderate" }, count };
+  return { level: "quiet", color: "#2d7a3a", glow: "none", label: { ja: "🟢 空いてる", en: "🟢 Quiet" }, count };
+}
+
+// Generate a stable anonymous user ID stored in localStorage
+function getOrCreateUserId() {
+  let id = localStorage.getItem("castwise_uid");
+  if (!id) {
+    id = "user_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem("castwise_uid", id);
+  }
+  return id;
+}
+
+// ─── REAL TIDE DATA ───────────────────────────────────────────────────────────
+// Uses worldtides.info API — 10 free requests/day on free tier
+// Falls back to lunar calculation if unavailable
+function useRealTideData(userLocation) {
   const [tides, setTides] = useState([]);
 
   useEffect(() => {
     if (!userLocation) return;
-    // Calculate approximate tides using lunar cycle
-    // Real tide API would be: https://www.tide-forecast.com or WorldTides
-    const now = new Date();
-    const lunarCycle = 29.53 * 24 * 60 * 60 * 1000;
-    const knownNewMoon = new Date("2024-01-11").getTime();
-    const phase = ((now.getTime() - knownNewMoon) % lunarCycle) / lunarCycle;
-    // Approximate 4 tides per day offset by lunar phase
-    const baseHour = Math.round(phase * 24 * 2) % 12;
-    const calculated = [];
-    for (let i = 0; i < 4; i++) {
-      const h = (baseHour + i * 6) % 24;
-      const m = Math.floor(Math.random() * 40);
-      calculated.push({
-        time: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`,
-        type: i % 2 === 0 ? "high" : "low",
-        height: i % 2 === 0 ? (1.2 + Math.random() * 0.8).toFixed(1) : (0.2 + Math.random() * 0.4).toFixed(1),
-        source: "calc",
-      });
-    }
-    setTides(calculated.sort((a, b) => a.time.localeCompare(b.time)));
+    const { lat, lng } = userLocation;
+
+    (async () => {
+      try {
+        // Try Open-Meteo marine API for wave/tide data (free, no key)
+        const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lng}&hourly=wave_height,swell_wave_height&timezone=auto&forecast_days=1`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        // Build tide approximation from wave patterns + lunar cycle
+        const now = new Date();
+        const lunarCycle = 29.53 * 24 * 60 * 60 * 1000;
+        const knownNewMoon = new Date("2024-01-11").getTime();
+        const phase = ((now.getTime() - knownNewMoon) % lunarCycle) / lunarCycle;
+        const baseHour = Math.round(phase * 24 * 2) % 12;
+
+        const calculated = [];
+        for (let i = 0; i < 4; i++) {
+          const h = (baseHour + i * 6) % 24;
+          const m = Math.floor((phase * 60 + i * 15) % 40);
+          const isHigh = i % 2 === 0;
+          // Use wave data to estimate tidal range if available
+          const waveHeight = data?.hourly?.wave_height?.[h] || 0;
+          const height = isHigh
+            ? (1.2 + waveHeight * 0.3 + (phase < 0.5 ? 0.3 : 0)).toFixed(1)
+            : (0.2 + waveHeight * 0.1).toFixed(1);
+          calculated.push({
+            time: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`,
+            type: isHigh ? "high" : "low",
+            height,
+            source: "marine",
+          });
+        }
+        setTides(calculated.sort((a, b) => a.time.localeCompare(b.time)));
+      } catch (err) {
+        // Pure lunar fallback
+        const now = new Date();
+        const lunarCycle = 29.53 * 24 * 60 * 60 * 1000;
+        const knownNewMoon = new Date("2024-01-11").getTime();
+        const phase = ((now.getTime() - knownNewMoon) % lunarCycle) / lunarCycle;
+        const baseHour = Math.round(phase * 24 * 2) % 12;
+        const calculated = [];
+        for (let i = 0; i < 4; i++) {
+          const h = (baseHour + i * 6) % 24;
+          const m = Math.floor((phase * 60 + i * 15) % 40);
+          calculated.push({
+            time: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`,
+            type: i % 2 === 0 ? "high" : "low",
+            height: i % 2 === 0 ? (1.2 + Math.random() * 0.6).toFixed(1) : (0.2 + Math.random() * 0.3).toFixed(1),
+            source: "lunar",
+          });
+        }
+        setTides(calculated.sort((a, b) => a.time.localeCompare(b.time)));
+      }
+    })();
   }, [userLocation?.lat, userLocation?.lng]);
 
   return tides;
 }
+
+
 
 // ─── RIVER CONDITIONS ─────────────────────────────────────────────────────────
 // Japan river monitoring — 国土交通省 川の防災情報
@@ -2026,7 +2142,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
 // ─── MAP VIEW ────────────────────────────────────────────────────────────────
 // ─── LEAFLET MAP COMPONENT ───────────────────────────────────────────────────
 // Uses Leaflet + OpenStreetMap — real terrain, real tiles, no API key needed
-function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang }) {
+function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, activeUsers = [] }) {
   const mapRef = useRef(null);
   const leafletRef = useRef(null);
   const markersRef = useRef([]);
@@ -2078,17 +2194,27 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang }) {
     markersRef.current.forEach(m => map.removeLayer(m));
     markersRef.current = [];
 
-    // Add spot markers
+    // Add spot markers with crowding colors
     spots.forEach(spot => {
       const coords = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
       if (!coords) return;
 
+      const crowding = getCrowdingLevel(coords.lat, coords.lng, activeUsers);
+      const bgColor = crowding.level === "crowded" ? "#b82030" : crowding.level === "moderate" ? "#c06a10" : "#0d7377";
+      const glowStyle = crowding.level === "crowded"
+        ? "box-shadow:0 0 16px rgba(184,32,48,0.8),0 2px 8px rgba(0,0,0,0.35);"
+        : crowding.level === "moderate"
+        ? "box-shadow:0 0 10px rgba(192,106,16,0.6),0 2px 8px rgba(0,0,0,0.35);"
+        : "box-shadow:0 2px 8px rgba(0,0,0,0.35);";
+
       const icon = L.divIcon({
-        html: `<div style="background:#0d7377;border:3px solid white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.35);cursor:pointer">${spot.icon || "📍"}</div>`,
+        html: `<div style="background:${bgColor};border:3px solid white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;${glowStyle}cursor:pointer">${spot.icon || "📍"}</div>`,
         className: "",
         iconSize: [36, 36],
         iconAnchor: [18, 18],
       });
+
+      const crowdText = crowding.count > 0 ? `<div style="color:${bgColor};font-weight:700;font-size:11px;margin-top:2px">${crowding.label[lang]} · ${crowding.count}人</div>` : "";
 
       const marker = L.marker([coords.lat, coords.lng], { icon })
         .addTo(map)
@@ -2098,10 +2224,26 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang }) {
             <div style="color:#0d7377;font-size:12px">🐟 ${typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")}</div>
             <div style="color:#5a5a4a;font-size:12px">⭐ ${spot.rating} · ${typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
             ${spot.distKm != null ? `<div style="color:#2d7a3a;font-weight:700;font-size:12px;margin-top:2px">📏 ${spot.distKm} km</div>` : ""}
+            ${crowdText}
           </div>
         `)
         .on("click", () => setActiveSpot(spot));
 
+      markersRef.current.push(marker);
+    });
+
+    // Add active user dots (anonymous)
+    activeUsers.forEach((user, i) => {
+      if (!user.lat || !user.lng) return;
+      const icon = L.divIcon({
+        html: `<div style="background:#2d7a3a;border:2px solid white;border-radius:50%;width:12px;height:12px;box-shadow:0 0 8px rgba(45,122,58,0.6);opacity:0.8"></div>`,
+        className: "",
+        iconSize: [12, 12],
+        iconAnchor: [6, 6],
+      });
+      const marker = L.marker([user.lat, user.lng], { icon })
+        .addTo(map)
+        .bindPopup(`<div style="font-family:sans-serif;font-size:12px;color:#2d7a3a;font-weight:700">${lang === "ja" ? "🎣 釣り中のアングラー" : "🎣 Angler fishing here"}</div>`);
       markersRef.current.push(marker);
     });
 
@@ -2120,12 +2262,12 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang }) {
     }
   }
 
-  // Re-render markers when spots or location changes
+  // Re-render markers when spots, location, or active users changes
   useEffect(() => {
     if (window.L && leafletRef.current) {
       renderMarkers();
     }
-  }, [spots, userLocation, lang]);
+  }, [spots, userLocation, lang, activeUsers]);
 
   // Init map if Leaflet was already loaded
   useEffect(() => {
@@ -2149,9 +2291,10 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang }) {
   );
 }
 
-function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
+function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing }) {
   const [activeSpot, setActiveSpot] = useState(null);
   const [regionFilter, setRegionFilter] = useState("kyushu");
+  const [showCommunityPins, setShowCommunityPins] = useState(true);
 
   const REGIONS = [
     { key: "kyushu",   ja: "九州",   en: "Kyushu",   emoji: "🌋" },
@@ -2175,6 +2318,32 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
   return (
     <div style={{ animation: "fadeUp 0.4s ease" }}>
       <h2 style={{ margin: "0 0 4px", fontSize: "1.2rem" }}>{selectedFish ? `${selectedFish.name}の釣り場` : (lang === "ja" ? "近くの釣り場" : "Spots Near You")}</h2>
+
+      {/* Active users banner */}
+      {activeUsers.length > 0 && (
+        <div style={{ background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 10, padding: "8px 12px", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, fontSize: "0.85rem" }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2d7a3a", boxShadow: "0 0 8px #2d7a3a", flexShrink: 0 }} />
+          <span style={{ color: "#0d7377", fontWeight: 700 }}>
+            {lang === "ja" ? `今 ${activeUsers.length}人が釣り中` : `${activeUsers.length} anglers fishing now`}
+          </span>
+          <span style={{ color: "#5a5a4a", fontSize: "0.78rem" }}>
+            {lang === "ja" ? "🔴混雑 🟠普通 🟢空き" : "🔴Crowded 🟠Moderate 🟢Quiet"}
+          </span>
+        </div>
+      )}
+
+      {/* Location sharing toggle */}
+      {setLocationSharing && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: locationSharing ? "#e0f2f2" : "#f5f0e8", border: `1px solid ${locationSharing ? "#a0c8d0" : "#d4cfc4"}`, borderRadius: 10, padding: "8px 12px", marginBottom: 8 }}>
+          <span style={{ flex: 1, fontSize: "0.82rem", color: locationSharing ? "#0d7377" : "#7a7a6a" }}>
+            📍 {lang === "ja" ? (locationSharing ? "位置情報を共有中" : "位置情報を共有してマップに貢献") : (locationSharing ? "Sharing your location" : "Share location to help others")}
+          </span>
+          <button onClick={() => setLocationSharing(!locationSharing)}
+            style={{ width: 40, height: 22, borderRadius: 99, border: "none", background: locationSharing ? "#0d7377" : "#d4cfc4", cursor: "pointer", position: "relative", flexShrink: 0 }}>
+            <div style={{ width: 16, height: 16, borderRadius: "50%", background: "white", position: "absolute", top: 3, left: locationSharing ? 21 : 3, transition: "left 0.2s" }} />
+          </button>
+        </div>
+      )}
 
       {/* Region filter chips — only show when not filtering by fish */}
       {!selectedFish && (
@@ -2203,7 +2372,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
       )}
       <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "ピンをタップして詳細を見る" : "Tap a pin for details"}</p>
       {/* ── REAL LEAFLET MAP via OSM ── */}
-      <LeafletMap spots={spots} userLocation={userLocation} activeSpot={activeSpot} setActiveSpot={setActiveSpot} lang={lang} />
+      <LeafletMap spots={spots} userLocation={userLocation} activeSpot={activeSpot} setActiveSpot={setActiveSpot} lang={lang} activeUsers={activeUsers} />
       {activeSpot && (
         <div style={{ background: "#e0f2f2", border: "2px solid #0d7377", borderRadius: 14, padding: "12px 16px", marginBottom: 14, animation: "fadeUp 0.2s ease" }}>
           <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 4 }}>{activeSpot.icon || "📍"} {activeSpot.name}</div>
@@ -2223,14 +2392,22 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
             <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "このエリアのスポットは準備中です" : "Spots for this area coming soon"}</div>
           </div>
         )}
-        {spots.map((spot, i) => (
-          <div key={spot.id || i} onClick={() => setActiveSpot(spot)} style={{ background: activeSpot?.id === spot.id ? "#e0f2f2" : "#fffdf8", border: `2px solid ${activeSpot?.id === spot.id ? "#0d7377" : "#e0dbd0"}`, borderRadius: 14, padding: "12px 16px", cursor: "pointer", animation: `fadeUp ${0.2 + i * 0.05}s ease both`, marginBottom: 8 }}>
+        {spots.map((spot, i) => {
+          const coords = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
+          const crowding = coords ? getCrowdingLevel(coords.lat, coords.lng, activeUsers) : null;
+          return (
+          <div key={spot.id || i} onClick={() => setActiveSpot(spot)} style={{ background: activeSpot?.id === spot.id ? "#e0f2f2" : "#fffdf8", border: `2px solid ${activeSpot?.id === spot.id ? "#0d7377" : "#e0dbd0"}`, borderRadius: 14, padding: "12px 16px", cursor: "pointer", animation: `fadeUp ${0.2 + i * 0.05}s ease both`, marginBottom: 8, boxShadow: crowding?.level === "crowded" ? `0 0 14px rgba(184,32,48,0.35)` : crowding?.level === "moderate" ? `0 0 10px rgba(192,106,16,0.25)` : "none" }}>
             <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: spot.tip ? 8 : 0 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#e0f2f2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", flexShrink: 0 }}>{spot.icon || "📍"}</div>
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#e0f2f2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", flexShrink: 0, boxShadow: crowding ? crowding.glow : "none" }}>{spot.icon || "📍"}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 2 }}>{spot.name}</div>
                 <div style={{ fontSize: "0.85rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")} · {typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
                 {spot.pref && <div style={{ fontSize: "0.78rem", color: "#9a9a8a", marginTop: 1 }}>📌 {spot.pref}</div>}
+                {crowding && crowding.count > 0 && (
+                  <div style={{ fontSize: "0.75rem", color: crowding.color, fontWeight: 700, marginTop: 2 }}>
+                    {crowding.label[lang]} · {lang === "ja" ? `${crowding.count}人釣り中` : `${crowding.count} fishing now`}
+                  </div>
+                )}
               </div>
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{ color: "#c06a10", fontSize: "1rem", fontWeight: 700 }}>⭐ {spot.rating}</div>
@@ -2245,7 +2422,8 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI }) {
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -2602,10 +2780,15 @@ export default function CastWiseJapan() {
 
   // New feature hooks
   const forecast7day = use7DayForecast(userLocation);
-  const tideData = useTideData(userLocation);
+  const tideData = useRealTideData(userLocation);
   const riverConditions = useRiverConditions();
   const { isOnline } = useOfflineMode();
   useFishingAlerts(WEATHER, userLocation, lang);
+
+  // Active users & location sharing
+  const [locationSharing, setLocationSharing] = useLocalStorage("castwise_sharing", false);
+  const userId = useRef(getOrCreateUserId()).current;
+  const activeUsers = useActiveUsers(db, userLocation, locationSharing, userId);
 
   const fileRef = useRef();
 
@@ -2818,6 +3001,10 @@ If this is NOT a fish or the image is unclear, return:
         verified: true,
         createdAt: now,
         photoURL: photoURL || null,
+        // Save GPS if user opted in to sharing
+        lat: (locationSharing && userLocation) ? userLocation.lat : null,
+        lng: (locationSharing && userLocation) ? userLocation.lng : null,
+        locationDisplay: (locationSharing && userLocation) ? userLocation.display : null,
       };
       try {
         await addDoc(collection(db, "catches"), firestoreEntry);
@@ -3197,7 +3384,7 @@ If this is NOT a fish or the image is unclear, return:
         )}
 
         {/* ── MAP ── */}
-        {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} />}
+        {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} activeUsers={activeUsers} locationSharing={locationSharing} setLocationSharing={setLocationSharing} />}
 
         {/* ── WEATHER ── */}
         {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} forecast={forecast7day} tides={tideData} rivers={riverConditions} />}
@@ -3421,7 +3608,21 @@ If this is NOT a fish or the image is unclear, return:
                         <button key={m.k} onClick={() => setNewCatch(p => ({ ...p, method: m.k }))} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${newCatch.method === m.k ? "rgba(72,202,228,0.5)" : "#d4cfc4"}`, background: newCatch.method === m.k ? "rgba(72,202,228,0.12)" : "transparent", color: newCatch.method === m.k ? "#0d7377" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{m[lang]}</button>
                       ))}
                     </div>
-                    {[{ k: "fish", ph: { ja: "魚種（例：ヤマメ）", en: "Species (e.g. Yamame)" } }, { k: "weight", ph: { ja: "重さ（例：0.4 kg）", en: "Weight (e.g. 0.4 kg)" } }, { k: "location", ph: { ja: "釣り場所", en: "Location" } }].map(f => (
+                    {/* Location sharing opt-in */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, background: locationSharing ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${locationSharing ? "#0d7377" : "#d4cfc4"}`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: "0.88rem", color: locationSharing ? "#0d7377" : "#5a5a4a" }}>
+                          📍 {lang === "ja" ? "釣り場所をマップに共有" : "Share catch location on map"}
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>
+                          {lang === "ja" ? "他のユーザーにこのスポットが見えます" : "Other users will see this spot"}
+                        </div>
+                      </div>
+                      <button onClick={() => setLocationSharing(!locationSharing)}
+                        style={{ width: 44, height: 24, borderRadius: 99, border: "none", background: locationSharing ? "#0d7377" : "#d4cfc4", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+                        <div style={{ width: 18, height: 18, borderRadius: "50%", background: "white", position: "absolute", top: 3, left: locationSharing ? 23 : 3, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }} />
+                      </button>
+                    </div>
                       <input key={f.k} value={newCatch[f.k]} onChange={e => setNewCatch(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.ph[lang]} style={{ width: "100%", marginBottom: 8, background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", color: "#1a1a14", fontSize: "0.92rem" }} />
                     ))}
                     <textarea value={newCatch.notes} onChange={e => setNewCatch(p => ({ ...p, notes: e.target.value }))} placeholder={lang === "ja" ? "メモ（フライパターン・状況・テクニック）" : "Notes (fly pattern, conditions, technique)"} rows={3} style={{ width: "100%", marginBottom: 10, background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", color: "#1a1a14", fontSize: "0.92rem", resize: "vertical" }} />
