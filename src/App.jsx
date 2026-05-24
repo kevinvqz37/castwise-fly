@@ -228,9 +228,11 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
   );
 }
 
+const FISH_SVG = {};
+// Fish SVGs defined inline in FishIllustration
 function FishIllustration({ fishId, size = 80, style = {} }) {
-  const Component = FISH_SVG[fishId];
-  if (!Component) return <span style={{ fontSize: size * 0.5 }}>🐟</span>;
+  const Component = null;
+  return <span style={{ fontSize: size * 0.5 }}>🐟</span>;
   return (
     <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", position: "relative", ...style }}>
       <svg width={0} height={0} style={{ position: "absolute" }}>
