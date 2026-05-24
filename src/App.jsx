@@ -228,32 +228,85 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
   );
 }
 
+// ─── FISH ILLUSTRATION (Sprite Sheet System) ─────────────────────────────────
+// Maps FISH_DATA appId -> sprite key
+const APP_ID_TO_SPRITE = {
+  1: "largemouth_bass", 2: "ayu", 3: "yamame", 4: "seabass",
+  5: "iwana", 6: "madai", 7: "aji", 8: "hirame", 9: "herabuna",
+  10: "koi", 11: "rainbow_trout", 12: "aori_ika", 13: "buri",
+  14: "kurodai", 15: "hamachi", 16: "mebaru",
+};
+
+const SPRITE_EMOJI = {
+  largemouth_bass: "🐟", ayu: "🐠", yamame: "🐡", iwana: "🐠",
+  rainbow_trout: "🐠", herabuna: "🐟", koi: "🐟", seabass: "🦈",
+  kurodai: "🐟", hirame: "🦈", madai: "🐟", mebaru: "🐟",
+  aori_ika: "🦑", aji: "🐟", hamachi: "🦈", buri: "🦈",
+};
+
+// Set SPRITE_SHEET_URL to "/fish_spritesheet.png" once image is in public/
+const SPRITE_SHEET_URL = "/fish_spritesheet.png";
+const SPRITE_COLS = 7;
+const SPRITE_ROWS = 5;
+
+const SPRITE_DATA = {
+  // Row 0 — Freshwater
+  largemouth_bass: { col: 0, row: 0 },
+  ayu:             { col: 1, row: 0 },
+  yamame:          { col: 2, row: 0 },
+  iwana:           { col: 3, row: 0 },
+  rainbow_trout:   { col: 4, row: 0 },
+  herabuna:        { col: 5, row: 0 },
+  koi:             { col: 6, row: 0 },
+  // Row 1 — Shallow Saltwater
+  seabass:         { col: 0, row: 1 },
+  hira_suzuki:     { col: 1, row: 1 },
+  kurodai:         { col: 2, row: 1 },
+  magochi:         { col: 3, row: 1 },
+  hirame:          { col: 4, row: 1 },
+  madai:           { col: 5, row: 1 },
+  isaki:           { col: 6, row: 1 },
+  // Row 2 — Structure & Reef
+  mebaru:          { col: 0, row: 2 },
+  aohata:          { col: 1, row: 2 },
+  tachiuo:         { col: 2, row: 2 },
+  aori_ika:        { col: 3, row: 2 },
+  aji:             { col: 4, row: 2 },
+  // Row 3 — Pelagic (hooked poses)
+  hamachi:         { col: 0, row: 3 },
+  buri:            { col: 1, row: 3 },
+  kanpachi:        { col: 2, row: 3 },
+};
+
 function FishIllustration({ fishId, size = 80, style = {} }) {
-  const Component = FISH_SVG[fishId];
-  if (!Component) return <span style={{ fontSize: size * 0.5 }}>🐟</span>;
+  const spriteKey = APP_ID_TO_SPRITE[fishId];
+  const sprite = spriteKey ? SPRITE_DATA[spriteKey] : null;
+
+  if (SPRITE_SHEET_URL && sprite) {
+    const xPercent = (sprite.col / (SPRITE_COLS - 1)) * 100;
+    const yPercent = (sprite.row / (SPRITE_ROWS - 1)) * 100;
+    return (
+      <div style={{
+        width: size, height: size,
+        backgroundImage: `url(${SPRITE_SHEET_URL})`,
+        backgroundSize: `${SPRITE_COLS * 100}% ${SPRITE_ROWS * 100}%`,
+        backgroundPosition: `${xPercent}% ${yPercent}%`,
+        backgroundRepeat: "no-repeat",
+        display: "inline-block",
+        ...style,
+      }} />
+    );
+  }
+
+  const emoji = spriteKey ? (SPRITE_EMOJI[spriteKey] || "🐟") : "🐟";
   return (
-    <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", position: "relative", ...style }}>
-      <svg width={0} height={0} style={{ position: "absolute" }}>
-        <defs>
-          <filter id="watercolor" x="-10%" y="-10%" width="120%" height="120%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="4" seed="2" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
-            <feGaussianBlur in="displaced" stdDeviation="0.6" result="blur"/>
-            <feComponentTransfer in="blur" result="soft">
-              <feFuncA type="linear" slope="0.92"/>
-            </feComponentTransfer>
-            <feMerge>
-              <feMergeNode in="soft"/>
-            </feMerge>
-          </filter>
-        </defs>
-      </svg>
-      <div style={{ filter: "url(#watercolor)", animation: "watercolor 8s ease-in-out infinite" }}>
-        <Component size={size} />
-      </div>
+    <div style={{ width: size, height: size, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.55, animation: "float 3s ease-in-out infinite", ...style }}>
+      {emoji}
     </div>
   );
 }
+
+
 
 // ─── FISH DATA ───────────────────────────────────────────────────────────────
 const FISH_DATA = [
