@@ -1476,6 +1476,14 @@ const SPOT_COORDS = {
   "五島列島・福江島（磯釣り）": { lat: 32.69,  lng: 128.84 },
   "緑川・美里町（上流）":       { lat: 32.65,  lng: 130.79 },
   "球磨川・人吉市（本流）":     { lat: 32.21,  lng: 130.76 },
+  "Lago Dos Bocas":          { lat: 18.35,  lng: -66.72 },
+  "Lago Carite":             { lat: 18.07,  lng: -66.12 },
+  "Laguna Tortuguero":       { lat: 18.46,  lng: -66.47 },
+  "Boca de Cangrejos":       { lat: 18.45,  lng: -66.02 },
+  "La Parguera":             { lat: 17.97,  lng: -67.04 },
+  "Río Grande de Arecibo":   { lat: 18.27,  lng: -66.70 },
+  "Culebra Island":          { lat: 18.30,  lng: -65.30 },
+  "Humacao Nature Reserve":  { lat: 18.15,  lng: -65.77 },
   // Other
   "長良川（岐阜・友釣り）":  { lat: 35.41,  lng: 136.72 },
   "琵琶湖（滋賀）":          { lat: 35.27,  lng: 136.07 },
@@ -1558,9 +1566,19 @@ const MAP_SPOTS = [
   // ── KUMAMOTO ─────────────────────────────────────────────────────────────────
   { id: 53, name: "緑川・美里町（上流）", region: "kyushu", pref: "熊本", fish: { ja: "ヤマメ・アユ・イワナ", en: "Yamame, Ayu & Iwana" }, rating: 4.7, type: { ja: "清流渓谷", en: "Mountain Gorge" }, icon: "🐡", lat: 32.65, lng: 130.79, bestSeason: { ja: "4〜9月", en: "Apr–Sep" }, access: { ja: "松橋ICから車40分。美里町の山岳渓流", en: "40min from Matsubase IC. Mountain streams of Misato town" }, tip: { ja: "熊本屈指の清流渓谷。イワナの生息域が広く、テンカラで狙うのが醍醐味。夏も水温が低くて快適。", en: "One of Kumamoto's finest clear-water gorges. Wide Iwana range — tenkara is the ideal approach. Cool water temperatures even in summer." } },
   { id: 54, name: "球磨川・人吉市（本流）", region: "kyushu", pref: "熊本", fish: { ja: "アユ・アマゴ・コイ", en: "Ayu, Amago & Carp" }, rating: 4.8, type: { ja: "急流大河", en: "Rapid River" }, icon: "🐠", lat: 32.21, lng: 130.76, bestSeason: { ja: "6〜9月（アユ）", en: "Jun–Sep (Ayu)" }, access: { ja: "人吉ICから車5分。球磨川ラフティングの聖地でもある", en: "5min from Hitoyoshi IC. Also famous as Japan's top rafting river" }, tip: { ja: "日本三大急流の一つ。アユの遡上量が九州最多クラス。友釣りの名人が集う聖地。川の流れが速いので安全注意。", en: "One of Japan's three great rapid rivers. Among Kyushu's highest ayu migration numbers. Renowned tomozuri destination. Fast current — stay safe." } },
+
+  // ── PUERTO RICO ──────────────────────────────────────────────────────────────
+  { id: 55, name: "Lago Dos Bocas", region: "puertorico", pref: "Arecibo", fish: { ja: "バス・ティラピア", en: "Largemouth Bass & Tilapia" }, rating: 4.8, type: { ja: "淡水湖", en: "Freshwater Lake" }, icon: "🐟", lat: 18.35, lng: -66.72, bestSeason: { ja: "通年（春・秋最高）", en: "Year-round (Spring/Fall best)" }, access: { ja: "アレシボから車30分。ボートツアーあり", en: "30min from Arecibo. Boat tours from the dock" }, tip: { ja: "プエルトリコ最高の淡水釣りスポット。バスの魚影が非常に濃い。ボートで奥の入江を狙うのが鉄板。", en: "Puerto Rico's premier freshwater spot. Dense bass populations. Rent a boat and target the back coves." } },
+  { id: 56, name: "Lago Carite", region: "puertorico", pref: "Guayama", fish: { ja: "バス・ティラピア・ブルーギル", en: "Bass, Tilapia & Bluegill" }, rating: 4.6, type: { ja: "山岳湖", en: "Mountain Lake" }, icon: "🐟", lat: 18.07, lng: -66.12, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "グアヤマから車40分。カリテ森林保護区内", en: "40min from Guayama. Inside Carite Forest Reserve" }, tip: { ja: "標高が高く涼しいカリテ湖。早朝のトップウォーターが効果的。", en: "Cool mountain lake with great bass. Early morning topwater is deadly." } },
+  { id: 57, name: "Laguna Tortuguero", region: "puertorico", pref: "Vega Baja", fish: { ja: "タリポン・スノック", en: "Tarpon & Snook" }, rating: 4.9, type: { ja: "ラグーン", en: "Lagoon" }, icon: "🦈", lat: 18.46, lng: -66.47, bestSeason: { ja: "通年（夏タリポン最高）", en: "Year-round (Tarpon peak summer)" }, access: { ja: "ベガバハから車10分", en: "10min from Vega Baja" }, tip: { ja: "タリポン釣りの聖地。マングローブ際のスノックはスリリング。カヤックフィッシングが特におすすめ。", en: "Sacred tarpon territory. Snook around mangrove roots is thrilling. Kayak fishing highly recommended." } },
+  { id: 58, name: "Boca de Cangrejos", region: "puertorico", pref: "San Juan", fish: { ja: "タリポン・スノック・ジャック", en: "Tarpon, Snook & Jack Crevalle" }, rating: 4.7, type: { ja: "河口・ビーチ", en: "Estuary & Beach" }, icon: "🦈", lat: 18.45, lng: -66.02, bestSeason: { ja: "通年（夜釣り最高）", en: "Year-round (night fishing best)" }, access: { ja: "サンファン空港から車10分", en: "10min from SJU airport" }, tip: { ja: "夜の常夜灯周りにタリポンが集まる。シルバーのバブルウォーカーが定番ルアー。", en: "Tarpon gather around night lights. Silver bubble walker lures are the classic choice." } },
+  { id: 59, name: "La Parguera", region: "puertorico", pref: "Lajas", fish: { ja: "マヒマヒ・ワフー・キングフィッシュ", en: "Mahi-Mahi, Wahoo & Kingfish" }, rating: 5.0, type: { ja: "オフショア・礁", en: "Offshore & Reef" }, icon: "🐠", lat: 17.97, lng: -67.04, bestSeason: { ja: "3〜8月", en: "Mar–Aug" }, access: { ja: "ラハスから車5分。チャーターボート多数", en: "5min from Lajas. Many charter boats available" }, tip: { ja: "コルテスウォールで大型マヒマヒが狙える。マングローブカヤックとの組み合わせが最高。", en: "The Cortez Wall holds massive mahi-mahi. Combine with mangrove kayaking for a perfect day." } },
+  { id: 60, name: "Río Grande de Arecibo", region: "puertorico", pref: "Utuado", fish: { ja: "アメリカンシャッド・グアビナ", en: "American Shad & Guabina" }, rating: 4.3, type: { ja: "清流", en: "Clear River" }, icon: "🐡", lat: 18.27, lng: -66.70, bestSeason: { ja: "11〜3月", en: "Nov–Mar" }, access: { ja: "ウトゥアドから車20分", en: "20min from Utuado" }, tip: { ja: "カルスト地形の清流。在来種グアビナを狙うユニークな釣り。", en: "Karst landscape river. Native guabina fishing is a unique experience." } },
+  { id: 61, name: "Culebra Island", region: "puertorico", pref: "Culebra", fish: { ja: "バラクーダ・スナッパー・グルーパー", en: "Barracuda, Snapper & Grouper" }, rating: 5.0, type: { ja: "離島リーフ", en: "Island Reef" }, icon: "🐠", lat: 18.30, lng: -65.30, bestSeason: { ja: "通年（春・秋最高）", en: "Year-round (Spring/Fall best)" }, access: { ja: "セイバ港からフェリー1時間（$2.25）", en: "1hr ferry from Ceiba ($2.25) or 15min flight" }, tip: { ja: "カリブ海最高の透明度。スノーケルしながらリーフフィッシング。スナッパーとグルーパーが定番。", en: "Caribbean's clearest waters. Snorkel and reef fish simultaneously. Snapper and grouper are reliable targets." } },
+  { id: 62, name: "Humacao Nature Reserve", region: "puertorico", pref: "Humacao", fish: { ja: "タリポン・スノック・レッドフィッシュ", en: "Tarpon, Snook & Redfish" }, rating: 4.6, type: { ja: "保護区ラグーン", en: "Nature Reserve Lagoon" }, icon: "🦈", lat: 18.15, lng: -65.77, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "ウマカオから車10分", en: "10min from Humacao" }, tip: { ja: "東PRの隠れた名釣り場。カヤックかウェーディングで朝一番がゴールデンタイム。", en: "Hidden gem in eastern PR. Kayak or wade. First light is the golden hour." } },
 ];
 
-// ─ SEASONAL COMPONENTS ─────────────────────────────────────────────────────
+// ─── SEASONAL COMPONENTS ─────────────────────────────────────────────────────
 function SeasonalBadge({ fishId, lang }) {
   const tip = getSeasonalTip(fishId);
   if (!tip || tip.urgency === "low") return null;
@@ -2235,10 +2253,12 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
   const [predictionScore, setPredictionScore] = useState(null);
 
   const REGIONS = [
-    { key: "kyushu",   ja: "九州",   en: "Kyushu",   emoji: "🌋" },
-    { key: "hokkaido", ja: "北海道", en: "Hokkaido",  emoji: "🏔️" },
-    { key: "kanto",    ja: "関東",   en: "Kanto",     emoji: "🗼" },
-    { key: "kansai",   ja: "関西",   en: "Kansai",    emoji: "⛩️" },
+    { key: "kyushu",   ja: "九州",     en: "Kyushu",    emoji: "🌋" },
+    { key: "hokkaido", ja: "北海道",   en: "Hokkaido",  emoji: "🏔️" },
+    { key: "kanto",    ja: "関東",     en: "Kanto",     emoji: "🗼" },
+    { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
+    { key: "chubu",    ja: "中部",     en: "Chubu",     emoji: "🏯" },
+    { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", emoji: "🌴" },   en: "Kansai",    emoji: "⛩️" },
     { key: "chubu",    ja: "中部",   en: "Chubu",     emoji: "🗻" },
     { key: "all",      ja: "全国",   en: "All Japan", emoji: "🗾" },
   ];
