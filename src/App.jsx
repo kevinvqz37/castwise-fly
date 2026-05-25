@@ -107,6 +107,7 @@ function LureTag({ lure, lang }) {
 function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
   const [countdown, setCountdown] = useState(5);
   const adRef = useRef(null);
+  const scriptLoaded = useRef(false);
 
   useEffect(() => {
     if (countdown <= 0) return;
@@ -115,11 +116,26 @@ function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
   }, [countdown]);
 
   useEffect(() => {
-    if (!adRef.current) return;
-    const script = document.createElement("script");
-    script.src = "https://pl29535445.effectivecpmnetwork.com/6d/a2/a6/6da2a654affcf15cddf58a21344673d7.js";
-    script.async = true;
-    adRef.current.appendChild(script);
+    if (scriptLoaded.current) return;
+    scriptLoaded.current = true;
+
+    // Give React time to mount the div before injecting
+    const timer = setTimeout(() => {
+      if (!adRef.current) return;
+
+      // Remove any old script
+      const old = document.getElementById("adsterra-interstitial");
+      if (old) old.remove();
+
+      const script = document.createElement("script");
+      script.id = "adsterra-interstitial";
+      script.src = "https://pl29535445.effectivecpmnetwork.com/6d/a2/a6/6da2a654affcf15cddf58a21344673d7.js";
+      script.async = true;
+      script.onerror = () => console.warn("Adsterra interstitial failed to load");
+      document.body.appendChild(script);
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, []);
 
   if (isPremium) { onClose(); return null; }
@@ -133,7 +149,10 @@ function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
             {countdown > 0 ? (lang === "ja" ? `${countdown}秒後にスキップ` : `Skip in ${countdown}s`) : (lang === "ja" ? "スキップ可能 →" : "Skip now →")}
           </span>
         </div>
-        <div ref={adRef} style={{ minHeight: 250, display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f0e8", overflow: "hidden" }} />
+        {/* Ad renders here — Adsterra injects iframe into body, so this is a placeholder */}
+        <div ref={adRef} style={{ minHeight: 250, display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f0e8", overflow: "hidden" }}>
+          <span style={{ fontSize: "0.8rem", color: "#9a9a8a" }}>{lang === "ja" ? "広告を読み込み中..." : "Loading ad..."}</span>
+        </div>
         <div style={{ padding: "12px 16px", display: "flex", gap: 10 }}>
           <button onClick={countdown <= 0 ? onClose : undefined}
             style={{ flex: 1, padding: "12px", background: countdown <= 0 ? "#e0f2f2" : "#e8e3d8", border: `2px solid ${countdown <= 0 ? "#0d7377" : "#c4bfb4"}`, borderRadius: 12, color: countdown <= 0 ? "#0d7377" : "#9a9a8a", cursor: countdown <= 0 ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
