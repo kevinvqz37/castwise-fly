@@ -867,14 +867,14 @@ function TrophyRoom({ catches, lang, onSelectFish, FISH_DATA }) {
   if (records.length === 0) return (
     <div style={{ textAlign: "center", padding: "40px 20px", color: "#5a5a4a" }}>
       <div style={{ fontSize: "3rem", marginBottom: 12 }}>🏆</div>
-      <div style={{ fontWeight: 700, fontSize: "1.05rem", marginBottom: 8 }}>{lang === "ja" ? "まだ記録がありません" : "No records yet"}</div>
-      <div style={{ fontSize: "0.9rem" }}>{lang === "ja" ? "釣果を記録すると自動的に最大記録が更新されます" : "Log catches to build your trophy room"}</div>
+      <div style={{ fontWeight: 700, fontSize: "1.05rem", marginBottom: 8 }}>{lang === "ja" ? lang === "ja" ? lang === "ja" ? "まだ記録がありません" : "No records yet" : "No records yet" : "No records yet"}</div>
+      <div style={{ fontSize: "0.9rem" }}>{lang === "ja" ? lang === "ja" ? lang === "ja" ? "釣果を記録すると自動的に最大記録が更新されます" : "Log catches to build your trophy room" : "Log catches to build your trophy room" : "Log catches to build your trophy room"}</div>
     </div>
   );
   return (
     <div>
       <div style={{ fontSize: "0.88rem", color: "#5a5a4a", marginBottom: 12 }}>
-        {lang === "ja" ? `${records.length}魚種の自己記録` : `Personal records for ${records.length} species`}
+        {lang === "ja" ? lang === "ja" ? lang === "ja" ? `${records.length}魚種の自己記録` : `Personal records for ${records.length} species` : `Personal records for ${records.length} species` : `Personal records for ${records.length} species`}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {records.map((r, i) => {
@@ -891,7 +891,7 @@ function TrophyRoom({ catches, lang, onSelectFish, FISH_DATA }) {
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontWeight: 900, fontSize: "1.2rem", color: i === 0 ? "#c06a10" : "#0d7377" }}>⚖️ {r.weightStr}</div>
-                <div style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? "自己ベスト" : "Personal best"}</div>
+                <div style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? lang === "ja" ? lang === "ja" ? "自己ベスト" : "Personal best" : "Personal best" : "Personal best"}</div>
               </div>
             </div>
           );
@@ -944,7 +944,7 @@ function TidalCalendar({ lang, userLocation }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <h3 style={{ margin: 0, fontSize: "1.05rem" }}>🗓️ {monthNames[lang][month]} {year}</h3>
-        <div style={{ fontSize: "0.82rem", color: "#0d7377" }}>{lang === "ja" ? "月齢ベース釣り指数" : "Lunar-based fishing index"}</div>
+        <div style={{ fontSize: "0.82rem", color: "#0d7377" }}>{lang === "ja" ? lang === "ja" ? "月齢ベース釣り指数" : "Lunar fishing index" : "Lunar-based fishing index"}</div>
       </div>
 
       {/* Day headers */}
@@ -975,7 +975,7 @@ function TidalCalendar({ lang, userLocation }) {
       {/* Best days summary */}
       <div style={{ marginTop: 14, background: "#d8f0d8", border: "2px solid #a0d0a0", borderRadius: 12, padding: "10px 14px" }}>
         <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#2d7a3a", marginBottom: 6 }}>
-          ⭐ {lang === "ja" ? "今月のベスト釣り日" : "Best fishing days this month"}
+          ⭐ {lang === "ja" ? lang === "ja" ? "今月のベスト釣り日" : "Best fishing days this month" : "Best fishing days this month"}
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {bestDays.sort((a,b)=>a-b).map(d => (
@@ -987,7 +987,7 @@ function TidalCalendar({ lang, userLocation }) {
       </div>
 
       <div style={{ marginTop: 8, fontSize: "0.75rem", color: "#9a9a8a", textAlign: "center" }}>
-        {lang === "ja" ? "※月齢・潮汐パターンに基づく推定値" : "Based on lunar cycle & tidal patterns"}
+        {lang === "ja" ? lang === "ja" ? "※月齢・潮汐パターンに基づく推定値" : "Based on lunar & tidal patterns" : "Based on lunar cycle & tidal patterns"}
       </div>
     </div>
   );
@@ -3622,7 +3622,7 @@ If this is NOT a fish or the image is unclear, return:
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <h3 style={{ margin: 0, fontSize: "1.1rem" }}>📓 {lang === "ja" ? "釣り日誌" : "Fishing Journal"}</h3>
                   <button onClick={() => setJournalOpen(!journalOpen)} style={{ background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 10, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 700 }}>
-                    + {lang === "ja" ? "新しい日誌" : "New Entry"}
+                    + {lang === "ja" ? lang === "ja" ? "新しい日誌" : "New Entry" : "New Entry"}
                   </button>
                 </div>
 
@@ -3651,7 +3651,7 @@ If this is NOT a fish or the image is unclear, return:
                 {journal.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "40px 20px", color: "#5a5a4a", background: "#f8f4ec", borderRadius: 14, border: "2px dashed #d4cfc4" }}>
                     <div style={{ fontSize: "2.5rem", marginBottom: 8 }}>📓</div>
-                    <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "まだ日誌がありません" : "No journal entries yet"}</div>
+                    <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? lang === "ja" ? "まだ日誌がありません" : "No journal entries yet" : "No journal entries yet"}</div>
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -3796,13 +3796,13 @@ If this is NOT a fish or the image is unclear, return:
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, height: 1, background: "linear-gradient(90deg,transparent,#c4bfb4,transparent)", pointerEvents: "none", zIndex: 100 }} />
       {/* Legal footer */}
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: "rgba(245,240,232,0.95)", borderTop: "1px solid #d4cfc4", padding: "6px 16px", display: "flex", justifyContent: "center", gap: 16, zIndex: 99, fontSize: "0.72rem", color: "#9a9a8a" }}>
-        <a href="/legal.html" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>プライバシーポリシー</a>
+        <a href="/legal.html" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "プライバシーポリシー" : "Privacy Policy"}</a>
         <span>·</span>
-        <a href="/legal.html#terms" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>利用規約</a>
+        <a href="/legal.html#terms" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "利用規約" : "Terms"}</a>
         <span>·</span>
-        <a href="/legal.html#tokushoho" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>特定商取引法</a>
+        <a href="/legal.html#tokushoho" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "特定商取引法" : "Commercial Law"}</a>
         <span>·</span>
-        <a href="/legal.html#affiliate" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>広告について</a>
+        <a href="/legal.html#affiliate" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "広告について" : "Advertising"}</a>
       </div>
     </div>
   );
