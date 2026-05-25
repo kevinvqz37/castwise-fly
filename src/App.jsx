@@ -278,6 +278,7 @@ const SPRITE_DATA = {
   kanpachi:        { col: 2, row: 3 },
 };
 
+const FISH_SVG = {}; // Sprite sheet replaces SVGs
 function FishIllustration({ fishId, size = 80, style = {} }) {
   const spriteKey = APP_ID_TO_SPRITE[fishId];
   const sprite = spriteKey ? SPRITE_DATA[spriteKey] : null;
