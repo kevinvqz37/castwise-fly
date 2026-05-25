@@ -690,6 +690,146 @@ function use7DayForecast(userLocation) {
   return forecast;
 }
 
+// ─── AI FISHING PREDICTION ZONES ─────────────────────────────────────────────
+function calcSpotScore(spot, weather, tideData, activeUsers) {
+  let score = 50;
+  const now = new Date();
+  const hour = now.getHours();
+  const month = now.getMonth();
+
+  if (hour >= 5 && hour <= 8) score += 20;
+  else if (hour >= 17 && hour <= 20) score += 15;
+  else if (hour >= 9 && hour <= 15) score += 5;
+  else score -= 10;
+
+  if (weather) {
+    const temp = parseFloat(weather.temp);
+    const wind = parseFloat(weather.wind);
+    const desc = (weather.desc || "").toLowerCase();
+    if (temp >= 15 && temp <= 25) score += 15;
+    else if (temp >= 10 && temp <= 30) score += 8;
+    else score -= 10;
+    if (wind < 3) score += 10;
+    else if (wind < 6) score += 5;
+    else score -= 15;
+    if (desc.includes("clear") || desc.includes("晴")) score += 10;
+    else if (desc.includes("rain") || desc.includes("雨")) score -= 10;
+  }
+
+  const spotType = typeof spot.type === "object" ? spot.type.en : spot.type;
+  if (spotType?.includes("Stream") || spotType?.includes("River")) {
+    if (month >= 5 && month <= 8) score += 20;
+    else if (month >= 2 && month <= 4) score += 12;
+  } else if (spotType?.includes("Saltwater") || spotType?.includes("Bay")) {
+    if (month >= 3 && month <= 5) score += 15;
+    else if (month >= 8 && month <= 10) score += 15;
+  }
+
+  const lunarCycle = 29.53 * 24 * 60 * 60 * 1000;
+  const knownNewMoon = new Date("2024-01-11").getTime();
+  const phase = ((now.getTime() - knownNewMoon) % lunarCycle) / lunarCycle;
+  if (phase < 0.05 || phase > 0.95) score += 12;
+  else if (phase > 0.45 && phase < 0.55) score += 10;
+
+  if (tideData?.length > 0 && tideData[0]?.type === "high") score += 8;
+
+  const coords = SPOT_COORDS[spot.name];
+  if (coords && activeUsers) {
+    const crowd = getCrowdingLevel(coords.lat, coords.lng, activeUsers);
+    if (crowd.level === "crowded") score -= 15;
+    else if (crowd.level === "moderate") score -= 5;
+  }
+
+  return Math.max(10, Math.min(99, Math.round(score)));
+}
+
+function getPredictionColor(score) {
+  if (score >= 80) return { bg: "rgba(45,122,58,0.18)", border: "#2d7a3a", glow: "0 0 20px rgba(45,122,58,0.5)", label: "🔥", text: "#1a4a22" };
+  if (score >= 60) return { bg: "rgba(192,106,16,0.14)", border: "#c06a10", glow: "0 0 14px rgba(192,106,16,0.4)", label: "👍", text: "#7a4000" };
+  if (score >= 40) return { bg: "rgba(100,100,120,0.10)", border: "#8899aa", glow: "none", label: "😐", text: "#445566" };
+  return { bg: "rgba(180,30,30,0.08)", border: "#b82030", glow: "none", label: "⛔", text: "#6a1010" };
+}
+
+function PredictionZoneCard({ spot, weather, tideData, activeUsers, lang, onAskAI }) {
+  const score = calcSpotScore(spot, weather, tideData, activeUsers);
+  const colors = getPredictionColor(score);
+  const coords = SPOT_COORDS[spot.name];
+  const crowd = coords ? getCrowdingLevel(coords.lat, coords.lng, activeUsers) : null;
+  return (
+    <div style={{ background: colors.bg, border: `2px solid ${colors.border}`, borderRadius: 14, padding: "12px 14px", marginBottom: 10, boxShadow: colors.glow }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1a1a14" }}>{spot.icon} {spot.name}</div>
+          <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>📌 {spot.pref} · {typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
+        </div>
+        <div style={{ textAlign: "right", flexShrink: 0 }}>
+          <div style={{ fontSize: "1.6rem", fontWeight: 900, color: colors.text, lineHeight: 1 }}>{score}</div>
+          <div style={{ fontSize: "0.68rem", color: colors.text, fontWeight: 700 }}>{lang === "ja" ? "釣り指数" : "Score"}</div>
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}>
+        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: colors.text }}>{colors.label} {score >= 80 ? (lang === "ja" ? "最高の条件！" : "Prime conditions!") : score >= 60 ? (lang === "ja" ? "良い条件" : "Good conditions") : score >= 40 ? (lang === "ja" ? "普通" : "Fair") : (lang === "ja" ? "不向き" : "Poor")}</span>
+        {crowd && crowd.count > 0 && <span style={{ fontSize: "0.75rem", color: crowd.color, fontWeight: 600 }}>{crowd.label[lang]}</span>}
+        <span style={{ fontSize: "0.75rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : spot.fish}</span>
+      </div>
+      <button onClick={() => onAskAI(spot, score)} style={{ width: "100%", padding: "7px", background: "rgba(255,255,255,0.7)", border: `1px solid ${colors.border}`, borderRadius: 8, color: colors.text, cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 600 }}>
+        🤖 {lang === "ja" ? "AIに詳しく聞く →" : "Ask AI for details →"}
+      </button>
+    </div>
+  );
+}
+
+function PredictionZoneModal({ spot, score, weather, tideData, lang, onClose }) {
+  const [advice, setAdvice] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const prompt = lang === "ja"
+          ? `日本の釣り専門家として「${spot.name}」の釣り予測を分析してください。釣り指数:${score}/100、対象魚:${typeof spot.fish === "object" ? spot.fish.ja : spot.fish}、天気:${weather?.desc || "不明"} ${weather?.temp || "?"}°C 風${weather?.wind || "?"}m/s、季節:${new Date().toLocaleDateString("ja-JP",{month:"long"})}、時刻:${new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})}。おすすめの釣り方・時間帯・一言アドバイスを200文字以内で。`
+          : `As a Japanese fishing expert, analyze fishing at "${spot.name}". Score:${score}/100, Target:${typeof spot.fish === "object" ? spot.fish.en : spot.fish}, Weather:${weather?.desc} ${weather?.temp}°C wind ${weather?.wind}m/s, Month:${new Date().toLocaleDateString("en-US",{month:"long"})}. Give best method, timing, and key tip in under 120 words.`;
+
+        const res = await fetch("/api/claude", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 300, messages: [{ role: "user", content: prompt }] })
+        });
+        const data = await res.json();
+        setAdvice(data.content?.[0]?.text || (lang === "ja" ? "取得できませんでした" : "Could not get advice"));
+      } catch (e) {
+        setAdvice(lang === "ja" ? "通信エラー" : "Connection error");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const colors = getPredictionColor(score);
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 16 }}>
+      <div style={{ width: "100%", maxWidth: 430, background: "#fffdf8", borderRadius: 24, padding: 20, animation: "fadeUp 0.3s ease", maxHeight: "80vh", overflow: "auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: "1.05rem" }}>{spot.icon} {spot.name}</div>
+            <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>🤖 {lang === "ja" ? "AI釣り予測" : "AI Fishing Prediction"}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: "2rem", fontWeight: 900, color: colors.text }}>{score}</div>
+            <div style={{ fontSize: "0.68rem", color: colors.text }}>{lang === "ja" ? "釣り指数" : "Score"}</div>
+          </div>
+        </div>
+        <div style={{ background: colors.bg, border: `2px solid ${colors.border}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14, fontSize: "0.92rem", color: "#1a1a14", lineHeight: 1.7, minHeight: 80 }}>
+          {loading ? <div style={{ textAlign: "center", padding: "20px 0", color: "#5a5a4a" }}>🤖 {lang === "ja" ? "AIが分析中..." : "AI analyzing..."}</div> : advice}
+        </div>
+        <button onClick={onClose} style={{ width: "100%", padding: "12px", background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
+          {lang === "ja" ? "閉じる" : "Close"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── LINE SHARING ────────────────────────────────────────────────────────────
 function shareToLINE(catch_, lang) {
   const text = lang === "ja"
@@ -1299,6 +1439,23 @@ const SPOT_COORDS = {
   "東京湾・竹芝周辺":        { lat: 35.655, lng: 139.763 },
   "芦ノ湖（神奈川）":        { lat: 35.19,  lng: 139.02 },
   "矢部川（八女）":           { lat: 33.21,  lng: 130.71 },
+  "嘉瀬川・大和町（上流）":     { lat: 33.35,  lng: 130.28 },
+  "嘉瀬川・佐賀市中流":         { lat: 33.28,  lng: 130.30 },
+  "六角川・武雄市橋下":         { lat: 33.19,  lng: 130.01 },
+  "牛津川・小城市":             { lat: 33.27,  lng: 130.20 },
+  "城原川・神埼市":             { lat: 33.42,  lng: 130.38 },
+  "筑後川・鳥栖市（基山橋）":   { lat: 33.37,  lng: 130.51 },
+  "筑後川・久留米市（合川橋）": { lat: 33.32,  lng: 130.51 },
+  "矢部川・黒木町（上流部）":   { lat: 33.24,  lng: 130.68 },
+  "矢部川・瀬高（中流域）":     { lat: 33.17,  lng: 130.59 },
+  "星野川・八女市星野村":       { lat: 33.20,  lng: 130.77 },
+  "山田川・八女市上陽町":       { lat: 33.22,  lng: 130.64 },
+  "遠賀川・直方市":             { lat: 33.74,  lng: 130.73 },
+  "今川・行橋市（豊前海）":     { lat: 33.72,  lng: 130.98 },
+  "大村湾・諫早（西岸）":       { lat: 32.84,  lng: 130.02 },
+  "五島列島・福江島（磯釣り）": { lat: 32.69,  lng: 128.84 },
+  "緑川・美里町（上流）":       { lat: 32.65,  lng: 130.79 },
+  "球磨川・人吉市（本流）":     { lat: 32.21,  lng: 130.76 },
   // Other
   "長良川（岐阜・友釣り）":  { lat: 35.41,  lng: 136.72 },
   "琵琶湖（滋賀）":          { lat: 35.27,  lng: 136.07 },
@@ -1360,10 +1517,30 @@ const MAP_SPOTS = [
   // ── CHUBU ─────────────────────────────────────────────────────────────────
   { id: 35, name: "長良川（岐阜・友釣り）", region: "chubu", pref: "岐阜", fish: { ja: "アユ", en: "Ayu (Sweetfish)" }, rating: 5.0, type: { ja: "清流", en: "Clear River" }, icon: "🐠", lat: 35.41, lng: 136.72, bestSeason: { ja: "6〜10月", en: "Jun–Oct" }, access: { ja: "岐阜市・郡上八幡など各漁協管轄区で遊漁券購入", en: "Buy permits at fishing cooperatives in Gifu city and Gujo-Hachiman" }, tip: { ja: "日本三大清流のひとつ。友釣りの聖地。郡上エリアは特に大型が出る。", en: "One of Japan's three great clear rivers. The mecca of tomozuri ayu fishing. Big fish in the Gujo area." } },
   { id: 37, name: "矢部川（八女）", region: "kyushu", pref: "福岡", fish: { ja: "アユ・ヤマメ", en: "Ayu & Yamame" }, rating: 4.9, type: { ja: "清流", en: "Clear River" }, icon: "🐠", lat: 33.21, lng: 130.71, bestSeason: { ja: "6〜10月（アユ）", en: "Jun–Oct (Ayu)" }, access: { ja: "八女市内から車20分。矢部川漁協で遊漁券購入（¥1,500/日）", en: "20min drive from Yame city. Buy permit at Yabeji Fishing Cooperative (¥1,500/day)" }, tip: { ja: "九州屈指の清流アユ河川。中流域の瀬が友釣りの一級ポイント。水質が澄んでいるため天然アユの魚影が濃い。早朝の霧の中での友釣りは格別。", en: "One of Kyushu's finest clear-water ayu rivers. Mid-river rapids are prime for tomozuri. Crystal clear water holds dense populations of wild ayu. Early morning tomozuri in the mist is unforgettable." } },
+  // ── SAGA LOCALIZED ──────────────────────────────────────────────────────────
+  { id: 38, name: "嘉瀬川・大和町（上流）", region: "kyushu", pref: "佐賀", fish: { ja: "ヤマメ・アマゴ", en: "Yamame & Amago" }, rating: 4.5, type: { ja: "清流", en: "Clear River" }, icon: "🐡", lat: 33.35, lng: 130.28, bestSeason: { ja: "3〜9月", en: "Mar–Sep" }, access: { ja: "大和ICから車10分。大和農村環境改善センター近く。遊漁券¥1,200/日", en: "10min from Yamato IC. Near Yamato Rural Center. ¥1,200/day permit" }, tip: { ja: "上流部は水が澄んでヤマメの魚影が濃い。早朝のフライが特に有効。川沿いの道は狭いので注意。", en: "Crystal clear upper reaches hold good Yamame populations. Early morning fly fishing is especially effective. Narrow riverside roads — drive carefully." } },
+  { id: 39, name: "嘉瀬川・佐賀市中流", region: "kyushu", pref: "佐賀", fish: { ja: "コイ・ヘラブナ・ウナギ", en: "Carp, Crucian & Eel" }, rating: 4.0, type: { ja: "中流域", en: "Mid River" }, icon: "🐟", lat: 33.28, lng: 130.30, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "佐賀市内から車15分。嘉瀬川ダム下流域", en: "15min from Saga city center. Below Kase Dam" }, tip: { ja: "ヘラブナの好ポイント多数。ウナギは夜釣りで実績あり。", en: "Many excellent Herabuna spots. Eel fishing at night is productive." } },
+  { id: 40, name: "六角川・武雄市橋下", region: "kyushu", pref: "佐賀", fish: { ja: "シーバス・チヌ・ウナギ", en: "Seabass, Bream & Eel" }, rating: 4.3, type: { ja: "汽水域", en: "Brackish Water" }, icon: "🦈", lat: 33.19, lng: 130.01, bestSeason: { ja: "4〜11月（シーバス）", en: "Apr–Nov (Seabass)" }, access: { ja: "武雄温泉駅から車10分。各橋下がポイント", en: "10min from Takeo Onsen Stn. Fish under each bridge" }, tip: { ja: "潮の影響を受ける汽水域。満潮前後がシーバスの好機。夜のルアーが効果的。", en: "Tidal brackish zone. Seabass bite best around high tide. Night lure fishing is most effective." } },
+  { id: 41, name: "牛津川・小城市", region: "kyushu", pref: "佐賀", fish: { ja: "アユ・ヤマメ", en: "Ayu & Yamame" }, rating: 4.2, type: { ja: "清流", en: "Clear Stream" }, icon: "🐠", lat: 33.27, lng: 130.20, bestSeason: { ja: "6〜9月（アユ）", en: "Jun–Sep (Ayu)" }, access: { ja: "小城駅から車5分。須賀神社付近が好ポイント", en: "5min from Ogi Stn. Good spots near Suga Shrine" }, tip: { ja: "小城の清流で友釣りアユ。水量が多い年は特に釣果が良い。地元漁協で遊漁券購入を。", en: "Tomozuri ayu in Ogi's clear streams. Years with high water yield the best catches. Buy permit from local cooperative." } },
+  { id: 42, name: "城原川・神埼市", region: "kyushu", pref: "佐賀", fish: { ja: "ヤマメ・アユ・イワナ", en: "Yamame, Ayu & Iwana" }, rating: 4.6, type: { ja: "清流渓谷", en: "Mountain Stream" }, icon: "🐡", lat: 33.42, lng: 130.38, bestSeason: { ja: "3〜9月", en: "Mar–Sep" }, access: { ja: "神埼市から脊振方面へ30分。吉野ヶ里ICから45分", en: "30min from Kanzaki toward Seburi. 45min from Yoshinogari IC" }, tip: { ja: "脊振山系を源流とする清流。ヤマメの魚影が非常に濃く、上流部はイワナも狙える。フライ・テンカラが最適。", en: "Fed by Seburi mountains. Excellent Yamame density, Iwana in upper reaches. Fly and tenkara are ideal methods." } },
+  { id: 43, name: "筑後川・鳥栖市（基山橋）", region: "kyushu", pref: "佐賀", fish: { ja: "アユ・コイ・ウグイ", en: "Ayu, Carp & Dace" }, rating: 4.1, type: { ja: "大河川", en: "Large River" }, icon: "🐠", lat: 33.37, lng: 130.51, bestSeason: { ja: "6〜9月（アユ）", en: "Jun–Sep (Ayu)" }, access: { ja: "鳥栖ICから車5分。基山橋上下流がポイント", en: "5min from Tosu IC. Both sides of Kiyama Bridge" }, tip: { ja: "鳥栖市内からすぐアクセスできる筑後川のアユポイント。早朝の友釣りが実績あり。", en: "Easily accessible ayu spot on Chikugo River from Tosu. Early morning tomozuri has proven results." } },
+  { id: 44, name: "筑後川・久留米市（合川橋）", region: "kyushu", pref: "福岡", fish: { ja: "アユ・チヌ・シーバス", en: "Ayu, Bream & Seabass" }, rating: 4.4, type: { ja: "大河川", en: "Large River" }, icon: "🐠", lat: 33.32, lng: 130.51, bestSeason: { ja: "5〜10月", en: "May–Oct" }, access: { ja: "久留米ICから車10分。合川橋付近に駐車スペースあり", en: "10min from Kurume IC. Parking near Aikawa Bridge" }, tip: { ja: "筑後川の主要アユポイント。下流側は汽水でチヌ・シーバスも狙える。", en: "Major ayu point on Chikugo. Downstream brackish section holds bream and seabass." } },
+  // ── FUKUOKA LOCALIZED ────────────────────────────────────────────────────────
+  { id: 45, name: "矢部川・黒木町（上流部）", region: "kyushu", pref: "福岡", fish: { ja: "アユ・ヤマメ", en: "Ayu & Yamame" }, rating: 5.0, type: { ja: "源流清流", en: "Headwater Stream" }, icon: "🐠", lat: 33.24, lng: 130.68, bestSeason: { ja: "6〜9月（アユ最盛）", en: "Jun–Sep (Ayu Peak)" }, access: { ja: "黒木町中心部から車15分。矢部川漁協で遊漁券購入（¥1,500/日）", en: "15min from Kurogi town center. Buy permit at Yabeji Coop (¥1,500/day)" }, tip: { ja: "矢部川最上流の清流域。友釣りの聖地として地元で有名。水温が低く夏でも快適。早朝霧の中での釣りは格別。", en: "The sacred upper reaches of Yabeji. Famous locally as prime tomozuri territory. Cool water even in summer. Fishing in the early morning mist is unforgettable." } },
+  { id: 46, name: "矢部川・瀬高（中流域）", region: "kyushu", pref: "福岡", fish: { ja: "アユ・チヌ・コイ", en: "Ayu, Bream & Carp" }, rating: 4.5, type: { ja: "中流域", en: "Mid River" }, icon: "🐠", lat: 33.17, lng: 130.59, bestSeason: { ja: "6〜10月", en: "Jun–Oct" }, access: { ja: "瀬高駅から車5分。国道443号沿いに駐車スペースあり", en: "5min from Setaka Stn. Parking along Rt. 443" }, tip: { ja: "中流域は水深があり多魚種が狙える。夕方のチヌ狙いが特に面白い。", en: "Deeper mid-river section holds multiple species. Evening bream fishing is particularly exciting." } },
+  { id: 47, name: "星野川・八女市星野村", region: "kyushu", pref: "福岡", fish: { ja: "ヤマメ・アユ・イワナ", en: "Yamame, Ayu & Iwana" }, rating: 4.8, type: { ja: "秘境清流", en: "Remote Clear Stream" }, icon: "🐡", lat: 33.20, lng: 130.77, bestSeason: { ja: "3〜9月", en: "Mar–Sep" }, access: { ja: "八女市街から車40分。星野村は茶の産地でもある秘境。道は狭い", en: "40min from Yame city. Hoshino Village is a remote tea-growing community. Narrow roads." }, tip: { ja: "ほとんど知られていない穴場清流。ヤマメの魚影は矢部川に匹敵する。人が少なく静かな釣りが楽しめる。", en: "A little-known hidden gem. Yamame density rivals Yabeji River. Very few anglers — peaceful fishing guaranteed." } },
+  { id: 48, name: "山田川・八女市上陽町", region: "kyushu", pref: "福岡", fish: { ja: "アユ・ヤマメ", en: "Ayu & Yamame" }, rating: 4.3, type: { ja: "清流", en: "Clear River" }, icon: "🐠", lat: 33.22, lng: 130.64, bestSeason: { ja: "6〜9月", en: "Jun–Sep" }, access: { ja: "八女ICから車25分。上陽町の棚田地帯を流れる", en: "25min from Yame IC. Flows through Joyo terraced rice fields" }, tip: { ja: "観光客が少ない穴場河川。アユの魚影が濃く、地元漁師以外にほとんど知られていない。", en: "An undiscovered river with excellent ayu density. Barely known outside local fishing circles." } },
+  { id: 49, name: "遠賀川・直方市", region: "kyushu", pref: "福岡", fish: { ja: "アユ・コイ・バス", en: "Ayu, Carp & Bass" }, rating: 4.0, type: { ja: "大河川", en: "Large River" }, icon: "🐟", lat: 33.74, lng: 130.73, bestSeason: { ja: "5〜9月", en: "May–Sep" }, access: { ja: "直方駅から徒歩15分。遠賀川河川公園付近", en: "15min walk from Nogata Stn. Near Onga River Park" }, tip: { ja: "北九州エリアの定番河川。アユの遡上シーズンは多くの釣り人で賑わう。バス釣りも人気。", en: "A staple river in North Kyushu. Busy during ayu upstream migration. Bass fishing also popular." } },
+  { id: 50, name: "今川・行橋市（豊前海）", region: "kyushu", pref: "福岡", fish: { ja: "シーバス・チヌ・キス", en: "Seabass, Bream & Whiting" }, rating: 4.2, type: { ja: "河口・干潟", en: "Estuary & Mudflat" }, icon: "🦈", lat: 33.72, lng: 130.98, bestSeason: { ja: "4〜11月", en: "Apr–Nov" }, access: { ja: "行橋駅から車10分。今川河口の干潟地帯", en: "10min from Yukuhashi Stn. Imai River estuary mudflats" }, tip: { ja: "豊前海の干潟に注ぐ今川河口。潮干狩りでも有名なエリア。シーバスは夜の満潮前が狙い目。", en: "River mouth emptying into Buzen Sea mudflats. Famous for clam digging. Seabass peak around high tide at night." } },
+  // ── NAGASAKI ─────────────────────────────────────────────────────────────────
+  { id: 51, name: "大村湾・諫早（西岸）", region: "kyushu", pref: "長崎", fish: { ja: "チヌ・メバル・アジ", en: "Bream, Rockfish & Mackerel" }, rating: 4.3, type: { ja: "内湾・磯", en: "Inner Bay & Rocky Shore" }, icon: "🐟", lat: 32.84, lng: 130.02, bestSeason: { ja: "通年（春秋最高）", en: "Year-round (Spring/Fall best)" }, access: { ja: "諫早ICから車15分。西岸各磯に駐車スペース点在", en: "15min from Isahaya IC. Parking spots at various rocky shores on west coast" }, tip: { ja: "大村湾は内海のため波が穏やかで初心者にも安心。チヌは岸壁際、メバルは夜の磯で実績が高い。", en: "Omura Bay's calm inner waters are beginner-friendly. Bream along walls, rockfish on night rocky shores." } },
+  { id: 52, name: "五島列島・福江島（磯釣り）", region: "kyushu", pref: "長崎", fish: { ja: "クロダイ・グレ・マダイ", en: "Black Bream, Largescale Blackfish & Sea Bream" }, rating: 5.0, type: { ja: "離島磯", en: "Island Rocky Shore" }, icon: "🐟", lat: 32.69, lng: 128.84, bestSeason: { ja: "秋〜春（10〜5月）", en: "Autumn–Spring (Oct–May)" }, access: { ja: "長崎港からフェリー3時間（¥3,800）または飛行機35分", en: "3hr ferry from Nagasaki (¥3,800) or 35min flight" }, tip: { ja: "九州最高峰の磯釣りスポット。黒潮の影響で魚影が非常に濃い。渡船利用が基本。一生に一度は行くべき聖地。", en: "The pinnacle of Kyushu rock fishing. Exceptional fish density from Kuroshio influence. Charter boats required. A once-in-a-lifetime destination." } },
+  // ── KUMAMOTO ─────────────────────────────────────────────────────────────────
+  { id: 53, name: "緑川・美里町（上流）", region: "kyushu", pref: "熊本", fish: { ja: "ヤマメ・アユ・イワナ", en: "Yamame, Ayu & Iwana" }, rating: 4.7, type: { ja: "清流渓谷", en: "Mountain Gorge" }, icon: { ja: "🐡" }, lat: 32.65, lng: 130.79, bestSeason: { ja: "4〜9月", en: "Apr–Sep" }, access: { ja: "松橋ICから車40分。美里町の山岳渓流", en: "40min from Matsubase IC. Mountain streams of Misato town" }, tip: { ja: "熊本屈指の清流渓谷。イワナの生息域が広く、テンカラで狙うのが醍醐味。夏も水温が低くて快適。", en: "One of Kumamoto's finest clear-water gorges. Wide Iwana range — tenkara is the ideal approach. Cool water temperatures even in summer." } },
+  { id: 54, name: "球磨川・人吉市（本流）", region: "kyushu", pref: "熊本", fish: { ja: "アユ・アマゴ・コイ", en: "Ayu, Amago & Carp" }, rating: 4.8, type: { ja: "急流大河", en: "Rapid River" }, icon: "🐠", lat: 32.21, lng: 130.76, bestSeason: { ja: "6〜9月（アユ）", en: "Jun–Sep (Ayu)" }, access: { ja: "人吉ICから車5分。球磨川ラフティングの聖地でもある", en: "5min from Hitoyoshi IC. Also famous as Japan's top rafting river" }, tip: { ja: "日本三大急流の一つ。アユの遡上量が九州最多クラス。友釣りの名人が集う聖地。川の流れが速いので安全注意。", en: "One of Japan's three great rapid rivers. Among Kyushu's highest ayu migration numbers. Renowned tomozuri destination. Fast current — stay safe." } },
 ];
 
-
-// ─── SEASONAL COMPONENTS ─────────────────────────────────────────────────────
+─ SEASONAL COMPONENTS ─────────────────────────────────────────────────────
 function SeasonalBadge({ fishId, lang }) {
   const tip = getSeasonalTip(fishId);
   if (!tip || tip.urgency === "low") return null;
@@ -1985,10 +2162,13 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
   );
 }
 
-function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing }) {
+function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData }) {
   const [activeSpot, setActiveSpot] = useState(null);
   const [regionFilter, setRegionFilter] = useState("kyushu");
   const [showCommunityPins, setShowCommunityPins] = useState(true);
+  const [mapMode, setMapMode] = useState("spots"); // "spots" | "prediction"
+  const [predictionSpot, setPredictionSpot] = useState(null);
+  const [predictionScore, setPredictionScore] = useState(null);
 
   const REGIONS = [
     { key: "kyushu",   ja: "九州",   en: "Kyushu",   emoji: "🌋" },
@@ -2012,6 +2192,13 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
   return (
     <div style={{ animation: "fadeUp 0.4s ease" }}>
       <h2 style={{ margin: "0 0 4px", fontSize: "1.2rem" }}>{selectedFish ? `${selectedFish.name}の釣り場` : (lang === "ja" ? "近くの釣り場" : "Spots Near You")}</h2>
+
+      {/* Mode toggle */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+        {[{ k: "spots", ja: "📍 釣り場", en: "📍 Spots" }, { k: "prediction", ja: "🔮 AI予測", en: "🔮 AI Predict" }].map(m => (
+          <button key={m.k} onClick={() => setMapMode(m.k)} style={{ flex: 1, padding: "8px", background: mapMode === m.k ? "#e0f2f2" : "#fffdf8", border: `2px solid ${mapMode === m.k ? "#0d7377" : "#d4cfc4"}`, borderRadius: 10, color: mapMode === m.k ? "#0d7377" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: mapMode === m.k ? 700 : 400 }}>{m[lang]}</button>
+        ))}
+      </div>
 
       {/* Active users banner */}
       {activeUsers.length > 0 && (
@@ -2080,13 +2267,31 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {spots.length === 0 && (
+
+        {/* AI Prediction Zone list */}
+        {mapMode === "prediction" && (
+          <div style={{ animation: "fadeUp 0.3s ease" }}>
+            <div style={{ fontSize: "0.82rem", color: "#5a5a4a", marginBottom: 10, background: "#e0f2f2", borderRadius: 10, padding: "8px 12px" }}>
+              🤖 {lang === "ja" ? `現在の条件（${new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})}）でスポットをAI分析中` : `AI analyzing spots for current conditions (${new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})})`}
+            </div>
+            {[...spots].sort((a, b) => calcSpotScore(b, weather, tideData, activeUsers) - calcSpotScore(a, weather, tideData, activeUsers)).slice(0, 15).map(spot => (
+              <PredictionZoneCard key={spot.id} spot={spot} weather={weather} tideData={tideData} activeUsers={activeUsers} lang={lang} onAskAI={(s, sc) => { setPredictionSpot(s); setPredictionScore(sc); }} />
+            ))}
+          </div>
+        )}
+
+        {predictionSpot && (
+          <PredictionZoneModal spot={predictionSpot} score={predictionScore} weather={weather} tideData={tideData} lang={lang} onClose={() => setPredictionSpot(null)} />
+        )}
+
+        {/* Spots list */}
+        {mapMode === "spots" && spots.length === 0 && (
           <div style={{ textAlign: "center", padding: "30px 20px", color: "#7a7a6a" }}>
             <div style={{ fontSize: "2rem", marginBottom: 8 }}>🗺️</div>
             <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "このエリアのスポットは準備中です" : "Spots for this area coming soon"}</div>
           </div>
         )}
-        {spots.map((spot, i) => {
+        {mapMode === "spots" && spots.map((spot, i) => {
           const coords = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
           const crowding = coords ? getCrowdingLevel(coords.lat, coords.lng, activeUsers) : null;
           return (
@@ -3082,7 +3287,7 @@ If this is NOT a fish or the image is unclear, return:
         )}
 
         {/* ── MAP ── */}
-        {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} activeUsers={activeUsers} locationSharing={locationSharing} setLocationSharing={setLocationSharing} />}
+        {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} activeUsers={activeUsers} locationSharing={locationSharing} setLocationSharing={setLocationSharing} weather={WEATHER} tideData={tideData} />}
 
         {/* ── WEATHER ── */}
         {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} forecast={forecast7day} tides={tideData} rivers={riverConditions} />}
