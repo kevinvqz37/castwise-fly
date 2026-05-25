@@ -1540,7 +1540,7 @@ const MAP_SPOTS = [
   { id: 54, name: "球磨川・人吉市（本流）", region: "kyushu", pref: "熊本", fish: { ja: "アユ・アマゴ・コイ", en: "Ayu, Amago & Carp" }, rating: 4.8, type: { ja: "急流大河", en: "Rapid River" }, icon: "🐠", lat: 32.21, lng: 130.76, bestSeason: { ja: "6〜9月（アユ）", en: "Jun–Sep (Ayu)" }, access: { ja: "人吉ICから車5分。球磨川ラフティングの聖地でもある", en: "5min from Hitoyoshi IC. Also famous as Japan's top rafting river" }, tip: { ja: "日本三大急流の一つ。アユの遡上量が九州最多クラス。友釣りの名人が集う聖地。川の流れが速いので安全注意。", en: "One of Japan's three great rapid rivers. Among Kyushu's highest ayu migration numbers. Renowned tomozuri destination. Fast current — stay safe." } },
 ];
 
-─ SEASONAL COMPONENTS ─────────────────────────────────────────────────────
+// ─── SEASONAL COMPONENTS ──────────────────────────────────────────────────
 function SeasonalBadge({ fishId, lang }) {
   const tip = getSeasonalTip(fishId);
   if (!tip || tip.urgency === "low") return null;
