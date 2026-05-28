@@ -266,7 +266,7 @@ const SPRITE_EMOJI = {
 // Set SPRITE_SHEET_URL to "/fish_spritesheet.png" once image is in public/
 const SPRITE_SHEET_URL = "/fish_spritesheet.png";
 const SPRITE_COLS = 7;
-const SPRITE_ROWS = 5;
+const SPRITE_ROWS = 4;
 
 const SPRITE_DATA = {
   // Row 0 — Freshwater
