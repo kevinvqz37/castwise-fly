@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>マボ釣りナビ — マボチャンネル公式釣りアプリ</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --yellow: #FFE500;
+  --black: #1a1a14;
+  --white: #fffdf8;
+  --grey: #f5f0e8;
+  --muted: #888;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--black); font-family: 'Noto Sans JP', sans-serif; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px 0 40px; }
+.phone-wrap { position: relative; }
+.phone { width: 375px; background: var(--grey); border-radius: 44px; overflow: hidden; border: 8px solid #333; box-shadow: 0 0 0 1px #555, 0 30px 80px rgba(0,0,0,0.8); position: relative; }
+.notch { background: #1a1a14; height: 34px; display: flex; align-items: center; justify-content: center; }
+.notch-pill { width: 100px; height: 22px; background: #111; border-radius: 99px; }
+
+/* HEADER */
+.app-header { background: var(--yellow); padding: 10px 16px 0; }
+.header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.mascot { width: 42px; height: 42px; background: var(--black); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.app-name { font-family: 'Black Han Sans', sans-serif; font-size: 20px; color: var(--black); line-height: 1; }
+.app-sub { font-size: 9px; color: #555; font-weight: 700; letter-spacing: 0.08em; margin-top: 1px; }
+.lang-btn { background: var(--black); color: var(--yellow); border: none; border-radius: 8px; padding: 5px 12px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.tagline-bar { background: var(--black); text-align: center; font-size: 10px; font-weight: 700; color: var(--yellow); padding: 5px; letter-spacing: 0.12em; }
+
+/* TABS */
+.tabs { background: var(--yellow); display: flex; overflow-x: auto; border-bottom: 3px solid var(--black); scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab-btn { flex-shrink: 0; padding: 8px 10px 6px; font-family: inherit; font-size: 9px; font-weight: 700; color: #666; background: none; border: none; cursor: pointer; text-align: center; border-bottom: 3px solid transparent; margin-bottom: -3px; }
+.tab-btn.active { color: var(--black); border-bottom-color: var(--black); }
+.tab-icon { font-size: 15px; display: block; margin-bottom: 2px; }
+
+/* CONTENT */
+.content { overflow-y: auto; max-height: 580px; padding: 12px 12px 80px; }
+
+/* HOME */
+.weather-card { background: var(--yellow); border: 2px solid var(--black); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.temp { font-family: 'Black Han Sans', sans-serif; font-size: 36px; color: var(--black); line-height: 1; }
+.weather-desc { font-size: 11px; color: #444; font-weight: 700; margin-top: 2px; }
+.score-box { background: var(--black); border-radius: 12px; padding: 8px 14px; text-align: center; }
+.score-num { font-family: 'Black Han Sans', sans-serif; font-size: 28px; color: var(--yellow); line-height: 1; }
+.score-lbl { font-size: 9px; color: #aaa; margin-top: 2px; }
+.score-tag { font-size: 9px; color: var(--yellow); font-weight: 700; }
+
+.section-hd { font-size: 11px; font-weight: 900; color: var(--black); margin: 14px 0 8px; display: flex; align-items: center; gap: 8px; letter-spacing: 0.08em; text-transform: uppercase; }
+.section-hd::after { content: ''; flex: 1; height: 2px; background: var(--black); }
+
+/* TOURNAMENT CARDS */
+.t-card { background: var(--black); border-radius: 14px; padding: 14px; margin-bottom: 10px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
+.t-card:hover { border-color: var(--yellow); }
+.t-badge { display: inline-block; background: var(--yellow); color: var(--black); font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 99px; margin-bottom: 7px; }
+.t-badge.upcoming { background: #444; color: #ccc; }
+.t-name { font-size: 13px; font-weight: 900; color: var(--yellow); margin-bottom: 5px; line-height: 1.3; }
+.t-meta { font-size: 10px; color: #aaa; margin-bottom: 4px; }
+.t-prize { font-size: 11px; font-weight: 700; color: var(--yellow); margin-bottom: 10px; }
+.t-cta { background: var(--yellow); color: var(--black); border: none; border-radius: 8px; padding: 8px 16px; font-family: inherit; font-size: 11px; font-weight: 800; cursor: pointer; width: 100%; }
+
+/* LEADERBOARD */
+.lb-row { background: white; border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; border: 1px solid #e0dbd0; }
+.lb-rank { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+.lb-rank.g1 { background: var(--yellow); border: 2px solid var(--black); }
+.lb-rank.g2 { background: #ddd; color: #555; }
+.lb-rank.g3 { background: #d4956a; color: white; }
+.lb-rank.gx { background: #f5f0e8; color: #888; font-size: 11px; }
+.lb-name { flex: 1; font-size: 12px; font-weight: 700; color: var(--black); }
+.lb-sp { font-size: 9px; color: #888; }
+.lb-wt { font-size: 13px; font-weight: 900; color: var(--black); }
+
+/* SPOTS */
+.spot-card { background: white; border: 1.5px solid #e0dbd0; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; }
+.spot-icon { width: 40px; height: 40px; background: var(--yellow); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 2px solid var(--black); flex-shrink: 0; }
+.spot-name { font-size: 12px; font-weight: 800; color: var(--black); }
+.spot-fish { font-size: 10px; color: #666; margin-top: 2px; }
+.spot-badges { display: flex; gap: 4px; margin-top: 4px; }
+.spot-badges span { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 99px; }
+.badge-mabo { background: var(--black); color: var(--yellow); }
+.badge-hot { background: var(--yellow); color: var(--black); }
+.spot-score { font-size: 14px; font-weight: 900; color: var(--black); }
+
+/* SUBMIT FORM */
+.submit-form { background: #FFF9CC; border: 2px solid var(--yellow); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.submit-form input { width: 100%; margin-bottom: 8px; background: white; border: 2px solid var(--yellow); border-radius: 8px; padding: 9px 12px; font-family: inherit; font-size: 13px; }
+.submit-btn { background: var(--black); color: var(--yellow); border: none; border-radius: 10px; padding: 11px; font-family: inherit; font-size: 13px; font-weight: 900; cursor: pointer; width: 100%; }
+
+/* SUCCESS */
+.success-box { background: var(--black); border: 2px solid var(--yellow); border-radius: 14px; padding: 20px; text-align: center; margin-bottom: 12px; }
+
+/* YOUTUBE */
+.yt-card { background: var(--black); border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; }
+.yt-thumb { width: 72px; height: 48px; background: var(--yellow); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.yt-title { font-size: 11px; font-weight: 700; color: var(--yellow); margin-bottom: 3px; line-height: 1.3; }
+.yt-meta { font-size: 9px; color: #888; }
+.yt-play { width: 30px; height: 30px; background: var(--yellow); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; border: none; cursor: pointer; flex-shrink: 0; }
+
+/* POWERED */
+.powered { text-align: center; padding: 12px; font-size: 10px; color: #aaa; }
+.powered strong { color: var(--black); }
+
+/* PITCH BANNER */
+.pitch { width: 375px; background: var(--yellow); border-radius: 0 0 20px 20px; padding: 16px; text-align: center; margin-top: -8px; }
+.pitch-title { font-family: 'Black Han Sans', sans-serif; font-size: 16px; color: var(--black); margin-bottom: 6px; }
+.pitch-body { font-size: 11px; color: #444; line-height: 1.6; margin-bottom: 10px; }
+.pitch-contact { background: var(--black); color: var(--yellow); border: none; border-radius: 10px; padding: 10px 20px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; }
+
+/* DETAIL VIEW */
+.detail-back { background: none; border: none; color: var(--black); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; padding: 0 0 12px; display: block; }
+
+/* HIDDEN */
+.page { display: none; }
+.page.active { display: block; }
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+  <div class="phone">
+    <div class="notch"><div class="notch-pill"></div></div>
+
+    <div class="app-header">
+      <div class="header-row">
+        <div class="logo">
+          <div class="mascot">🐟</div>
+          <div>
+            <div class="app-name">マボ釣りナビ</div>
+            <div class="app-sub">MABO CHANNEL FISHING</div>
+          </div>
+        </div>
+        <button class="lang-btn" onclick="toggleLang()">EN</button>
+      </div>
+      <div class="tagline-bar" id="tagline">すべてはチャレンジからはじまる。</div>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button class="tab-btn active" onclick="switchTab('home',this)"><span class="tab-icon">🏠</span><span data-ja="ホーム" data-en="Home">ホーム</span></button>
+      <button class="tab-btn" onclick="switchTab('tournament',this)"><span class="tab-icon">🏆</span><span data-ja="大会" data-en="Tourney">大会</span></button>
+      <button class="tab-btn" onclick="switchTab('spots',this)"><span class="tab-icon">📍</span><span data-ja="釣り場" data-en="Spots">釣り場</span></button>
+      <button class="tab-btn" onclick="switchTab('youtube',this)"><span class="tab-icon">▶</span><span data-ja="動画" data-en="Videos">動画</span></button>
+      <button class="tab-btn" onclick="switchTab('catch',this)"><span class="tab-icon">🎣</span><span data-ja="釣果" data-en="Catch">釣果</span></button>
+    </div>
+
+    <div class="content">
+
+      <!-- HOME -->
+      <div id="page-home" class="page active">
+        <div class="weather-card">
+          <div>
+            <div class="temp">24°C</div>
+            <div class="weather-desc">☀️ <span data-ja="晴れ · 熊本県菊池市" data-en="Clear · Kikuchi, Kumamoto">晴れ · 熊本県菊池市</span></div>
+            <div style="font-size:10px;color:#555;margin-top:3px" data-ja="風 2.1m/s · 湿度 62%" data-en="Wind 2.1m/s · Humidity 62%">風 2.1m/s · 湿度 62%</div>
+          </div>
+          <div class="score-box">
+            <div class="score-num">88</div>
+            <div class="score-lbl" data-ja="釣り指数" data-en="Fish Score">釣り指数</div>
+            <div class="score-tag">🔥 <span data-ja="最高の日！" data-en="Prime day!">最高の日！</span></div>
+          </div>
+        </div>
+
+        <div class="section-hd" data-ja="🏆 開催中の大会" data-en="🏆 Live Tournament">🏆 開催中の大会</div>
+        <div class="t-card" onclick="switchTab('tournament', document.querySelector('.tab-btn:nth-child(2)'))">
+          <div class="t-badge">🔴 LIVE · 47<span data-ja="名参加" data-en=" anglers">名参加</span></div>
+          <div class="t-name" data-ja="マボカップ2025 春季大会" data-en="Mabo Cup 2025 Spring">マボカップ2025 春季大会</div>
+          <div class="t-meta">📍 <span data-ja="球磨川・人吉市 · 5/25〜6/1" data-en="Kuma River · May 25–Jun 1">球磨川・人吉市 · 5/25〜6/1</span></div>
+          <div class="t-prize">🥇 <span data-ja="シマノ プレミアムロッドセット" data-en="Shimano Premium Rod Set">シマノ プレミアムロッドセット</span></div>
+        </div>
+
+        <div class="section-hd" data-ja="🏅 リーダーボード TOP3" data-en="🏅 Top 3 Leaderboard">🏅 リーダーボード TOP3</div>
+        <div class="lb-row">
+          <div class="lb-rank g1">🥇</div>
+          <div><div class="lb-name">釣り師タケシ</div><div class="lb-sp">アユ · 友釣り</div></div>
+          <div class="lb-wt">2.4kg</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank g2">2</div>
+          <div><div class="lb-name">くまもとアングラー</div><div class="lb-sp">アユ</div></div>
+          <div class="lb-wt">2.1kg</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank g3">3</div>
+          <div><div class="lb-name">九州フィッシャー</div><div class="lb-sp">ヤマメ</div></div>
+          <div class="lb-wt">1.8kg</div>
+        </div>
+
+        <div class="section-hd" data-ja="📍 マボ認定スポット" data-en="📍 Mabo Certified Spots">📍 マボ認定スポット</div>
+        <div class="spot-card">
+          <div class="spot-icon">🎣</div>
+          <div style="flex:1">
+            <div class="spot-name" data-ja="球磨川・人吉 本流" data-en="Kuma River, Hitoyoshi">球磨川・人吉 本流</div>
+            <div class="spot-fish" data-ja="アユ · アマゴ · コイ" data-en="Ayu · Amago · Carp">アユ · アマゴ · コイ</div>
+            <div class="spot-badges"><span class="badge-mabo" data-ja="マボ認定" data-en="Mabo Cert">マボ認定</span><span class="badge-hot" data-ja="今が旬" data-en="In Season">今が旬</span></div>
+          </div>
+          <div class="spot-score">92</div>
+        </div>
+        <div class="spot-card">
+          <div class="spot-icon">🏞️</div>
+          <div style="flex:1">
+            <div class="spot-name" data-ja="矢部川・黒木町" data-en="Yabe River, Kurogi">矢部川・黒木町</div>
+            <div class="spot-fish" data-ja="アユ · ヤマメ" data-en="Ayu · Yamame">アユ · ヤマメ</div>
+            <div class="spot-badges"><span class="badge-mabo" data-ja="マボ認定" data-en="Mabo Cert">マボ認定</span></div>
+          </div>
+          <div class="spot-score">87</div>
+        </div>
+
+        <div class="powered"><span data-ja="Powered by " data-en="Powered by ">Powered by </span><strong>Shigematsu Tech</strong></div>
+      </div>
+
+      <!-- TOURNAMENT -->
+      <div id="page-tournament" class="page">
+        <div style="background:var(--black);border-radius:14px;padding:14px 16px;margin-bottom:14px;text-align:center">
+          <div style="color:var(--yellow);font-weight:900;font-size:15px;margin-bottom:4px" data-ja="🏆 マボカップ シリーズ" data-en="🏆 Mabo Cup Series">🏆 マボカップ シリーズ</div>
+          <div style="color:#aaa;font-size:10px" data-ja="マボチャンネル主催の公式釣り大会" data-en="Official fishing tournaments by Mabo Channel">マボチャンネル主催の公式釣り大会</div>
+        </div>
+
+        <!-- Live tournament -->
+        <div id="t-detail-1" style="display:none">
+          <button class="detail-back" onclick="document.getElementById('t-detail-1').style.display='none';document.getElementById('t-list').style.display='block'">← <span data-ja="大会一覧" data-en="All Tournaments">大会一覧</span></button>
+          <div class="t-card" style="cursor:default;margin-bottom:12px">
+            <div class="t-badge">🔴 LIVE · 47<span data-ja="名参加" data-en=" anglers">名参加</span></div>
+            <div class="t-name" data-ja="マボカップ2025 春季大会" data-en="Mabo Cup 2025 Spring">マボカップ2025 春季大会</div>
+            <div class="t-meta">📍 <span data-ja="球磨川・人吉市 · 5月25日〜6月1日" data-en="Kuma River · May 25–Jun 1">球磨川・人吉市 · 5月25日〜6月1日</span></div>
+            <div class="t-meta">🎯 <span data-ja="アユ・ヤマメ · 3匹合計重量" data-en="Ayu & Yamame · 3-fish total weight">アユ・ヤマメ · 3匹合計重量</span></div>
+            <div class="t-prize" style="margin-top:8px">🥇 <span data-ja="シマノ プレミアムロッドセット" data-en="Shimano Premium Rod Set">シマノ プレミアムロッドセット</span></div>
+          </div>
+
+          <div id="submit-form" class="submit-form">
+            <div style="font-weight:900;font-size:13px;color:var(--black);margin-bottom:10px">🎣 <span data-ja="釣果を提出する" data-en="Submit Your Catch">釣果を提出する</span></div>
+            <input id="inp-species" placeholder="魚種（例：アユ）" />
+            <input id="inp-weight" placeholder="重量（例：0.8kg）" />
+            <button class="submit-btn" onclick="submitCatch()">📸 <span data-ja="写真付きで提出" data-en="Submit with Photo">写真付きで提出</span></button>
+          </div>
+          <div id="submit-success" class="success-box" style="display:none">
+            <div style="font-size:2.5rem;margin-bottom:8px">🎉</div>
+            <div style="font-weight:900;color:var(--yellow);font-size:14px;margin-bottom:4px" data-ja="提出完了！" data-en="Submitted!">提出完了！</div>
+            <div style="font-size:10px;color:#aaa" data-ja="審査後にリーダーボードに反映されます" data-en="Will appear on leaderboard after review">審査後にリーダーボードに反映されます</div>
+          </div>
+
+          <div style="font-weight:800;font-size:11px;color:var(--black);margin-bottom:8px;border-bottom:2px solid var(--black);padding-bottom:4px" data-ja="🏅 現在のランキング" data-en="🏅 Current Rankings">🏅 現在のランキング</div>
+          <div class="lb-row"><div class="lb-rank g1">🥇</div><div><div class="lb-name">釣り師タケシ</div><div class="lb-sp">アユ</div></div><div class="lb-wt">2.4kg</div></div>
+          <div class="lb-row"><div class="lb-rank g2">2</div><div><div class="lb-name">くまもとアングラー</div><div class="lb-sp">アユ</div></div><div class="lb-wt">2.1kg</div></div>
+          <div class="lb-row"><div class="lb-rank g3">3</div><div><div class="lb-name">九州フィッシャー</div><div class="lb-sp">ヤマメ</div></div><div class="lb-wt">1.8kg</div></div>
+          <div class="lb-row"><div class="lb-rank gx">4</div><div><div class="lb-name">MatsuoKen</div><div class="lb-sp">アユ</div></div><div class="lb-wt">1.6kg</div></div>
+          <div class="lb-row"><div class="lb-rank gx">5</div><div><div class="lb-name">南九州つり太郎</div><div class="lb-sp">アユ</div></div><div class="lb-wt">1.4kg</div></div>
+        </div>
+
+        <div id="t-list">
+          <div class="t-card" onclick="document.getElementById('t-list').style.display='none';document.getElementById('t-detail-1').style.display='block'">
+            <div class="t-badge">🔴 LIVE · 47<span data-ja="名参加" data-en=" anglers">名参加</span></div>
+            <div class="t-name" data-ja="マボカップ2025 春季大会" data-en="Mabo Cup 2025 Spring">マボカップ2025 春季大会</div>
+            <div class="t-meta">📍 <span data-ja="球磨川・人吉市 · 5/25〜6/1" data-en="Kuma River · May 25–Jun 1">球磨川・人吉市 · 5/25〜6/1</span></div>
+            <div class="t-prize">🥇 <span data-ja="シマノ プレミアムロッドセット" data-en="Shimano Premium Rod Set">シマノ プレミアムロッドセット</span></div>
+            <div class="t-cta" data-ja="参加・詳細を見る →" data-en="Join & View Details →">参加・詳細を見る →</div>
+          </div>
+          <div class="t-card" style="border:2px solid #444">
+            <div class="t-badge upcoming" data-ja="近日開催" data-en="UPCOMING">近日開催</div>
+            <div class="t-name" data-ja="アユ友釣り選手権" data-en="Ayu Tomozuri Championship">アユ友釣り選手権</div>
+            <div class="t-meta">📍 <span data-ja="矢部川・黒木 · 7/15〜8/31" data-en="Yabe River · Jul 15–Aug 31">矢部川・黒木 · 7/15〜8/31</span></div>
+            <div class="t-prize">🥇 <span data-ja="マボ公認アングラー認定" data-en="Mabo Certified Angler Title">マボ公認アングラー認定</span></div>
+            <div class="t-cta" style="background:#333;color:var(--yellow)" data-ja="通知を受け取る" data-en="Get Notified">通知を受け取る</div>
+          </div>
+          <div class="t-card" style="border:2px solid #444">
+            <div class="t-badge upcoming" data-ja="近日開催" data-en="UPCOMING">近日開催</div>
+            <div class="t-name" data-ja="秋の大物チャレンジ" data-en="Autumn Big Fish Challenge">秋の大物チャレンジ</div>
+            <div class="t-meta">📍 <span data-ja="全国オンライン · 10/1〜11/30" data-en="Nationwide Online · Oct–Nov">全国オンライン · 10/1〜11/30</span></div>
+            <div class="t-prize">🥇 <span data-ja="マボチャンネル出演権利" data-en="Feature on Mabo Channel">マボチャンネル出演権利</span></div>
+            <div class="t-cta" style="background:#333;color:var(--yellow)" data-ja="通知を受け取る" data-en="Get Notified">通知を受け取る</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SPOTS -->
+      <div id="page-spots" class="page">
+        <div style="background:var(--black);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--yellow);flex-shrink:0"></div>
+          <div style="color:var(--yellow);font-size:11px;font-weight:700" data-ja="現在 3人のアングラーが釣り中" data-en="3 anglers fishing now nearby">現在 3人のアングラーが釣り中</div>
+        </div>
+        <div class="section-hd" data-ja="⭐ マボ認定スポット" data-en="⭐ Mabo Certified Spots">⭐ マボ認定スポット</div>
+        <div class="spot-card"><div class="spot-icon">🎣</div><div style="flex:1"><div class="spot-name" data-ja="球磨川・人吉 本流" data-en="Kuma River Main">球磨川・人吉 本流</div><div class="spot-fish" data-ja="アユ · アマゴ · コイ" data-en="Ayu · Amago · Carp">アユ · アマゴ · コイ</div><div class="spot-badges"><span class="badge-mabo" data-ja="マボ認定" data-en="Mabo Cert">マボ認定</span><span class="badge-hot" data-ja="今が旬" data-en="In Season">今が旬</span></div></div><div class="spot-score">92</div></div>
+        <div class="spot-card"><div class="spot-icon">🏞️</div><div style="flex:1"><div class="spot-name" data-ja="矢部川・黒木町上流" data-en="Yabe River, Kurogi">矢部川・黒木町上流</div><div class="spot-fish" data-ja="アユ · ヤマメ" data-en="Ayu · Yamame">アユ · ヤマメ</div><div class="spot-badges"><span class="badge-mabo" data-ja="マボ認定" data-en="Mabo Cert">マボ認定</span></div></div><div class="spot-score">87</div></div>
+        <div class="spot-card"><div class="spot-icon">⛰️</div><div style="flex:1"><div class="spot-name" data-ja="緑川・美里町渓谷" data-en="Midori River Gorge">緑川・美里町渓谷</div><div class="spot-fish" data-ja="ヤマメ · イワナ" en="Yamame · Iwana">ヤマメ · イワナ</div><div class="spot-badges"><span class="badge-mabo" data-ja="マボ認定" data-en="Mabo Cert">マボ認定</span></div></div><div class="spot-score">84</div></div>
+        <div class="section-hd" data-ja="📍 その他の釣り場" data-en="📍 More Spots">📍 その他の釣り場</div>
+        <div class="spot-card"><div class="spot-icon">🌊</div><div style="flex:1"><div class="spot-name" data-ja="大村湾・諫早西岸" data-en="Omura Bay, Isahaya">大村湾・諫早西岸</div><div class="spot-fish" data-ja="チヌ · メバル · アジ" data-en="Bream · Rockfish · Mackerel">チヌ · メバル · アジ</div></div><div class="spot-score">79</div></div>
+        <div class="spot-card"><div class="spot-icon">🐠</div><div style="flex:1"><div class="spot-name" data-ja="嘉瀬川・大和町上流" data-en="Kase River, Yamato">嘉瀬川・大和町上流</div><div class="spot-fish" data-ja="ヤマメ · アマゴ" data-en="Yamame · Amago">ヤマメ · アマゴ</div></div><div class="spot-score">76</div></div>
+      </div>
+
+      <!-- YOUTUBE -->
+      <div id="page-youtube" class="page">
+        <div style="background:var(--black);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+          <div style="font-size:20px">▶</div>
+          <div><div style="color:var(--yellow);font-weight:900;font-size:12px" data-ja="マボチャンネル" data-en="Mabo Channel">マボチャンネル</div><div style="color:#aaa;font-size:10px" data-ja="動画クリエイター · 齋藤 正臣" data-en="Video Creator · Saito Masaomi">動画クリエイター · 齋藤 正臣</div></div>
+        </div>
+        <div class="section-hd" data-ja="▶ 最新動画" data-en="▶ Latest Videos">▶ 最新動画</div>
+        <div class="yt-card"><div class="yt-thumb">🎬</div><div style="flex:1"><div class="yt-title" data-ja="【球磨川】春のアユ友釣り完全攻略！ポイント解説" data-en="Kuma River: Complete Spring Ayu Guide">【球磨川】春のアユ友釣り完全攻略！ポイント解説</div><div class="yt-meta" data-ja="マボチャンネル · 2.4万回視聴 · 3日前" data-en="Mabo Channel · 24K views · 3 days ago">マボチャンネル · 2.4万回視聴 · 3日前</div></div><button class="yt-play">▶</button></div>
+        <div class="yt-card"><div class="yt-thumb">🎬</div><div style="flex:1"><div class="yt-title" data-ja="熊本の秘境！矢部川でデカヤマメ爆釣" data-en="Hidden Gem! Monster Yamame on Yabe River">熊本の秘境！矢部川でデカヤマメ爆釣</div><div class="yt-meta" data-ja="マボチャンネル · 1.8万回視聴 · 1週間前" data-en="Mabo Channel · 18K views · 1 week ago">マボチャンネル · 1.8万回視聴 · 1週間前</div></div><button class="yt-play">▶</button></div>
+        <div class="yt-card"><div class="yt-thumb">🎬</div><div style="flex:1"><div class="yt-title" data-ja="【大会密着】マボカップ2024 優勝者インタビュー" data-en="Tournament Feature: Mabo Cup 2024 Champion">【大会密着】マボカップ2024 優勝者インタビュー</div><div class="yt-meta" data-ja="マボチャンネル · 3.1万回視聴 · 2週間前" data-en="Mabo Channel · 31K views · 2 weeks ago">マボチャンネル · 3.1万回視聴 · 2週間前</div></div><button class="yt-play">▶</button></div>
+        <div class="yt-card"><div class="yt-thumb">🎬</div><div style="flex:1"><div class="yt-title" data-ja="緑川渓谷 テンカラ入門！道具と基本技術" data-en="Midori River Tenkara Intro: Gear & Technique">緑川渓谷 テンカラ入門！道具と基本技術</div><div class="yt-meta" data-ja="マボチャンネル · 1.2万回視聴 · 1ヶ月前" data-en="Mabo Channel · 12K views · 1 month ago">マボチャンネル · 1.2万回視聴 · 1ヶ月前</div></div><button class="yt-play">▶</button></div>
+        <div style="text-align:center;margin-top:12px"><a href="https://www.youtube.com/@mabochannel" target="_blank" style="background:var(--black);color:var(--yellow);border-radius:10px;padding:10px 24px;font-weight:800;font-size:12px;text-decoration:none;display:inline-block" data-ja="YouTubeで全動画を見る →" data-en="Watch all on YouTube →">YouTubeで全動画を見る →</a></div>
+      </div>
+
+      <!-- CATCH LOG -->
+      <div id="page-catch" class="page">
+        <div class="section-hd" data-ja="🎣 釣果を記録する" data-en="🎣 Log a Catch">🎣 釣果を記録する</div>
+        <div class="submit-form">
+          <input id="log-species" placeholder="魚種（例：アユ）" />
+          <input id="log-weight" placeholder="重量（例：0.8kg）" />
+          <input id="log-location" placeholder="釣り場所" />
+          <input id="log-notes" placeholder="メモ（任意）" />
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;background:white;border:2px solid var(--yellow);border-radius:8px;padding:9px 12px">
+            <span style="flex:1;font-size:12px;color:#555" data-ja="📍 大会にも提出する" data-en="📍 Also submit to tournament">📍 大会にも提出する</span>
+            <div id="contest-toggle" onclick="toggleContest()" style="width:40px;height:22px;background:#ccc;border-radius:99px;position:relative;cursor:pointer;flex-shrink:0"><div id="contest-knob" style="width:16px;height:16px;background:white;border-radius:50%;position:absolute;top:3px;left:3px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div></div>
+          </div>
+          <button class="submit-btn" onclick="logCatch()" data-ja="📸 保存＆シェア" data-en="📸 Save & Share">📸 保存＆シェア</button>
+        </div>
+        <div id="log-success" style="display:none" class="success-box">
+          <div style="font-size:2.5rem;margin-bottom:8px">🎣</div>
+          <div style="font-weight:900;color:var(--yellow);font-size:14px;margin-bottom:4px" data-ja="釣果を記録しました！" data-en="Catch logged!">釣果を記録しました！</div>
+          <div style="font-size:10px;color:#aaa" data-ja="コミュニティフィードに追加されました" data-en="Added to community feed">コミュニティフィードに追加されました</div>
+        </div>
+        <div class="section-hd" data-ja="📋 最近の釣果" data-en="📋 Recent Catches">📋 最近の釣果</div>
+        <div class="lb-row"><div class="lb-rank g1">🐠</div><div style="flex:1"><div class="lb-name" data-ja="アユ · 0.8kg" data-en="Ayu · 0.8kg">アユ · 0.8kg</div><div class="lb-sp" data-ja="球磨川 · 今日" data-en="Kuma River · Today">球磨川 · 今日</div></div><div style="font-size:9px;color:#aaa">✓</div></div>
+        <div class="lb-row"><div class="lb-rank g2">🐡</div><div style="flex:1"><div class="lb-name" data-ja="ヤマメ · 0.4kg" data-en="Yamame · 0.4kg">ヤマメ · 0.4kg</div><div class="lb-sp" data-ja="矢部川 · 昨日" data-en="Yabe River · Yesterday">矢部川 · 昨日</div></div><div style="font-size:9px;color:#aaa">✓</div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PITCH PANEL -->
+  <div class="pitch">
+    <div class="pitch-title">マボチャンネル × Shigematsu Tech</div>
+    <div class="pitch-body" id="pitch-body">齋藤さんのチャンネルブランドで<br>釣りアプリを運営しませんか？<br>大会機能・GPS釣り場・AI天気予報<br>すべて準備済みです。</div>
+    <a class="pitch-contact" href="mailto:sales@shigematsu-tech.com?subject=マボ釣りナビ デモについて">お問い合わせ →</a>
+  </div>
+</div>
+
+<script>
+let lang = 'ja';
+let contestOn = false;
+
+function toggleLang() {
+  lang = lang === 'ja' ? 'en' : 'ja';
+  document.querySelector('.lang-btn').textContent = lang === 'ja' ? 'EN' : 'JP';
+  document.getElementById('tagline').textContent = lang === 'ja' ? 'すべてはチャレンジからはじまる。' : 'Everything starts with a challenge.';
+  document.querySelectorAll('[data-ja]').forEach(el => {
+    el.textContent = el.getAttribute('data-' + lang);
+  });
+  document.getElementById('pitch-body').innerHTML = lang === 'ja'
+    ? '齋藤さんのチャンネルブランドで<br>釣りアプリを運営しませんか？<br>大会機能・GPS釣り場・AI天気予報<br>すべて準備済みです。'
+    : 'Your channel brand.<br>Your community. Your tournaments.<br>Fully built fishing app ready to launch.<br>AI weather, GPS spots, leaderboards.';
+  // Update placeholders
+  const phs = {ja: ['魚種（例：アユ）','重量（例：0.8kg）'], en: ['Species (e.g. Ayu)','Weight (e.g. 0.8kg)']};
+  const inputs = document.querySelectorAll('#submit-form input, #page-catch input');
+  inputs.forEach((inp, i) => {
+    if (i < 2 && phs[lang][i]) inp.placeholder = phs[lang][i];
+  });
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+function submitCatch() {
+  const s = document.getElementById('inp-species').value;
+  const w = document.getElementById('inp-weight').value;
+  if (!s || !w) return;
+  document.getElementById('submit-form').style.display = 'none';
+  document.getElementById('submit-success').style.display = 'block';
+}
+
+function logCatch() {
+  const s = document.getElementById('log-species').value;
+  if (!s) return;
+  document.getElementById('page-catch').querySelectorAll('input').forEach(i => i.value = '');
+  document.getElementById('log-success').style.display = 'block';
+  setTimeout(() => document.getElementById('log-success').style.display = 'none', 3000);
+}
+
+function toggleContest() {
+  contestOn = !contestOn;
+  const knob = document.getElementById('contest-knob');
+  const toggle = document.getElementById('contest-toggle');
+  toggle.style.background = contestOn ? '#FFE500' : '#ccc';
+  knob.style.left = contestOn ? '21px' : '3px';
+}
+</script>
+</body>
+</html>

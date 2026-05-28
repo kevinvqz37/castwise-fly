@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/mabo", "destination": "/mabo.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

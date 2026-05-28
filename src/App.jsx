@@ -7,9 +7,9 @@ import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage"
 // ─── FIREBASE ────────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyCy0qh48dgp31-2xcI1YV3R73qTJGs4tFM",
-  authDomain: "castwise-fly.firebaseapp.com",
-  projectId: "castwise-fly",
-  storageBucket: "castwise-fly.firebasestorage.app",
+  authDomain: "mabo-fly.firebaseapp.com",
+  projectId: "mabo-fly",
+  storageBucket: "mabo-fly.firebasestorage.app",
   messagingSenderId: "468608071051",
   appId: "1:468608071051:web:3d6812edbcf5aacde52b8e",
 };
@@ -45,6 +45,19 @@ const T = {
 function s(key, lang) { return T[key]?.[lang] || key; }
 
 
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCy0qh48dgp31-2xcI1YV3R73qTJGs4tFM",
+  authDomain: "castwise-fly.firebaseapp.com",
+  projectId: "castwise-fly",
+  storageBucket: "castwise-fly.firebasestorage.app",
+  messagingSenderId: "468608071051",
+  appId: "1:468608071051:web:3d6812edbcf5aacde52b8e",
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 
 // ─── ADSTERRA ADS ────────────────────────────────────────────────────────────
 const ADSTERRA_KEY = "40aa13e6e14b36d178383836e1a4154e";
@@ -83,7 +96,7 @@ function BannerAd({ lang, onDismiss, isPremium }) {
   return <AdsterraBanner />;
 }
 // ─── AMAZON AFFILIATE ────────────────────────────────────────────────────────
-const AMAZON_TAG = "castwise-22";
+const AMAZON_TAG = "mabo-22";
 
 function amazonLink(searchQuery) {
   const query = encodeURIComponent(searchQuery + " 釣り");
@@ -155,13 +168,13 @@ function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
         </div>
         <div style={{ padding: "12px 16px", display: "flex", gap: 10 }}>
           <button onClick={countdown <= 0 ? onClose : undefined}
-            style={{ flex: 1, padding: "12px", background: countdown <= 0 ? "#e0f2f2" : "#e8e3d8", border: `2px solid ${countdown <= 0 ? "#0d7377" : "#c4bfb4"}`, borderRadius: 12, color: countdown <= 0 ? "#0d7377" : "#9a9a8a", cursor: countdown <= 0 ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
+            style={{ flex: 1, padding: "12px", background: countdown <= 0 ? "#e0f2f2" : "#e8e3d8", border: `2px solid ${countdown <= 0 ? "#1a1a14" : "#c4bfb4"}`, borderRadius: 12, color: countdown <= 0 ? "#1a1a14" : "#9a9a8a", cursor: countdown <= 0 ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
             {countdown > 0 ? `⏱ ${countdown}s` : (lang === "ja" ? "✕ スキップ" : "✕ Skip")}
           </button>
         </div>
         {onWatchReward && (
           <div style={{ padding: "0 16px 16px" }}>
-            <button onClick={onWatchReward} style={{ width: "100%", padding: "10px", background: "#d0ead8", border: "2px solid #80c098", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 600 }}>
+            <button onClick={onWatchReward} style={{ width: "100%", padding: "10px", background: "#d0eae8", border: "2px solid #c8b800", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 600 }}>
               🎁 {lang === "ja" ? "広告を見て+50ポイントゲット！" : "Watch for +50 bonus points!"}
             </button>
           </div>
@@ -195,7 +208,7 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
                 {lang === "ja" ? "15秒の動画を見て特典をゲット！" : "Watch a 15s video to earn your reward!"}
               </div>
             </div>
-            <div style={{ background: "#e8f4ec", border: "2px solid #a0d0b0", borderRadius: 14, padding: 14, marginBottom: 16 }}>
+            <div style={{ background: "#e8f4ec", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 16 }}>
               {[{ icon: "⭐", text: { ja: "+100 釣りポイント", en: "+100 Fishing Points" } }, { icon: "🤖", text: { ja: "AIアドバイス 3回分", en: "3 free AI advice uses" } }, { icon: "🪶", text: { ja: "プレミアムフライパターン解放", en: "Premium fly pattern unlocked" } }].map((r, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: i < 2 ? 8 : 0 }}>
                   <span style={{ fontSize: "1.2rem" }}>{r.icon}</span>
@@ -221,7 +234,7 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
               <div style={{ fontSize: "1.05rem", color: "#3a3a2a", textAlign: "center" }}>{ad.tagline[lang]}</div>
             </div>
             <div style={{ background: "#fffdf8", borderRadius: 99, height: 8, overflow: "hidden", marginBottom: 8 }}>
-              <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg,#74c69d,#48cae4)", borderRadius: 99, transition: "width 0.3s" }} />
+              <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg,#FFE500,#48cae4)", borderRadius: 99, transition: "width 0.3s" }} />
             </div>
             <div style={{ textAlign: "center", fontSize: "1rem", color: "#5a5a4a" }}>
               {lang === "ja" ? `${Math.ceil((100 - progress) / 6.7)}秒...` : `${Math.ceil((100 - progress) / 6.7)}s remaining...`}
@@ -331,7 +344,7 @@ function FishIllustration({ fishId, size = 80, style = {} }) {
 // ─── FISH DATA ───────────────────────────────────────────────────────────────
 const FISH_DATA = [
   { id: 1, name: "ブラックバス", nameEn: "Largemouth Bass", emoji: "🐟", color: "#2d6a4f", accent: "#74c69d", difficulty: "beginner", flyFriendly: false, season: { ja: "春〜秋", en: "Spring–Fall" }, habitat: { ja: "湖、池、水草周り", en: "Lakes, ponds, weedy rivers" }, bestTime: { ja: "早朝・夕方", en: "Early morning & evening" }, description: { ja: "日本でも大人気のスポーツフィッシングターゲット。攻撃的なバイトとダイナミックなファイトが魅力。", en: "Japan's most popular sport fish. Aggressive bites and dynamic fights." }, gear: { rod: { ja: "M〜MH 6'6″〜7'0″ キャスティングロッド", en: "M-MH 6'6″–7'0″ casting rod" }, reel: { ja: "ベイトリール ギア比6.3:1以上", en: "Baitcaster 6.3:1+" }, line: { ja: "フロロ 14〜20lb または PE 1.0〜1.5号", en: "14–20lb fluoro or PE 1.0–1.5" }, hooks: { ja: "#2/0〜4/0 EWGオフセット", en: "#2/0–4/0 EWG offset" }, lures: ["スピニングワーム", "クランクベイト", "ジグ＆ポーク", "トップウォーター", "スピナーベイト"], tips: { ja: "桟橋、蓮の茎、沈木などストラクチャーを狙おう。水温が低い時はスローに。", en: "Target docks, lily stems, timber. Slow down in cold water." } }, spots: [{ name: "琵琶湖（滋賀）", rating: 5.0, type: { ja: "湖", en: "Lake" } }, { name: "亀山ダム（千葉）", rating: 4.8, type: { ja: "ダム湖", en: "Reservoir" } }, { name: "相模湖（神奈川）", rating: 4.7, type: { ja: "湖", en: "Lake" } }] },
-  { id: 2, name: "アユ", nameEn: "Sweetfish (Ayu)", emoji: "🐠", color: "#1a4e7c", accent: "#0d7377", difficulty: "advanced", flyFriendly: true, flyNote: { ja: "テンカラ毛鉤での釣りも可能。逆さ毛鉤が効果的。", en: "Can be taken on tenkara kebari. A unique traditional approach." }, season: { ja: "6月〜10月", en: "June–October" }, habitat: { ja: "清流・渓流の砂礫底", en: "Clear, gravelly mountain rivers" }, bestTime: { ja: "午前中・くもりの日", en: "Morning & overcast days" }, description: { ja: "日本の国民的な渓流魚。友釣りの伝統は何百年もの歴史を持つ。塩焼きが絶品。", en: "Japan's iconic river fish. Centuries of 'tomozuri' tradition. Delicious grilled." }, gear: { rod: { ja: "友釣り専用竿 8〜9m", en: "8–9m ayu rod" }, reel: { ja: "（友釣りはリールなし）", en: "None (traditional)" }, line: { ja: "メタライン 0.2〜0.3号", en: "0.2–0.3 metal line" }, hooks: { ja: "友釣り用イカリ針", en: "Tomozuri anchor hooks" }, lures: ["友鮎（おとり鮎）", "小型スプーン", "毛鉤（テンカラ）"], tips: { ja: "友釣りは縄張りを持つアユのおとりへの攻撃を利用する伝統漁法。", en: "Tomozuri uses a live decoy ayu. Target fast mid-channel sections." } }, spots: [{ name: "長良川（岐阜）", rating: 5.0, type: { ja: "清流", en: "River" } }, { name: "四万十川（高知）", rating: 4.9, type: { ja: "清流", en: "River" } }, { name: "球磨川（熊本）", rating: 4.8, type: { ja: "清流", en: "River" } }] },
+  { id: 2, name: "アユ", nameEn: "Sweetfish (Ayu)", emoji: "🐠", color: "#1a4e7c", accent: "#1a1a14", difficulty: "advanced", flyFriendly: true, flyNote: { ja: "テンカラ毛鉤での釣りも可能。逆さ毛鉤が効果的。", en: "Can be taken on tenkara kebari. A unique traditional approach." }, season: { ja: "6月〜10月", en: "June–October" }, habitat: { ja: "清流・渓流の砂礫底", en: "Clear, gravelly mountain rivers" }, bestTime: { ja: "午前中・くもりの日", en: "Morning & overcast days" }, description: { ja: "日本の国民的な渓流魚。友釣りの伝統は何百年もの歴史を持つ。塩焼きが絶品。", en: "Japan's iconic river fish. Centuries of 'tomozuri' tradition. Delicious grilled." }, gear: { rod: { ja: "友釣り専用竿 8〜9m", en: "8–9m ayu rod" }, reel: { ja: "（友釣りはリールなし）", en: "None (traditional)" }, line: { ja: "メタライン 0.2〜0.3号", en: "0.2–0.3 metal line" }, hooks: { ja: "友釣り用イカリ針", en: "Tomozuri anchor hooks" }, lures: ["友鮎（おとり鮎）", "小型スプーン", "毛鉤（テンカラ）"], tips: { ja: "友釣りは縄張りを持つアユのおとりへの攻撃を利用する伝統漁法。", en: "Tomozuri uses a live decoy ayu. Target fast mid-channel sections." } }, spots: [{ name: "長良川（岐阜）", rating: 5.0, type: { ja: "清流", en: "River" } }, { name: "四万十川（高知）", rating: 4.9, type: { ja: "清流", en: "River" } }, { name: "球磨川（熊本）", rating: 4.8, type: { ja: "清流", en: "River" } }] },
   { id: 3, name: "ヤマメ", nameEn: "Yamame Trout", emoji: "🐡", color: "#3d405b", accent: "#e9c46a", difficulty: "intermediate", flyFriendly: true, flyNote: { ja: "フライフィッシングで最も人気のターゲット。ドライフライへのライズが壮観。", en: "Japan's #1 fly fishing target. Watching a yamame rise to a dry fly is breathtaking." }, season: { ja: "3月〜9月（禁漁期あり）", en: "March–September" }, habitat: { ja: "山岳渓流・源流域の冷水域", en: "Cold mountain streams and headwaters" }, bestTime: { ja: "早朝・夕方・雨後", en: "Early morning, evening, after rain" }, description: { ja: "渓流の女王とも呼ばれる美しい淡水魚。細かいドット模様と銀白色のボディが特徴的。", en: "Called 'Queen of the Mountain Stream'. Stunning parr marks. Japan's premier fly fishing target." }, gear: { rod: { ja: "渓流ロッド 4〜5フィート UL〜L またはテンカラ竿", en: "4–5ft UL–L rod or tenkara rod" }, reel: { ja: "1000〜2000番スピニング / テンカラはリールなし", en: "1000–2000 spinning / None for tenkara" }, line: { ja: "ナイロン 2〜4lb またはフロロ 2〜3lb", en: "2–4lb nylon or 2–3lb fluoro" }, hooks: { ja: "#8〜12 バーブレスフック", en: "#8–12 barbless hook" }, lures: ["スプーン 2〜5g", "小型ミノー", "毛鉤（テンカラ）", "ぶどう虫", "川虫"], tips: { ja: "上流に向かってキャストし、自然な流れに乗せる。影を川に落とさないこと。", en: "Cast upstream and drift naturally. Keep your shadow off the water." } }, spots: [{ name: "奥多摩川（東京）", rating: 4.7, type: { ja: "渓流", en: "Stream" } }, { name: "只見川（福島）", rating: 4.8, type: { ja: "渓流", en: "Stream" } }, { name: "庄川（富山）", rating: 4.6, type: { ja: "渓流", en: "Stream" } }] },
   { id: 4, name: "シーバス", nameEn: "Sea Bass", emoji: "🦈", color: "#1b4332", accent: "#b7e4c7", difficulty: "intermediate", flyFriendly: false, season: { ja: "通年（秋が最盛期）", en: "Year-round (peak autumn)" }, habitat: { ja: "河口、港湾、サーフ、運河", en: "Estuaries, harbors, surf, canals" }, bestTime: { ja: "夜間・満潮前後", en: "Night & around high tide" }, description: { ja: "都市型ルアーフィッシングの代表種。東京湾や大阪湾でも狙えるターゲット。橋脚周りが特に熱い。", en: "Urban lure fishing icon. Targetable in Tokyo/Osaka Bay. Bridge pillars at night are key." }, gear: { rod: { ja: "シーバスロッド 9〜10フィート M〜MH", en: "9–10ft M–MH seabass rod" }, reel: { ja: "3000〜4000番スピニング", en: "3000–4000 spinning reel" }, line: { ja: "PE 0.8〜1.5号 + フロロリーダー 16〜20lb", en: "PE 0.8–1.5 + 16–20lb fluoro leader" }, hooks: { ja: "トレブルフック #4〜8", en: "Treble #4–8" }, lures: ["シンキングペンシル", "バイブレーション", "ミノー", "ポッパー", "ワームリグ"], tips: { ja: "橋脚の明暗部が超一級ポイント。ベイトの動きを観察すること。", en: "Light/shadow edges at bridge pillars are prime. Watch for diving birds over bait." } }, spots: [{ name: "東京湾・運河エリア", rating: 4.8, type: { ja: "河口・港湾", en: "Harbor" } }, { name: "大阪湾・尼崎運河", rating: 4.7, type: { ja: "港湾", en: "Harbor" } }, { name: "多摩川河口（神奈川）", rating: 4.9, type: { ja: "河口", en: "Estuary" } }] },
   { id: 5, name: "イワナ", nameEn: "White-Spotted Char", emoji: "🐠", color: "#1e3a5f", accent: "#90c5f0", difficulty: "advanced", flyFriendly: true, flyNote: { ja: "フライ・テンカラで最高の相性。毛鉤への反応が非常に良い。テンカラ発祥の魚とも言われる。", en: "The ultimate fly and tenkara fish. Reacts aggressively to flies. Tenkara's ancestral quarry." }, season: { ja: "3月〜9月（源流域）", en: "March–September (headwaters)" }, habitat: { ja: "源流域・清冽な山岳渓流", en: "Crystal-clear headwaters and alpine streams" }, bestTime: { ja: "早朝・夕方（水温低い時）", en: "Early morning & evening (cool water)" }, description: { ja: "源流に棲む最も原始的な渓流魚。人を恐れず、フライへの反応が抜群。", en: "The primitive fish of Japan's headwaters. Fearless and explosively responsive to flies." }, gear: { rod: { ja: "テンカラ竿 3.3〜3.6m または渓流ロッド 4〜5フィート", en: "3.3–3.6m tenkara rod or 4–5ft stream rod" }, reel: { ja: "テンカラはリールなし / 1000番スピニング", en: "None for tenkara / 1000 spinning" }, line: { ja: "テンカラライン 3〜3.5m / ナイロン 2〜3lb", en: "Tenkara line 3–3.5m / 2–3lb nylon" }, hooks: { ja: "#10〜14 バーブレス", en: "#10–14 barbless" }, lures: ["逆さ毛鉤（テンカラ）", "パラシュートアダムス", "エルクヘアカディス", "ぶどう虫", "川虫"], tips: { ja: "源流域では魚のプレッシャーが低く、大きめのフライでも反応する。歩き込んで誰も行かない場所を狙え。", en: "Headwaters have low pressure — larger flies often work. Hike to where others don't go." } }, spots: [{ name: "早川（山梨・南アルプス）", rating: 5.0, type: { ja: "源流", en: "Headwater" } }, { name: "只見川源流（福島）", rating: 4.9, type: { ja: "源流", en: "Headwater" } }, { name: "黒部川（富山）", rating: 4.8, type: { ja: "源流", en: "Headwater" } }] },
@@ -779,7 +792,7 @@ function PredictionZoneCard({ spot, weather, tideData, activeUsers, lang, onAskA
     <div style={{ background: colors.bg, border: `2px solid ${colors.border}`, borderRadius: 14, padding: "12px 14px", marginBottom: 10, boxShadow: colors.glow }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1a1a14" }}>{spot.icon} {spot.name}</div>
+          <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#0d7377" }}>{spot.icon} {spot.name}</div>
           <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>📌 {spot.pref} · {typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
@@ -839,10 +852,10 @@ function PredictionZoneModal({ spot, score, weather, tideData, lang, onClose }) 
             <div style={{ fontSize: "0.68rem", color: colors.text }}>{lang === "ja" ? "釣り指数" : "Score"}</div>
           </div>
         </div>
-        <div style={{ background: colors.bg, border: `2px solid ${colors.border}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14, fontSize: "0.92rem", color: "#1a1a14", lineHeight: 1.7, minHeight: 80 }}>
+        <div style={{ background: colors.bg, border: `2px solid ${colors.border}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14, fontSize: "0.92rem", color: "#0d7377", lineHeight: 1.7, minHeight: 80 }}>
           {loading ? <div style={{ textAlign: "center", padding: "20px 0", color: "#5a5a4a" }}>🤖 {lang === "ja" ? "AIが分析中..." : "AI analyzing..."}</div> : advice}
         </div>
-        <button onClick={onClose} style={{ width: "100%", padding: "12px", background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
+        <button onClick={onClose} style={{ width: "100%", padding: "12px", background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
           {lang === "ja" ? "閉じる" : "Close"}
         </button>
       </div>
@@ -850,11 +863,151 @@ function PredictionZoneModal({ spot, score, weather, tideData, lang, onClose }) 
   );
 }
 
+// ─── MABO TOURNAMENTS ────────────────────────────────────────────────────────
+const MABO_TOURNAMENTS = [
+  {
+    id: 1,
+    name: { ja: "マボカップ2025 春季大会", en: "Mabo Cup 2025 Spring" },
+    status: "live",
+    participants: 47,
+    location: { ja: "球磨川・人吉市", en: "Kuma River, Hitoyoshi" },
+    period: { ja: "5月25日〜6月1日", en: "May 25 – Jun 1" },
+    target: { ja: "アユ・ヤマメ", en: "Ayu & Yamame" },
+    rule: { ja: "3匹合計重量", en: "3-fish total weight" },
+    prize: { ja: "🥇 シマノ プレミアムロッドセット", en: "🥇 Shimano Premium Rod Set" },
+    leaderboard: [
+      { rank: 1, name: "釣り師タケシ", weight: "2.4kg", species: "アユ" },
+      { rank: 2, name: "くまもとアングラー", weight: "2.1kg", species: "アユ" },
+      { rank: 3, name: "九州フィッシャー", weight: "1.8kg", species: "ヤマメ" },
+      { rank: 4, name: "MatsuoKen", weight: "1.6kg", species: "アユ" },
+      { rank: 5, name: "南九州つり太郎", weight: "1.4kg", species: "アユ" },
+    ]
+  },
+  {
+    id: 2,
+    name: { ja: "マボチャンネル アユ友釣り選手権", en: "Mabo Ayu Tomozuri Championship" },
+    status: "upcoming",
+    participants: 0,
+    location: { ja: "矢部川・黒木町", en: "Yabe River, Kurogi" },
+    period: { ja: "7月15日〜8月31日", en: "Jul 15 – Aug 31" },
+    target: { ja: "アユ（友釣り限定）", en: "Ayu (Tomozuri only)" },
+    rule: { ja: "最大1匹の重量", en: "Largest single fish" },
+    prize: { ja: "🥇 マボ公認アングラー認定 + ダイワロッド", en: "🥇 Mabo Certified Angler + Daiwa Rod" },
+    leaderboard: []
+  },
+  {
+    id: 3,
+    name: { ja: "秋の大物チャレンジ", en: "Autumn Big Fish Challenge" },
+    status: "upcoming",
+    participants: 0,
+    location: { ja: "全国（オンライン提出）", en: "Nationwide (online submission)" },
+    period: { ja: "10月1日〜11月30日", en: "Oct 1 – Nov 30" },
+    target: { ja: "全魚種", en: "All species" },
+    rule: { ja: "最大1匹の重量（写真証明）", en: "Largest single fish (photo proof)" },
+    prize: { ja: "🥇 マボチャンネル出演権利", en: "🥇 Feature on Mabo Channel" },
+    leaderboard: []
+  },
+];
+
+function TournamentView({ lang, profile, myCatches }) {
+  const [activeTournament, setActiveTournament] = useState(null);
+  const [showJoin, setShowJoin] = useState(false);
+  const [submitWeight, setSubmitWeight] = useState("");
+  const [submitSpecies, setSubmitSpecies] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  if (activeTournament) {
+    const t = activeTournament;
+    return (
+      <div style={{ padding: "14px 14px 80px" }}>
+        <button onClick={() => setActiveTournament(null)} style={{ background: "none", border: "none", color: "#0d7377", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 700, cursor: "pointer", marginBottom: 12, padding: 0 }}>← {lang === "ja" ? "大会一覧" : "All Tournaments"}</button>
+
+        <div style={{ background: "#0d7377", borderRadius: 16, padding: 16, marginBottom: 12 }}>
+          <div style={{ display: "inline-block", background: t.status === "live" ? "#74c69d" : "#555", color: t.status === "live" ? "#1a1a14" : "#74c69d", fontSize: "0.75rem", fontWeight: 800, padding: "3px 10px", borderRadius: 99, marginBottom: 8 }}>
+            {t.status === "live" ? (lang === "ja" ? "🔴 開催中" : "🔴 LIVE") : (lang === "ja" ? "近日開催" : "UPCOMING")}
+            {t.status === "live" && ` · ${lang === "ja" ? `参加者 ${t.participants}名` : `${t.participants} anglers`}`}
+          </div>
+          <div style={{ fontSize: "1.1rem", fontWeight: 900, color: "#74c69d", marginBottom: 6 }}>{t.name[lang]}</div>
+          <div style={{ fontSize: "0.82rem", color: "#aaa", marginBottom: 4 }}>📍 {t.location[lang]} · {t.period[lang]}</div>
+          <div style={{ fontSize: "0.82rem", color: "#aaa", marginBottom: 4 }}>🎯 {t.target[lang]} · {t.rule[lang]}</div>
+          <div style={{ fontSize: "0.88rem", color: "#74c69d", fontWeight: 700, marginTop: 8 }}>{t.prize[lang]}</div>
+        </div>
+
+        {t.status === "live" && !submitted && (
+          <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#0d7377", marginBottom: 10 }}>
+              🎣 {lang === "ja" ? "釣果を提出する" : "Submit Your Catch"}
+            </div>
+            <input value={submitSpecies} onChange={e => setSubmitSpecies(e.target.value)} placeholder={lang === "ja" ? "魚種（例：アユ）" : "Species (e.g. Ayu)"} style={{ width: "100%", marginBottom: 8, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", fontFamily: "inherit" }} />
+            <input value={submitWeight} onChange={e => setSubmitWeight(e.target.value)} placeholder={lang === "ja" ? "重量（例：0.8kg）" : "Weight (e.g. 0.8kg)"} style={{ width: "100%", marginBottom: 10, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", fontFamily: "inherit" }} />
+            <button onClick={() => { if (submitWeight && submitSpecies) setSubmitted(true); }} style={{ width: "100%", padding: "11px", background: "#0d7377", border: "none", borderRadius: 10, color: "#74c69d", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 800 }}>
+              {lang === "ja" ? "📸 写真付きで提出" : "📸 Submit with Photo"}
+            </button>
+          </div>
+        )}
+
+        {submitted && (
+          <div style={{ background: "#0d7377", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 12, textAlign: "center" }}>
+            <div style={{ fontSize: "2rem", marginBottom: 8 }}>🎉</div>
+            <div style={{ fontWeight: 800, color: "#74c69d", marginBottom: 4 }}>{lang === "ja" ? "提出完了！" : "Submitted!"}</div>
+            <div style={{ fontSize: "0.82rem", color: "#aaa" }}>{lang === "ja" ? "審査後にリーダーボードに反映されます" : "Will appear on leaderboard after review"}</div>
+          </div>
+        )}
+
+        {t.leaderboard.length > 0 && (
+          <>
+            <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "#0d7377", marginBottom: 8, borderBottom: "2px solid #1a1a14", paddingBottom: 4 }}>
+              🏅 {lang === "ja" ? "現在のランキング" : "Current Rankings"}
+            </div>
+            {t.leaderboard.map((entry, i) => (
+              <div key={i} style={{ background: i === 0 ? "#e0f2f2" : "white", border: `1.5px solid ${i === 0 ? "#74c69d" : "#e0e0d8"}`, borderRadius: 10, padding: "10px 12px", marginBottom: 6, display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: i === 0 ? "#74c69d" : i === 1 ? "#ddd" : i === 2 ? "#e0a060" : "#f5f0e8", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "0.82rem", color: "#0d7377", flexShrink: 0 }}>
+                  {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : entry.rank}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0d7377" }}>{entry.name}</div>
+                  <div style={{ fontSize: "0.75rem", color: "#888" }}>{entry.species}</div>
+                </div>
+                <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#0d7377" }}>{entry.weight}</div>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "14px 14px 80px" }}>
+      <div style={{ background: "#0d7377", borderRadius: 14, padding: "12px 16px", marginBottom: 14, textAlign: "center" }}>
+        <div style={{ color: "#74c69d", fontWeight: 900, fontSize: "1rem", marginBottom: 2 }}>🏆 マボカップ シリーズ</div>
+        <div style={{ color: "#aaa", fontSize: "0.78rem" }}>{lang === "ja" ? "マボチャンネル主催の公式釣り大会" : "Official fishing tournaments by Mabo Channel"}</div>
+      </div>
+
+      {MABO_TOURNAMENTS.map(t => (
+        <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: t.status === "live" ? "#1a1a14" : "white", border: `2px solid ${t.status === "live" ? "#74c69d" : "#e0e0d8"}`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+            <span style={{ background: t.status === "live" ? "#74c69d" : "#555", color: t.status === "live" ? "#1a1a14" : "#74c69d", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>
+              {t.status === "live" ? (lang === "ja" ? `🔴 開催中 · ${t.participants}名参加` : `🔴 LIVE · ${t.participants} anglers`) : (lang === "ja" ? "近日開催" : "UPCOMING")}
+            </span>
+          </div>
+          <div style={{ fontWeight: 800, fontSize: "0.95rem", color: t.status === "live" ? "#74c69d" : "#1a1a14", marginBottom: 4 }}>{t.name[lang]}</div>
+          <div style={{ fontSize: "0.78rem", color: t.status === "live" ? "#aaa" : "#888", marginBottom: 4 }}>📍 {t.location[lang]} · {t.period[lang]}</div>
+          <div style={{ fontSize: "0.82rem", color: t.status === "live" ? "#74c69d" : "#2d7a3a", fontWeight: 700 }}>{t.prize[lang]}</div>
+          <div style={{ marginTop: 10, background: t.status === "live" ? "#74c69d" : "#1a1a14", color: t.status === "live" ? "#1a1a14" : "#74c69d", borderRadius: 8, padding: "7px", textAlign: "center", fontSize: "0.85rem", fontWeight: 800 }}>
+            {t.status === "live" ? (lang === "ja" ? "参加・詳細を見る →" : "Join & View Details →") : (lang === "ja" ? "詳細を見る →" : "View Details →")}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── LINE SHARING ────────────────────────────────────────────────────────────
 function shareToLINE(catch_, lang) {
   const text = lang === "ja"
-    ? `🎣 釣れた！\n魚種: ${catch_.fish}\n重量: ${catch_.weight}\n場所: ${catch_.location}\n\n釣りナビPROで記録 → https://castwise-fly.vercel.app`
-    : `🎣 Got one!\nSpecies: ${catch_.fish}\nWeight: ${catch_.weight}\nLocation: ${catch_.location}\n\nLogged on CastWise Japan → https://castwise-fly.vercel.app`;
+    ? `🎣 釣れた！\n魚種: ${catch_.fish}\n重量: ${catch_.weight}\n場所: ${catch_.location}\n\n釣りナビPROで記録 → https://mabo-fly.vercel.app`
+    : `🎣 Got one!\nSpecies: ${catch_.fish}\nWeight: ${catch_.weight}\nLocation: ${catch_.location}\n\nLogged on CastWise Japan → https://mabo-fly.vercel.app`;
   const url = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
   window.open(url, "_blank");
 }
@@ -909,7 +1062,7 @@ function TrophyRoom({ catches, lang, onSelectFish, FISH_DATA }) {
                 {r.location && <div style={{ fontSize: "0.78rem", color: "#7a7a6a" }}>📍 {r.location}</div>}
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontWeight: 900, fontSize: "1.2rem", color: i === 0 ? "#c06a10" : "#0d7377" }}>⚖️ {r.weightStr}</div>
+                <div style={{ fontWeight: 900, fontSize: "1.2rem", color: i === 0 ? "#c06a10" : "#1a1a14" }}>⚖️ {r.weightStr}</div>
                 <div style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? lang === "ja" ? lang === "ja" ? "自己ベスト" : "Personal best" : "Personal best" : "Personal best"}</div>
               </div>
             </div>
@@ -979,12 +1132,12 @@ function TidalCalendar({ lang, userLocation }) {
         {dayScores.map(({ day, score }) => {
           const isToday = day === now.getDate();
           const isBest = bestDays.includes(day);
-          const bg = score >= 85 ? "#d8f0d8" : score >= 75 ? "#f8f0d0" : "#f5f0e8";
+          const bg = score >= 85 ? "#e0f2f2" : score >= 75 ? "#f8f0d0" : "#f5f0e8";
           const color = score >= 85 ? "#2d7a3a" : score >= 75 ? "#c06a10" : "#7a7a6a";
           return (
-            <div key={day} style={{ background: isToday ? "#e0f2f2" : bg, border: `${isToday ? 2 : 1}px solid ${isToday ? "#0d7377" : isBest ? "#a0d0a0" : "#e0dbd0"}`, borderRadius: 8, padding: "5px 2px", textAlign: "center", position: "relative" }}>
+            <div key={day} style={{ background: isToday ? "#e0f2f2" : bg, border: `${isToday ? 2 : 1}px solid ${isToday ? "#1a1a14" : isBest ? "#a0d0a0" : "#e0dbd0"}`, borderRadius: 8, padding: "5px 2px", textAlign: "center", position: "relative" }}>
               {isBest && <div style={{ position: "absolute", top: 1, right: 2, fontSize: "0.55rem" }}>⭐</div>}
-              <div style={{ fontSize: "0.8rem", fontWeight: isToday ? 900 : 400, color: isToday ? "#0d7377" : "#1a1a14" }}>{day}</div>
+              <div style={{ fontSize: "0.8rem", fontWeight: isToday ? 900 : 400, color: isToday ? "#1a1a14" : "#1a1a14" }}>{day}</div>
               <div style={{ fontSize: "0.68rem", fontWeight: 700, color }}>{score}</div>
             </div>
           );
@@ -992,7 +1145,7 @@ function TidalCalendar({ lang, userLocation }) {
       </div>
 
       {/* Best days summary */}
-      <div style={{ marginTop: 14, background: "#d8f0d8", border: "2px solid #a0d0a0", borderRadius: 12, padding: "10px 14px" }}>
+      <div style={{ marginTop: 14, background: "#e0f2f2", border: "2px solid #a0d0a0", borderRadius: 12, padding: "10px 14px" }}>
         <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#2d7a3a", marginBottom: 6 }}>
           ⭐ {lang === "ja" ? lang === "ja" ? "今月のベスト釣り日" : "Best fishing days this month" : "Best fishing days this month"}
         </div>
@@ -1015,7 +1168,7 @@ function TidalCalendar({ lang, userLocation }) {
 // ─── FISHING JOURNAL ──────────────────────────────────────────────────────────
 // Full trip notes beyond just catches
 function useFishingJournal() {
-  const [journal, setJournal] = useLocalStorage("castwise_journal", []);
+  const [journal, setJournal] = useLocalStorage("mabo_journal", []);
 
   function addEntry(entry) {
     const newEntry = { ...entry, id: Date.now(), createdAt: Date.now() };
@@ -1121,10 +1274,10 @@ function getCrowdingLevel(spotLat, spotLng, activeUsers) {
 
 // Generate a stable anonymous user ID stored in localStorage
 function getOrCreateUserId() {
-  let id = localStorage.getItem("castwise_uid");
+  let id = localStorage.getItem("mabo_uid");
   if (!id) {
     id = "user_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-    localStorage.setItem("castwise_uid", id);
+    localStorage.setItem("mabo_uid", id);
   }
   return id;
 }
@@ -1668,20 +1821,20 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
 
 // ─── SHARED COMPONENTS ───────────────────────────────────────────────────────
 function DiffBadge({ level, lang }) {
-  const m = { beginner: { ja: "初心者", en: "Beginner", c: "#2d7a3a", bg: "#d8f0d8" }, intermediate: { ja: "中級者", en: "Intermediate", c: "#c06a10", bg: "#f8e8d0" }, advanced: { ja: "上級者", en: "Advanced", c: "#b82030", bg: "#f8d8d8" } };
+  const m = { beginner: { ja: "初心者", en: "Beginner", c: "#2d7a3a", bg: "#e0f2f2" }, intermediate: { ja: "中級者", en: "Intermediate", c: "#c06a10", bg: "#f8e8d0" }, advanced: { ja: "上級者", en: "Advanced", c: "#b82030", bg: "#f8d8d8" } };
   const d = m[level] || m.beginner;
   return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{d[lang]}</span>;
 }
 
 function FlyTypeBadge({ type, lang }) {
-  const m = { dry: { ja: "ドライ", en: "Dry Fly", c: "#c06a10", bg: "#f8e8d0" }, nymph: { ja: "ニンフ", en: "Nymph", c: "#1565a0", bg: "#d0e4f8" }, streamer: { ja: "ストリーマー", en: "Streamer", c: "#b82030", bg: "#f8d8d8" }, tenkara: { ja: "テンカラ", en: "Tenkara", c: "#2d7a3a", bg: "#d8f0d8" } };
+  const m = { dry: { ja: "ドライ", en: "Dry Fly", c: "#c06a10", bg: "#f8e8d0" }, nymph: { ja: "ニンフ", en: "Nymph", c: "#1565a0", bg: "#d0e4f8" }, streamer: { ja: "ストリーマー", en: "Streamer", c: "#b82030", bg: "#f8d8d8" }, tenkara: { ja: "テンカラ", en: "Tenkara", c: "#2d7a3a", bg: "#e0f2f2" } };
   const d = m[type] || m.dry;
   return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{d[lang]}</span>;
 }
 
 function ScoreRing({ score, lang = "ja" }) {
   const color = score >= 80 ? "#2d7a3a" : score >= 60 ? "#c06a10" : "#b82030";
-  const bg = score >= 80 ? "#d8f0d8" : score >= 60 ? "#f8e8d0" : "#f8d8d8";
+  const bg = score >= 80 ? "#e0f2f2" : score >= 60 ? "#f8e8d0" : "#f8d8d8";
   return (
     <div style={{ position: "relative", width: 72, height: 72 }}>
       <svg viewBox="0 0 36 36" style={{ width: 72, height: 72, transform: "rotate(-90deg)" }}>
@@ -1743,7 +1896,7 @@ function AIFlyModal({ fish, weather, lang, currentMonth, onClose }) {
   }, []);
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "flex-end" }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#f8fff8", border: "2px solid #80c098", borderRadius: "24px 24px 0 0", padding: "24px 20px 44px", width: "100%", maxHeight: "85vh", overflowY: "auto", animation: "slideUp 0.3s ease" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#f8fff8", border: "2px solid #c8b800", borderRadius: "24px 24px 0 0", padding: "24px 20px 44px", width: "100%", maxHeight: "85vh", overflowY: "auto", animation: "slideUp 0.3s ease" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <div><div style={{ fontSize: "1rem", fontWeight: 700 }}>🪰 {lang === "ja" ? "AIフライ診断" : "AI Fly Advisor"}</div><div style={{ fontSize: "0.95rem", color: "#2d7a3a" }}>Claude AI · {fish?.name || (lang === "ja" ? "渓流フライ" : "Stream Fly")} · {currentMonth}</div></div>
           <button onClick={onClose} style={{ background: "#f0ebe0", border: "none", borderRadius: 8, padding: "6px 12px", color: "#5a5a4a", cursor: "pointer" }}>✕</button>
@@ -1829,7 +1982,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
   return (
     <div style={{ animation: "fadeUp 0.4s ease" }}>
       {/* Hero */}
-      <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.15), rgba(72,202,228,0.08))", border: "2px solid #a0d0b0", borderRadius: 18, padding: "16px 18px", marginBottom: 14 }}>
+      <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.15), rgba(72,202,228,0.08))", border: "2px solid #FFE500", borderRadius: 18, padding: "16px 18px", marginBottom: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <div style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: 2 }}>
@@ -1839,7 +1992,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               {lang === "ja" ? "日本の渓流・テンカラ・フライパターン" : "Japan streams · Tenkara · Fly patterns"}
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              <div style={{ background: "#d0ead8", border: "2px solid #80c098", borderRadius: 10, padding: "6px 12px", fontSize: "1rem", color: "#2d7a3a" }}>
+              <div style={{ background: "#d0eae8", border: "2px solid #c8b800", borderRadius: 10, padding: "6px 12px", fontSize: "1rem", color: "#2d7a3a" }}>
                 {lang === "ja" ? `🦋 ${currentMonth.month.ja} ハッチ活性: ${currentMonth.activity}%` : `🦋 ${currentMonth.month.en} Hatch Activity: ${currentMonth.activity}%`}
               </div>
             </div>
@@ -1863,7 +2016,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
           {selPattern ? (
             <div style={{ animation: "fadeUp 0.3s ease" }}>
               <button onClick={() => setSelPattern(null)} style={{ background: "#e8e3d8", border: "none", borderRadius: 8, padding: "4px 10px", color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", marginBottom: 12 }}>← {lang === "ja" ? "戻る" : "Back"}</button>
-              <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.15), rgba(72,202,228,0.08))", border: "2px solid #a0d0b0", borderRadius: 18, padding: 18, marginBottom: 12 }}>
+              <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.15), rgba(72,202,228,0.08))", border: "2px solid #FFE500", borderRadius: 18, padding: 18, marginBottom: 12 }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
                   <div style={{ fontSize: "3rem", lineHeight: 1, animation: "float 3s ease-in-out infinite" }}>{selPattern.emoji}</div>
                   <div style={{ flex: 1 }}>
@@ -1892,7 +2045,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                 <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 7 }}>{lang === "ja" ? "🎯 プレゼンテーション" : "🎯 Presentation"}</div>
                 <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selPattern.technique[lang]}</p>
               </div>
-              <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.12), transparent)", border: "2px solid #a0d0b0", borderRadius: 14, padding: 14 }}>
+              <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.12), transparent)", border: "2px solid #FFE500", borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 7 }}>💡 {s("proTip", lang)}</div>
                 <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selPattern.tip[lang]}</p>
               </div>
@@ -1906,7 +2059,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {filteredPatterns.map((p, i) => (
-                  <div key={p.id} onClick={() => setSelPattern(p)} style={{ background: "rgba(116,198,157,0.06)", border: "2px solid #a0d0b0", borderRadius: 14, padding: "14px 12px", cursor: "pointer", animation: `fadeUp ${0.2 + i * 0.06}s ease both`, position: "relative" }}
+                  <div key={p.id} onClick={() => setSelPattern(p)} style={{ background: "rgba(116,198,157,0.06)", border: "2px solid #FFE500", borderRadius: 14, padding: "14px 12px", cursor: "pointer", animation: `fadeUp ${0.2 + i * 0.06}s ease both`, position: "relative" }}
                     onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"}
                     onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
                     <div style={{ fontSize: "1.8rem", marginBottom: 6, animation: "float 3s ease-in-out infinite", animationDelay: `${i * 0.3}s` }}>{p.emoji}</div>
@@ -1932,7 +2085,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
             <div style={{ display: "flex", gap: 4, alignItems: "flex-end", height: 80 }}>
               {HATCH_CALENDAR.map((m, i) => (
                 <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  <div style={{ width: "100%", height: `${m.activity * 0.7}px`, background: i === currentMonthIdx ? "#74c69d" : m.color, borderRadius: "3px 3px 0 0", opacity: i === currentMonthIdx ? 1 : 0.6, boxShadow: i === currentMonthIdx ? "0 0 10px #74c69d44" : "none" }} />
+                  <div style={{ width: "100%", height: `${m.activity * 0.7}px`, background: i === currentMonthIdx ? "#74c69d" : m.color, borderRadius: "3px 3px 0 0", opacity: i === currentMonthIdx ? 1 : 0.6, boxShadow: i === currentMonthIdx ? "0 0 10px #FFE50044" : "none" }} />
                   <div style={{ fontSize: "1rem", color: i === currentMonthIdx ? "#74c69d" : "#8899aa", fontWeight: i === currentMonthIdx ? 700 : 400 }}>{m.month[lang]}</div>
                 </div>
               ))}
@@ -1951,7 +2104,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                   {m.hatches.map(h => (
-                    <span key={h} style={{ background: "#e0f0e8", border: "2px solid #a0d0b0", borderRadius: 99, padding: "3px 9px", fontSize: "0.95rem", color: "#2d7a3a" }}>🦋 {h}</span>
+                    <span key={h} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 99, padding: "3px 9px", fontSize: "0.95rem", color: "#2d7a3a" }}>🦋 {h}</span>
                   ))}
                 </div>
               </div>
@@ -1965,7 +2118,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
           {selTechnique ? (
             <div style={{ animation: "fadeUp 0.3s ease" }}>
               <button onClick={() => setSelTechnique(null)} style={{ background: "#e8e3d8", border: "none", borderRadius: 8, padding: "4px 10px", color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", marginBottom: 12 }}>← {lang === "ja" ? "戻る" : "Back"}</button>
-              <div style={{ background: "#e8f4ec", border: "2px solid #a0d0b0", borderRadius: 18, padding: 18, marginBottom: 12 }}>
+              <div style={{ background: "#e8f4ec", border: "2px solid #FFE500", borderRadius: 18, padding: 18, marginBottom: 12 }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
                   <div style={{ fontSize: "2.5rem" }}>{selTechnique.icon}</div>
                   <div>
@@ -1982,7 +2135,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                   </div>
                 ))}
               </div>
-              <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.1), transparent)", border: "2px solid #a0d0b0", borderRadius: 14, padding: 14 }}>
+              <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.1), transparent)", border: "2px solid #FFE500", borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 7 }}>💡 {s("proTip", lang)}</div>
                 <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selTechnique.tip[lang]}</p>
               </div>
@@ -2012,7 +2165,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
 
       {flyTab === "tenkarapro" && (
         <div style={{ animation: "fadeUp 0.4s ease" }}>
-          <div style={{ background: "linear-gradient(135deg,rgba(45,106,79,0.12),rgba(116,198,157,0.06))", border: "2px solid #a0d0b0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
+          <div style={{ background: "linear-gradient(135deg,rgba(45,106,79,0.12),rgba(116,198,157,0.06))", border: "2px solid #FFE500", borderRadius: 18, padding: 16, marginBottom: 14 }}>
             <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: 4 }}>🎋 {lang === "ja" ? "テンカラ道場" : "Tenkara Dojo"}</div>
             <div style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "竿選び・ライン計算・結び方・渓流ガイド" : "Rod selection · Line formula · Knots · Stream guide"}</div>
           </div>
@@ -2033,12 +2186,12 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
           </div>
 
           {/* Line formula */}
-          <div style={{ background: "#e0f0e8", border: "2px solid #a0d0b0", borderRadius: 14, padding: 14, marginBottom: 12 }}>
+          <div style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 12 }}>
             <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 8, color: "#2d7a3a" }}>📏 {lang === "ja" ? "ライン長さの公式" : "Line Length Formula"}</div>
             <div style={{ fontSize: "0.88rem", color: "#1a4a22", lineHeight: 1.7, fontWeight: 600 }}>{LINE_FORMULA[lang]}</div>
             <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[3.0, 3.3, 3.6, 3.9, 4.5].map(len => (
-                <div key={len} style={{ background: "#fffdf8", border: "1px solid #a0d0b0", borderRadius: 8, padding: "6px 10px", textAlign: "center" }}>
+                <div key={len} style={{ background: "#fffdf8", border: "1px solid #FFE500", borderRadius: 8, padding: "6px 10px", textAlign: "center" }}>
                   <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>{len}m竿</div>
                   <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#2d7a3a" }}>{len.toFixed(1)}〜{(len * 1.3).toFixed(1)}m</div>
                 </div>
@@ -2065,7 +2218,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
       )}
       {flyTab === "tenkara" && (
         <div>
-          <div style={{ background: "linear-gradient(135deg, rgba(72,202,228,0.08))", border: "2px solid #a0d0b0", borderRadius: 18, padding: 18, marginBottom: 14 }}>
+          <div style={{ background: "linear-gradient(135deg, rgba(72,202,228,0.08))", border: "2px solid #FFE500", borderRadius: 18, padding: 18, marginBottom: 14 }}>
             <div style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 6 }}>🎋 {lang === "ja" ? "テンカラとは" : "What is Tenkara?"}</div>
             <p style={{ margin: "0 0 12px", fontSize: "0.95rem", color: "#3a3a2a", lineHeight: 1.7 }}>
               {lang === "ja"
@@ -2078,7 +2231,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                 { ja: "📏 固定ライン", en: "📏 Fixed line" },
                 { ja: "🪶 毛鉤のみ", en: "🪶 Single fly" },
                 { ja: "⛰️ 渓流特化", en: "⛰️ Stream-focused" },
-              ].map(b => <span key={b.ja} style={{ background: "#d8f0e0", border: "2px solid #a0d0b0", borderRadius: 8, padding: "4px 10px", fontSize: "0.95rem", color: "#2d7a3a" }}>{b[lang]}</span>)}
+              ].map(b => <span key={b.ja} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "4px 10px", fontSize: "0.95rem", color: "#2d7a3a" }}>{b[lang]}</span>)}
             </div>
           </div>
 
@@ -2102,7 +2255,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
             ))}
           </div>
 
-          <div style={{ background: "rgba(72,202,228,0.06)", border: "2px solid #a0c8d0", borderRadius: 14, padding: 14 }}>
+          <div style={{ background: "rgba(72,202,228,0.06)", border: "2px solid #FFE500", borderRadius: 14, padding: 14 }}>
             <div style={{ fontSize: "1rem", color: "#0d7377", fontWeight: 700, marginBottom: 8 }}>💡 {lang === "ja" ? "テンカラの基本セット" : "Basic Tenkara Setup"}</div>
             {[
               { la: { ja: "竿", en: "Rod" }, v: { ja: "3.3〜4.5m カーボン or 竹竿", en: "3.3–4.5m carbon or bamboo" } },
@@ -2112,7 +2265,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
             ].map(row => (
               <div key={row.la.ja} style={{ display: "flex", gap: 10, marginBottom: 6, fontSize: "0.92rem" }}>
                 <span style={{ color: "#5a5a4a", minWidth: 50 }}>{row.la[lang]}</span>
-                <span style={{ color: "#1a1a14" }}>{row.v[lang]}</span>
+                <span style={{ color: "#0d7377" }}>{row.v[lang]}</span>
               </div>
             ))}
           </div>
@@ -2183,7 +2336,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
       if (!coords) return;
 
       const crowding = getCrowdingLevel(coords.lat, coords.lng, activeUsers);
-      const bgColor = crowding.level === "crowded" ? "#b82030" : crowding.level === "moderate" ? "#c06a10" : "#0d7377";
+      const bgColor = crowding.level === "crowded" ? "#b82030" : crowding.level === "moderate" ? "#c06a10" : "#1a1a14";
       const glowStyle = crowding.level === "crowded"
         ? "box-shadow:0 0 16px rgba(184,32,48,0.8),0 2px 8px rgba(0,0,0,0.35);"
         : crowding.level === "moderate"
@@ -2206,7 +2359,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
             <div style="font-weight:700;font-size:14px;margin-bottom:4px">${spot.name}</div>
             <div style="color:#0d7377;font-size:12px">🐟 ${typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")}</div>
             <div style="color:#5a5a4a;font-size:12px">⭐ ${spot.rating} · ${typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
-            ${spot.distKm != null ? `<div style="color:#2d7a3a;font-weight:700;font-size:12px;margin-top:2px">📏 ${spot.distKm} km</div>` : ""}
+            ${spot.distKm != null ? `<div style="color:#b8a000;font-weight:700;font-size:12px;margin-top:2px">📏 ${spot.distKm} km</div>` : ""}
             ${crowdText}
           </div>
         `)
@@ -2219,14 +2372,14 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     activeUsers.forEach((user, i) => {
       if (!user.lat || !user.lng) return;
       const icon = L.divIcon({
-        html: `<div style="background:#2d7a3a;border:2px solid white;border-radius:50%;width:12px;height:12px;box-shadow:0 0 8px rgba(45,122,58,0.6);opacity:0.8"></div>`,
+        html: `<div style="background:#b8a000;border:2px solid white;border-radius:50%;width:12px;height:12px;box-shadow:0 0 8px rgba(45,122,58,0.6);opacity:0.8"></div>`,
         className: "",
         iconSize: [12, 12],
         iconAnchor: [6, 6],
       });
       const marker = L.marker([user.lat, user.lng], { icon })
         .addTo(map)
-        .bindPopup(`<div style="font-family:sans-serif;font-size:12px;color:#2d7a3a;font-weight:700">${lang === "ja" ? "🎣 釣り中のアングラー" : "🎣 Angler fishing here"}</div>`);
+        .bindPopup(`<div style="font-family:sans-serif;font-size:12px;color:#b8a000;font-weight:700">${lang === "ja" ? "🎣 釣り中のアングラー" : "🎣 Angler fishing here"}</div>`);
       markersRef.current.push(marker);
     });
 
@@ -2269,7 +2422,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
   return (
     <div
       ref={mapRef}
-      style={{ height: 300, borderRadius: 16, overflow: "hidden", marginBottom: 14, border: "2px solid #a0c8d0", position: "relative", zIndex: 1, background: "#e8f4f4" }}
+      style={{ height: 300, borderRadius: 16, overflow: "hidden", marginBottom: 14, border: "2px solid #FFE500", position: "relative", zIndex: 1, background: "#e8f4f4" }}
     />
   );
 }
@@ -2288,8 +2441,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
     { key: "kanto",    ja: "関東",     en: "Kanto",     emoji: "🗼" },
     { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
     { key: "chubu",    ja: "中部",     en: "Chubu",     emoji: "🏯" },
-    { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", emoji: "🌴" },
-    { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
+    { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", emoji: "🌴" },   en: "Kansai",    emoji: "⛩️" },
     { key: "chubu",    ja: "中部",   en: "Chubu",     emoji: "🗻" },
     { key: "all",      ja: "全国",   en: "All Japan", emoji: "🗾" },
   ];
@@ -2311,14 +2463,14 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       {/* Mode toggle */}
       <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
         {[{ k: "spots", ja: "📍 釣り場", en: "📍 Spots" }, { k: "prediction", ja: "🔮 AI予測", en: "🔮 AI Predict" }].map(m => (
-          <button key={m.k} onClick={() => setMapMode(m.k)} style={{ flex: 1, padding: "8px", background: mapMode === m.k ? "#e0f2f2" : "#fffdf8", border: `2px solid ${mapMode === m.k ? "#0d7377" : "#d4cfc4"}`, borderRadius: 10, color: mapMode === m.k ? "#0d7377" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: mapMode === m.k ? 700 : 400 }}>{m[lang]}</button>
+          <button key={m.k} onClick={() => setMapMode(m.k)} style={{ flex: 1, padding: "8px", background: mapMode === m.k ? "#e0f2f2" : "#fffdf8", border: `2px solid ${mapMode === m.k ? "#1a1a14" : "#d4cfc4"}`, borderRadius: 10, color: mapMode === m.k ? "#1a1a14" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: mapMode === m.k ? 700 : 400 }}>{m[lang]}</button>
         ))}
       </div>
 
       {/* Active users banner */}
       {activeUsers.length > 0 && (
-        <div style={{ background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 10, padding: "8px 12px", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, fontSize: "0.85rem" }}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2d7a3a", boxShadow: "0 0 8px #2d7a3a", flexShrink: 0 }} />
+        <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 10, padding: "8px 12px", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, fontSize: "0.85rem" }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2d7a3a", boxShadow: "0 0 8px #b8a000", flexShrink: 0 }} />
           <span style={{ color: "#0d7377", fontWeight: 700 }}>
             {lang === "ja" ? `今 ${activeUsers.length}人が釣り中` : `${activeUsers.length} anglers fishing now`}
           </span>
@@ -2330,12 +2482,12 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
 
       {/* Location sharing toggle */}
       {setLocationSharing && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: locationSharing ? "#e0f2f2" : "#f5f0e8", border: `1px solid ${locationSharing ? "#a0c8d0" : "#d4cfc4"}`, borderRadius: 10, padding: "8px 12px", marginBottom: 8 }}>
-          <span style={{ flex: 1, fontSize: "0.82rem", color: locationSharing ? "#0d7377" : "#7a7a6a" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: locationSharing ? "#e0f2f2" : "#f5f0e8", border: `1px solid ${locationSharing ? "#74c69d" : "#d4cfc4"}`, borderRadius: 10, padding: "8px 12px", marginBottom: 8 }}>
+          <span style={{ flex: 1, fontSize: "0.82rem", color: locationSharing ? "#1a1a14" : "#7a7a6a" }}>
             📍 {lang === "ja" ? (locationSharing ? "位置情報を共有中" : "位置情報を共有してマップに貢献") : (locationSharing ? "Sharing your location" : "Share location to help others")}
           </span>
           <button onClick={() => setLocationSharing(!locationSharing)}
-            style={{ width: 40, height: 22, borderRadius: 99, border: "none", background: locationSharing ? "#0d7377" : "#d4cfc4", cursor: "pointer", position: "relative", flexShrink: 0 }}>
+            style={{ width: 40, height: 22, borderRadius: 99, border: "none", background: locationSharing ? "#1a1a14" : "#d4cfc4", cursor: "pointer", position: "relative", flexShrink: 0 }}>
             <div style={{ width: 16, height: 16, borderRadius: "50%", background: "white", position: "absolute", top: 3, left: locationSharing ? 21 : 3, transition: "left 0.2s" }} />
           </button>
         </div>
@@ -2345,7 +2497,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       {!selectedFish && (
         <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 10, paddingBottom: 2 }}>
           {REGIONS.map(r => (
-            <button key={r.key} onClick={() => setRegionFilter(r.key)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 99, border: `2px solid ${regionFilter === r.key ? "#0d7377" : "#d4cfc4"}`, background: regionFilter === r.key ? "#e0f2f2" : "#f5f0e8", color: regionFilter === r.key ? "#0d7377" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: regionFilter === r.key ? 700 : 400 }}>
+            <button key={r.key} onClick={() => setRegionFilter(r.key)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 99, border: `2px solid ${regionFilter === r.key ? "#1a1a14" : "#d4cfc4"}`, background: regionFilter === r.key ? "#e0f2f2" : "#f5f0e8", color: regionFilter === r.key ? "#1a1a14" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: regionFilter === r.key ? 700 : 400 }}>
               {r.emoji} {r[lang]}
             </button>
           ))}
@@ -2353,7 +2505,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       )}
       {/* Location status bar */}
       {userLocation ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 10, marginBottom: 10, cursor: "pointer" }} onClick={onOpenLocalAI}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 10, marginBottom: 10, cursor: "pointer" }} onClick={onOpenLocalAI}>
           <span style={{ fontSize: "1rem" }}>📍</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0d7377" }}>{userLocation.display}</div>
@@ -2370,7 +2522,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       {/* ── REAL LEAFLET MAP via OSM ── */}
       <LeafletMap spots={spots} userLocation={userLocation} activeSpot={activeSpot} setActiveSpot={setActiveSpot} lang={lang} activeUsers={activeUsers} />
       {activeSpot && (
-        <div style={{ background: "#e0f2f2", border: "2px solid #0d7377", borderRadius: 14, padding: "12px 16px", marginBottom: 14, animation: "fadeUp 0.2s ease" }}>
+        <div style={{ background: "#e0f2f2", border: "2px solid #1a1a14", borderRadius: 14, padding: "12px 16px", marginBottom: 14, animation: "fadeUp 0.2s ease" }}>
           <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 4 }}>{activeSpot.icon || "📍"} {activeSpot.name}</div>
           <div style={{ fontSize: "0.88rem", color: "#0d7377" }}>
             🐟 {typeof activeSpot.fish === "object" ? activeSpot.fish[lang] : (activeSpot.fishName || activeSpot.fish || "")}
@@ -2410,7 +2562,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
           const coords = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
           const crowding = coords ? getCrowdingLevel(coords.lat, coords.lng, activeUsers) : null;
           return (
-          <div key={spot.id || i} onClick={() => setActiveSpot(spot)} style={{ background: activeSpot?.id === spot.id ? "#e0f2f2" : "#fffdf8", border: `2px solid ${activeSpot?.id === spot.id ? "#0d7377" : "#e0dbd0"}`, borderRadius: 14, padding: "12px 16px", cursor: "pointer", animation: `fadeUp ${0.2 + i * 0.05}s ease both`, marginBottom: 8, boxShadow: crowding?.level === "crowded" ? `0 0 14px rgba(184,32,48,0.35)` : crowding?.level === "moderate" ? `0 0 10px rgba(192,106,16,0.25)` : "none" }}>
+          <div key={spot.id || i} onClick={() => setActiveSpot(spot)} style={{ background: activeSpot?.id === spot.id ? "#e0f2f2" : "#fffdf8", border: `2px solid ${activeSpot?.id === spot.id ? "#1a1a14" : "#e0dbd0"}`, borderRadius: 14, padding: "12px 16px", cursor: "pointer", animation: `fadeUp ${0.2 + i * 0.05}s ease both`, marginBottom: 8, boxShadow: crowding?.level === "crowded" ? `0 0 14px rgba(184,32,48,0.35)` : crowding?.level === "moderate" ? `0 0 10px rgba(192,106,16,0.25)` : "none" }}>
             <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: spot.tip ? 8 : 0 }}>
               <div style={{ width: 44, height: 44, borderRadius: 10, background: "#e0f2f2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", flexShrink: 0, boxShadow: crowding ? crowding.glow : "none" }}>{spot.icon || "📍"}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -2465,7 +2617,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "現在地のリアル気象データ" : "Live weather at your location"}</p>
 
       {isLoading && (
-        <div style={{ background: "#f0f8f8", border: "2px solid #a0c8d0", borderRadius: 16, padding: 20, marginBottom: 14, textAlign: "center" }}>
+        <div style={{ background: "#f0f8f8", border: "2px solid #FFE500", borderRadius: 16, padding: 20, marginBottom: 14, textAlign: "center" }}>
           <div style={{ fontSize: "2.5rem", animation: "spin 2s linear infinite", display: "inline-block", marginBottom: 8 }}>🌤️</div>
           <div style={{ fontWeight: 700, color: "#0d7377", marginBottom: 4 }}>
             {lang === "ja" ? "天気データを取得中..." : "Fetching live weather..."}
@@ -2475,7 +2627,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
           </div>
         </div>
       )}
-      <div style={{ background: "linear-gradient(135deg,#e0f2f2,#f0ebe0)", border: "1px solid rgba(72,202,228,0.22)", borderRadius: 20, padding: 18, marginBottom: 14 }}>
+      <div style={{ background: "linear-gradient(135deg,#FFF9CC,#f0ebe0)", border: "1px solid rgba(72,202,228,0.22)", borderRadius: 20, padding: 18, marginBottom: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <div style={{ fontSize: "2.8rem", lineHeight: 1, fontWeight: 700 }}>{WEATHER.temp}℃</div>
@@ -2499,7 +2651,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
               <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{h.time}</div>
               <div style={{ fontSize: "1rem" }}>{h.icon}</div>
               <div style={{ width: 34, height: 56, background: "#f8f4ec", borderRadius: 6, position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: `${h.fishing}%`, borderRadius: "4px 4px 0 0", background: h.fishing >= 85 ? "linear-gradient(180deg,#74c69d,#2d6a4f)" : h.fishing >= 70 ? "linear-gradient(180deg,#f4a261,#6b4226)" : "linear-gradient(180deg,#556677,#334455)" }} />
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: `${h.fishing}%`, borderRadius: "4px 4px 0 0", background: h.fishing >= 85 ? "linear-gradient(180deg,#FFE500,#2d6a4f)" : h.fishing >= 70 ? "linear-gradient(180deg,#f4a261,#6b4226)" : "linear-gradient(180deg,#556677,#334455)" }} />
               </div>
               <div style={{ fontSize: "1.05rem", color: h.fishing >= 85 ? "#74c69d" : "#8899aa", fontWeight: 700 }}>{h.fishing}</div>
               <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{h.temp}℃</div>
@@ -2529,7 +2681,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
           <span style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? "※推算値" : "Calculated"}</span>
         </div>
         {tides.length > 0 ? tides.map(td => (
-          <div key={td.time} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: td.type === "high" ? "#e0f2f2" : "#f5f0e8", borderRadius: 10, marginBottom: 6, border: `1px solid ${td.type === "high" ? "#a0c8d0" : "#e0dbd0"}` }}>
+          <div key={td.time} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: td.type === "high" ? "#e0f2f2" : "#f5f0e8", borderRadius: 10, marginBottom: 6, border: `1px solid ${td.type === "high" ? "#74c69d" : "#e0dbd0"}` }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <span style={{ fontSize: "1.2rem" }}>{td.type === "high" ? "🌊" : "🏖️"}</span>
               <div>
@@ -2537,7 +2689,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
                 {td.height && <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>{td.height}m</div>}
               </div>
             </div>
-            <span style={{ color: td.type === "high" ? "#0d7377" : "#c06a10", fontSize: "1.05rem", fontWeight: 700 }}>{td.time}</span>
+            <span style={{ color: td.type === "high" ? "#1a1a14" : "#c06a10", fontSize: "1.05rem", fontWeight: 700 }}>{td.time}</span>
           </div>
         )) : (
           <div style={{ textAlign: "center", color: "#9a9a8a", fontSize: "0.88rem", padding: "12px 0" }}>
@@ -2557,7 +2709,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
               const isToday = i === 0;
               const fi = day.fishingIndex;
               const color = fi >= 80 ? "#2d7a3a" : fi >= 60 ? "#c06a10" : "#b82030";
-              const bg = fi >= 80 ? "#d8f0d8" : fi >= 60 ? "#f8e8d0" : "#f8d8d8";
+              const bg = fi >= 80 ? "#e0f2f2" : fi >= 60 ? "#f8e8d0" : "#f8d8d8";
               return (
                 <div key={day.date} style={{ flexShrink: 0, minWidth: 68, background: isToday ? bg : "#f5f0e8", border: `2px solid ${isToday ? color : "#e0dbd0"}`, borderRadius: 12, padding: "10px 8px", textAlign: "center" }}>
                   <div style={{ fontSize: "0.75rem", fontWeight: isToday ? 700 : 400, color: isToday ? color : "#5a5a4a", marginBottom: 4 }}>
@@ -2576,7 +2728,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
             const best = [...forecast].sort((a, b) => b.fishingIndex - a.fishingIndex)[0];
             if (!best || best === forecast[0]) return null;
             return (
-              <div style={{ marginTop: 10, background: "#d8f0d8", border: "2px solid #2d7a3a", borderRadius: 10, padding: "8px 12px", fontSize: "0.88rem", color: "#1a4a22" }}>
+              <div style={{ marginTop: 10, background: "#e0f2f2", border: "2px solid #b8a000", borderRadius: 10, padding: "8px 12px", fontSize: "0.88rem", color: "#1a4a22" }}>
                 🏆 {lang === "ja" ? `今週のベストは${best.dayJa}！釣り指数${best.fishingIndex}` : `Best this week: ${best.dayEn} — Fishing index ${best.fishingIndex}`}
               </div>
             );
@@ -2598,7 +2750,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
             const trendColor = r.trend === "rising" ? "#b82030" : r.trend === "falling" ? "#2d7a3a" : "#5a5a4a";
             const clarityLabel = { clear: { ja: "澄み", en: "Clear" }, slightly_cloudy: { ja: "やや濁り", en: "Slightly cloudy" }, cloudy: { ja: "濁り", en: "Cloudy" } };
             return (
-              <div key={r.id} style={{ background: r.fishable ? "#e0f2f2" : "#f8e8d0", border: `2px solid ${r.fishable ? "#a0c8d0" : "#d0b090"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 8 }}>
+              <div key={r.id} style={{ background: r.fishable ? "#e0f2f2" : "#f8e8d0", border: `2px solid ${r.fishable ? "#74c69d" : "#d0b090"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 8 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{r.name[lang]}</div>
@@ -2624,12 +2776,12 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       {/* ── NOTIFICATION BUTTON ── */}
       {"Notification" in window && Notification.permission !== "granted" && (
         <button onClick={() => requestNotificationPermission().then(ok => ok && sendFishingAlert(lang === "ja" ? "🎣 通知テスト" : "🎣 Test Alert", lang === "ja" ? "釣り指数が高い時に通知します！" : "You'll be alerted when conditions peak!"))}
-          style={{ width: "100%", padding: "12px", background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 14, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700, marginBottom: 14 }}>
+          style={{ width: "100%", padding: "12px", background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 14, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700, marginBottom: 14 }}>
           🔔 {lang === "ja" ? "好条件の時に通知を受け取る" : "Get notified when conditions peak"}
         </button>
       )}
       {"Notification" in window && Notification.permission === "granted" && (
-        <div style={{ background: "#d8f0d8", border: "2px solid #a0d0b0", borderRadius: 12, padding: "10px 14px", marginBottom: 14, fontSize: "0.88rem", color: "#1a4a22", fontWeight: 600 }}>
+        <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 12, padding: "10px 14px", marginBottom: 14, fontSize: "0.88rem", color: "#1a4a22", fontWeight: 600 }}>
           🔔 {lang === "ja" ? "通知ON — 釣り指数88+で自動アラート" : "Notifications ON — Auto-alert at fishing index 88+"}
         </div>
       )}
@@ -2712,7 +2864,7 @@ Keep it under 220 words, emoji section headers.`;
         <div style={{ width: 40, height: 4, borderRadius: 99, background: "#d4cfc4", margin: "0 auto 20px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: "1.15rem", color: "#1a1a14" }}>
+            <div style={{ fontWeight: 700, fontSize: "1.15rem", color: "#0d7377" }}>
               📍 {lang === "ja" ? "近くの釣り場AI診断" : "Nearby Spots AI"}
             </div>
             <div style={{ fontSize: "0.88rem", color: "#0d7377", marginTop: 3 }}>
@@ -2725,10 +2877,10 @@ Keep it under 220 words, emoji section headers.`;
         {/* Nearest spots strip */}
         <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 16, paddingBottom: 4 }}>
           {nearestSpots.map((sp, i) => (
-            <div key={sp.id} style={{ flexShrink: 0, background: i === 0 ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${i === 0 ? "#0d7377" : "#d4cfc4"}`, borderRadius: 12, padding: "8px 12px", minWidth: 120 }}>
+            <div key={sp.id} style={{ flexShrink: 0, background: i === 0 ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${i === 0 ? "#1a1a14" : "#d4cfc4"}`, borderRadius: 12, padding: "8px 12px", minWidth: 120 }}>
               <div style={{ fontSize: "1rem" }}>{sp.icon}</div>
-              <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#1a1a14", marginTop: 2, lineHeight: 1.2 }}>{sp.name}</div>
-              <div style={{ fontSize: "0.78rem", color: i === 0 ? "#0d7377" : "#7a7a6a", fontWeight: i === 0 ? 700 : 400 }}>
+              <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#0d7377", marginTop: 2, lineHeight: 1.2 }}>{sp.name}</div>
+              <div style={{ fontSize: "0.78rem", color: i === 0 ? "#1a1a14" : "#7a7a6a", fontWeight: i === 0 ? 700 : 400 }}>
                 {sp.distKm !== null ? `${sp.distKm} km` : "---"}
               </div>
             </div>
@@ -2743,7 +2895,7 @@ Keep it under 220 words, emoji section headers.`;
             </p>
           </div>
         ) : (
-          <div style={{ fontSize: "0.95rem", lineHeight: 1.8, color: "#1a1a14", whiteSpace: "pre-wrap" }}>{response}</div>
+          <div style={{ fontSize: "0.95rem", lineHeight: 1.8, color: "#0d7377", whiteSpace: "pre-wrap" }}>{response}</div>
         )}
       </div>
     </div>
@@ -2752,22 +2904,22 @@ Keep it under 220 words, emoji section headers.`;
 
 // ─── MAIN APP ────────────────────────────────────────────────────────────────
 export default function CastWiseJapan() {
-  const [lang, setLang] = useLocalStorage("castwise_lang", "ja");
+  const [lang, setLang] = useLocalStorage("mabo_lang", "ja");
   const [tab, setTab] = useState("Explore");
   const [selectedFish, setSelectedFish] = useState(null);
   const [gearTab, setGearTab] = useState("gear");
   const [catches, setCatches] = useState([]);
   const [catchesLoading, setCatchesLoading] = useState(true);
-  const [liked, setLiked] = useLocalStorage("castwise_liked", {});
+  const [liked, setLiked] = useLocalStorage("mabo_liked", {});
   const [newCatch, setNewCatch] = useState({ fish: "", weight: "", location: "", notes: "", photo: null, method: "lure" });
   const [myCatches, setMyCatches] = useState([]);
   const [logOpen, setLogOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(null);
   const [commentText, setCommentText] = useState("");
   const [search, setSearch] = useState("");
-  const [filterDiff, setFilterDiff] = useLocalStorage("castwise_filterdiff", "all");
-  const [filterCat, setFilterCat] = useLocalStorage("castwise_filtercat", "all");
-  const [filterFly, setFilterFly] = useLocalStorage("castwise_filterfly", false);
+  const [filterDiff, setFilterDiff] = useLocalStorage("mabo_filterdiff", "all");
+  const [filterCat, setFilterCat] = useLocalStorage("mabo_filtercat", "all");
+  const [filterFly, setFilterFly] = useLocalStorage("mabo_filterfly", false);
   const [showAI, setShowAI] = useState(false);
   const [showFlyAI, setShowFlyAI] = useState(false);
   const [flyAIFish, setFlyAIFish] = useState(null);
@@ -2775,12 +2927,12 @@ export default function CastWiseJapan() {
   const [profileTab, setProfileTab] = useState("catches");
   const [photoPreview, setPhotoPreview] = useState(null);
   const [editProfile, setEditProfile] = useState(false);
-  const [profile, setProfile] = useLocalStorage("castwise_profile", { name: "あなたの名前", bio: "渓流フライマン🪶", avatar: "🪶", catches: 8, followers: 52, following: 29 });
+  const [profile, setProfile] = useLocalStorage("mabo_profile", { name: "あなたの名前", bio: "渓流フライマン🪶", avatar: "🪶", catches: 8, followers: 52, following: 29 });
   // Ad system state
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [showRewarded, setShowRewarded] = useState(false);
-  const [isPremium, setIsPremium] = useLocalStorage("castwise_premium", false);
-  const [bonusPoints, setBonusPoints] = useLocalStorage("castwise_points", 0);
+  const [isPremium, setIsPremium] = useLocalStorage("mabo_premium", false);
+  const [bonusPoints, setBonusPoints] = useLocalStorage("mabo_points", 0);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [pendingTab, setPendingTab] = useState(null);
   // Location state
@@ -2790,7 +2942,29 @@ export default function CastWiseJapan() {
   const [showLocalAI, setShowLocalAI] = useState(false);
 
   // Live weather from Open-Meteo — updates when location is known
-  const WEATHER = useRealWeather(userLocation);
+  // ─── MABO BRAND HEADER ───────────────────────────────────────────────────────
+  const MABO_YELLOW = "#74c69d";
+  const MABO_BLACK = "#1a1a14";
+
+  const MaboHeader = ({ lang, onLangToggle }) => (
+    <div style={{ background: MABO_YELLOW, borderBottom: `3px solid ${MABO_BLACK}` }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px 6px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 42, height: 42, background: MABO_BLACK, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", border: `2px solid ${MABO_BLACK}` }}>🐟</div>
+          <div>
+            <div style={{ fontSize: "1.15rem", fontWeight: 900, color: MABO_BLACK, lineHeight: 1.1 }}>釣りナビ PRO</div>
+            <div style={{ fontSize: "0.68rem", color: "#555", fontWeight: 700, letterSpacing: "0.04em" }}>MABO CHANNEL FISHING</div>
+          </div>
+        </div>
+        <button onClick={onLangToggle} style={{ background: MABO_BLACK, color: MABO_YELLOW, border: "none", borderRadius: 8, padding: "5px 12px", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer" }}>
+          {lang === "ja" ? "EN" : "JP"}
+        </button>
+      </div>
+      <div style={{ background: MABO_BLACK, textAlign: "center", fontSize: "0.72rem", fontWeight: 700, color: MABO_YELLOW, padding: "4px", letterSpacing: "0.1em" }}>
+        もっと賢く釣る
+      </div>
+    </div>
+  );
 
   // New feature hooks
   const forecast7day = use7DayForecast(userLocation);
@@ -2804,7 +2978,7 @@ export default function CastWiseJapan() {
   const [journalEntry, setJournalEntry] = useState({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 });
 
   // Active users & location sharing
-  const [locationSharing, setLocationSharing] = useLocalStorage("castwise_sharing", false);
+  const [locationSharing, setLocationSharing] = useLocalStorage("mabo_sharing", false);
   const userId = useRef(getOrCreateUserId()).current;
   const activeUsers = useActiveUsers(db, userLocation, locationSharing, userId);
 
@@ -2835,13 +3009,14 @@ export default function CastWiseJapan() {
   }, []);
 
   const TABS_DATA = [
-    { key: "Explore", ja: "探す", en: "Explore", icon: "🐟" },
-    { key: "FishGuide", ja: "魚図鑑", en: "Guide", icon: "🎣" },
-    { key: "FlyFishing", ja: "フライ", en: "Fly", icon: "🪶" },
-    { key: "Map", ja: "釣り場", en: "Map", icon: "🗺️" },
-    { key: "Weather", ja: "天気", en: "Weather", icon: "🌤️" },
-    { key: "Community", ja: "みんな", en: "Feed", icon: "🌊" },
-    { key: "Profile", ja: "マイ", en: "Profile", icon: "👤" },
+    { key: "Explore",    ja: "探す",   en: "Explore",  icon: "🐟" },
+    { key: "FishGuide",  ja: "魚図鑑", en: "Guide",    icon: "🎣" },
+    { key: "FlyFishing", ja: "フライ", en: "Fly",      icon: "🪶" },
+    { key: "Map",        ja: "釣り場", en: "Map",      icon: "🗺️" },
+    { key: "Tournament", ja: "大会",   en: "Tourney",  icon: "🏆" },
+    { key: "Weather",    ja: "天気",   en: "Weather",  icon: "🌤️" },
+    { key: "Community",  ja: "みんな", en: "Feed",     icon: "🌊" },
+    { key: "Profile",    ja: "マイ",   en: "Profile",  icon: "👤" },
   ];
 
   function switchTab(newTab) {
@@ -3079,7 +3254,7 @@ If this is NOT a fish or the image is unclear, return:
   }, []);
 
   return (
-    <div style={{ fontFamily: "'Noto Sans JP','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif", background: "#f5f0e8", minHeight: "100vh", color: "#1a1a14", maxWidth: 430, margin: "0 auto", position: "relative", boxShadow: "0 4px 40px rgba(0,0,0,0.12)", fontSize: "16px", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
+    <div style={{ fontFamily: "'Noto Sans JP','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif", background: "#f5f0e8", minHeight: "100vh", color: "#0d7377", maxWidth: 430, margin: "0 auto", position: "relative", boxShadow: "0 4px 40px rgba(0,0,0,0.12)", fontSize: "16px", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Shippori+Mincho:wght@400;700&display=swap');
         :root {
@@ -3090,8 +3265,8 @@ If this is NOT a fish or the image is unclear, return:
           --text-mid: #4a4a3a;
           --text-light: #7a7a6a;
           --blue: #1565a0;
-          --teal: #0d7377;
-          --green: #2d7a3a;
+          --teal: #1a1a14;
+          --green: #b8a000;
           --red: #b82030;
           --orange: #c06a10;
           --gold: #9a7a20;
@@ -3121,7 +3296,7 @@ If this is NOT a fish or the image is unclear, return:
       <div style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(245,240,232,0.96)", backdropFilter: "blur(16px)", borderBottom: "2px solid #d4cfc4", padding: "12px 16px 0" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <div>
-            <div style={{ fontSize: "1.5rem", fontWeight: 900, lineHeight: 1, fontFamily: "'Shippori Mincho','Noto Serif JP',serif", color: "#1a1a14" }}>
+            <div style={{ fontSize: "1.5rem", fontWeight: 900, lineHeight: 1, fontFamily: "'Shippori Mincho','Noto Serif JP',serif", color: "#0d7377" }}>
               <span style={{ color: "#0d7377" }}>釣</span><span style={{ color: "#0d7377" }}>り</span>
               <span style={{ color: "#2d7a3a" }}>ナビ</span>
               <span style={{ fontSize: "0.5rem", color: "#9a7a20", marginLeft: 4, verticalAlign: "super", fontWeight: 700 }}>PRO</span>
@@ -3131,27 +3306,27 @@ If this is NOT a fish or the image is unclear, return:
             </div>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => setLang(l => l === "ja" ? "en" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#1a1a14", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
+            <button onClick={() => setLang(l => l === "ja" ? "en" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
               {lang === "ja" ? "EN" : "日本語"}
             </button>
             {/* Location / AI nearby button */}
-            <button onClick={() => setShowLocalAI(true)} style={{ background: userLocation ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${userLocation ? "#0d7377" : "#c4bfb4"}`, borderRadius: 8, padding: "6px 10px", color: userLocation ? "#0d7377" : "#7a7a6a", cursor: "pointer", fontSize: "0.88rem", fontWeight: 700, position: "relative" }}>
+            <button onClick={() => setShowLocalAI(true)} style={{ background: userLocation ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${userLocation ? "#1a1a14" : "#c4bfb4"}`, borderRadius: 8, padding: "6px 10px", color: userLocation ? "#1a1a14" : "#7a7a6a", cursor: "pointer", fontSize: "0.88rem", fontWeight: 700, position: "relative" }}>
               {locationLoading ? "⏳" : "📍"}
               {userLocation && <span style={{ position: "absolute", top: -4, right: -4, width: 8, height: 8, borderRadius: "50%", background: "#2d7a3a", border: "2px solid #f5f0e8" }} />}
             </button>
             {isPremium ? (
               <div style={{ background: "#ece0f8", border: "2px solid #c0a0e0", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#6040a0", fontWeight: 700 }}>👑 PRO</div>
             ) : (
-              <button onClick={() => setShowRewarded(true)} style={{ background: "#e0f0e8", border: "2px solid #a0d0b0", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", cursor: "pointer", fontWeight: 700 }}>🎁</button>
+              <button onClick={() => setShowRewarded(true)} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", cursor: "pointer", fontWeight: 700 }}>🎁</button>
             )}
-            <div style={{ background: "#e0f0e8", border: "2px solid #a0d0b0", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 700 }}>
+            <div style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 700 }}>
               🔥 {WEATHER.fishingIndex}{bonusPoints > 0 && <span style={{ color: "#c06a10" }}> +{bonusPoints}</span>}
             </div>
           </div>
         </div>
         <div style={{ display: "flex", overflowX: "auto", gap: 2 }}>
           {TABS_DATA.map(td => (
-            <button key={td.key} onClick={() => switchTab(td.key)} style={{ flex: "0 0 auto", padding: "10px 12px 12px", border: "none", background: tab === td.key ? "#fffdf8" : "transparent", color: tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#0d7377") : "#7a7a6a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: tab === td.key ? 700 : 500, whiteSpace: "nowrap", borderBottom: `3px solid ${tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#0d7377") : "transparent"}`, minHeight: 48 }}>
+            <button key={td.key} onClick={() => switchTab(td.key)} style={{ flex: "0 0 auto", padding: "10px 12px 12px", border: "none", background: tab === td.key ? "#fffdf8" : "transparent", color: tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#1a1a14") : "#7a7a6a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: tab === td.key ? 700 : 500, whiteSpace: "nowrap", borderBottom: `3px solid ${tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#1a1a14") : "transparent"}`, minHeight: 48 }}>
               <div style={{ fontSize: "1.1rem", marginBottom: 3 }}>{td.icon}</div>
               {td[lang]}
             </button>
@@ -3221,7 +3396,7 @@ If this is NOT a fish or the image is unclear, return:
                 </div>
               );
             })()}
-            <div onClick={() => switchTab("Weather")} style={{ background: "linear-gradient(135deg,#e0f2f2,#e8f4ec)", border: "2px solid #a0c8d0", borderRadius: 13, padding: "10px 13px", marginBottom: 12, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div onClick={() => switchTab("Weather")} style={{ background: "linear-gradient(135deg,#FFF9CC,#e8f4ec)", border: "2px solid #FFE500", borderRadius: 13, padding: "10px 13px", marginBottom: 12, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
                 <span style={{ fontSize: "1.3rem" }}>⛅</span>
                 <div>
@@ -3232,15 +3407,15 @@ If this is NOT a fish or the image is unclear, return:
               <div style={{ color: "#0d7377" }}>→</div>
             </div>
             <div style={{ display: "flex", gap: 7, marginBottom: 10 }}>
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={s("search", lang)} style={{ flex: 1, background: "#f8f4ec", border: "2px solid #a0c8d0", borderRadius: 9, padding: "9px 12px", color: "#1a1a14", fontSize: "0.95rem" }} />
-              <select value={filterDiff} onChange={e => setFilterDiff(e.target.value)} style={{ background: "#f8f4ec", border: "2px solid #a0c8d0", borderRadius: 9, padding: "9px", color: "#1a1a14", fontSize: "1rem", cursor: "pointer" }}>
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={s("search", lang)} style={{ flex: 1, background: "#f8f4ec", border: "2px solid #FFE500", borderRadius: 9, padding: "9px 12px", color: "#0d7377", fontSize: "0.95rem" }} />
+              <select value={filterDiff} onChange={e => setFilterDiff(e.target.value)} style={{ background: "#f8f4ec", border: "2px solid #FFE500", borderRadius: 9, padding: "9px", color: "#0d7377", fontSize: "1rem", cursor: "pointer" }}>
                 {Object.entries(diffMap).map(([k, v]) => <option key={k} value={k} style={{ background: "#f5f0e8" }}>{v[lang]}</option>)}
               </select>
             </div>
             {/* Category filter chips */}
             <div style={{ display: "flex", gap: 5, marginBottom: 10, overflowX: "auto", paddingBottom: 2 }}>
               {Object.entries(catMap).map(([k, v]) => (
-                <button key={k} onClick={() => setFilterCat(k)} style={{ flex: "0 0 auto", padding: "5px 12px", borderRadius: 99, border: `1px solid ${filterCat === k ? "rgba(72,202,228,0.6)" : "#d4cfc4"}`, background: filterCat === k ? "rgba(72,202,228,0.14)" : "transparent", color: filterCat === k ? "#0d7377" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap" }}>
+                <button key={k} onClick={() => setFilterCat(k)} style={{ flex: "0 0 auto", padding: "5px 12px", borderRadius: 99, border: `1px solid ${filterCat === k ? "rgba(72,202,228,0.6)" : "#d4cfc4"}`, background: filterCat === k ? "rgba(72,202,228,0.14)" : "transparent", color: filterCat === k ? "#1a1a14" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap" }}>
                   {k === "freshwater" ? "🏞️" : k === "saltwater" ? "🌊" : k === "shore" ? "🪨" : "🐟"} {v[lang]}
                 </button>
               ))}
@@ -3283,7 +3458,7 @@ If this is NOT a fish or the image is unclear, return:
                   <div style={{ fontSize: "0.8rem", color: "#5a5a4a", marginBottom: 5 }}>{fish.nameEn}</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 5 }}>
                     <DiffBadge level={fish.difficulty} lang={lang} />
-                    {fish.flyFriendly && <span style={{ background: "#d8f0e0", border: "2px solid #a0d0b0", borderRadius: 99, padding: "2px 8px", fontSize: "0.78rem", color: "#2d7a3a", fontWeight: 700 }}>🪶</span>}
+                    {fish.flyFriendly && <span style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 99, padding: "2px 8px", fontSize: "0.78rem", color: "#2d7a3a", fontWeight: 700 }}>🪶</span>}
                   </div>
                   <SeasonalBadge fishId={fish.id} lang={lang} />
                   <div style={{ marginTop: 6, fontSize: "0.8rem", color: "#7a7a6a" }}>📅 {fish.season[lang]}</div>
@@ -3320,7 +3495,7 @@ If this is NOT a fish or the image is unclear, return:
                     </div>
                   </div>
                   {selectedFish.flyFriendly && selectedFish.flyNote && (
-                    <div style={{ marginTop: 10, padding: "8px 12px", background: "#e0f0e8", border: "2px solid #a0d0b0", borderRadius: 10, fontSize: "0.77rem", color: "#2d7a3a" }}>
+                    <div style={{ marginTop: 10, padding: "8px 12px", background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 10, fontSize: "0.77rem", color: "#2d7a3a" }}>
                       🪶 {selectedFish.flyNote[lang]}
                     </div>
                   )}
@@ -3332,7 +3507,7 @@ If this is NOT a fish or the image is unclear, return:
                 {/* AI buttons */}
                 <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
                   <button onClick={() => setShowAI(true)} style={{ flex: 1, padding: "11px", background: "#e0f2f2", border: "2px solid #70a8b8", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🤖 AI {lang === "ja" ? "ルアー診断" : "Lure AI"}</button>
-                  {selectedFish.flyFriendly && <button onClick={() => { setFlyAIFish(selectedFish); setShowFlyAI(true); }} style={{ flex: 1, padding: "11px", background: "#d8f0e0", border: "2px solid #80c098", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🪶 AI {lang === "ja" ? "フライ診断" : "Fly AI"}</button>}
+                  {selectedFish.flyFriendly && <button onClick={() => { setFlyAIFish(selectedFish); setShowFlyAI(true); }} style={{ flex: 1, padding: "11px", background: "#e0f0e8", border: "2px solid #c8b800", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🪶 AI {lang === "ja" ? "フライ診断" : "Fly AI"}</button>}
                 </div>
                 {!isPremium && <BannerAd lang={lang} isPremium={isPremium} />}
 
@@ -3356,7 +3531,7 @@ If this is NOT a fish or the image is unclear, return:
                         {selectedFish.gear.lures.map(l => <LureTag key={l} lure={l} lang={lang} />)}
                       </div>
                     </div>
-                    <div style={{ background: "linear-gradient(135deg,rgba(13,115,119,0.08),transparent)", border: "2px solid #a0c8d0", borderRadius: 12, padding: 14, marginTop: 4 }}>
+                    <div style={{ background: "linear-gradient(135deg,rgba(13,115,119,0.08),transparent)", border: "2px solid #FFE500", borderRadius: 12, padding: 14, marginTop: 4 }}>
                       <div style={{ fontSize: "0.88rem", color: "#0d7377", fontWeight: 700, marginBottom: 8 }}>⚖️ {lang === "ja" ? "釣り規制・遊漁情報" : "Fishing Regulations"}</div>
                       {(() => {
                         const reg = getRegulation(selectedFish.name);
@@ -3364,7 +3539,7 @@ If this is NOT a fish or the image is unclear, return:
                           <>
                             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 8 }}>
                               {reg.minSize && <div style={{ background: "#f8e8d0", border: "2px solid #c06a10", borderRadius: 8, padding: "4px 10px", fontSize: "0.82rem", color: "#7a4000", fontWeight: 700 }}>📏 {lang === "ja" ? `最小キープサイズ: ${reg.minSize}cm` : `Min size: ${reg.minSize}cm`}</div>}
-                              <div style={{ background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 8, padding: "4px 10px", fontSize: "0.82rem", color: "#0d4a50", fontWeight: 700 }}>📅 {lang === "ja" ? `釣り期間: ${reg.seasons === "year-round" ? "通年" : reg.seasons}` : `Season: ${reg.seasons}`}</div>
+                              <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 8, padding: "4px 10px", fontSize: "0.82rem", color: "#0d4a50", fontWeight: 700 }}>📅 {lang === "ja" ? `釣り期間: ${reg.seasons === "year-round" ? "通年" : reg.seasons}` : `Season: ${reg.seasons}`}</div>
                             </div>
                             <div style={{ fontSize: "0.85rem", color: "#3a3a2a", lineHeight: 1.6 }}>{reg.note[lang]}</div>
                           </>
@@ -3405,6 +3580,7 @@ If this is NOT a fish or the image is unclear, return:
         {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} activeUsers={activeUsers} locationSharing={locationSharing} setLocationSharing={setLocationSharing} weather={WEATHER} tideData={tideData} />}
 
         {/* ── WEATHER ── */}
+        {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} />}
         {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} forecast={forecast7day} tides={tideData} rivers={riverConditions} />}
 
         {/* ── COMMUNITY ── */}
@@ -3415,7 +3591,7 @@ If this is NOT a fish or the image is unclear, return:
                 <h2 style={{ margin: "0 0 2px", fontSize: "1.2rem" }}>{lang === "ja" ? "みんなの釣果" : "Community Catches"}</h2>
                 <p style={{ margin: 0, color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "世界中の釣り人の釣果に評価やコメントを" : "Rate and comment on catches worldwide"}</p>
               </div>
-              <button onClick={() => { switchTab("Profile"); setProfileTab("catches"); }} style={{ background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 99, padding: "6px 10px", color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>+{lang === "ja" ? "投稿" : "Share"}</button>
+              <button onClick={() => { switchTab("Profile"); setProfileTab("catches"); }} style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 99, padding: "6px 10px", color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>+{lang === "ja" ? "投稿" : "Share"}</button>
             </div>
             <div onClick={() => { switchTab("Profile"); setProfileTab("leaderboard"); }} style={{ background: "linear-gradient(135deg,rgba(244,162,97,0.12),rgba(244,162,97,0.04))", border: "2px solid #d0b090", borderRadius: 13, padding: "10px 13px", marginBottom: 12, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
@@ -3442,7 +3618,7 @@ If this is NOT a fish or the image is unclear, return:
                 <div style={{ height: 140, background: "linear-gradient(135deg,#e8e3d8,#d8d3c8)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                   {c.photo ? <img src={c.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ animation: "float 3s ease-in-out infinite" }}><FishIllustration fishId={FISH_DATA.find(f=>f.name===c.fish)?.id || 1} size={100} /></div>}
                   <div style={{ position: "absolute", bottom: 9, right: 9, background: "rgba(30,30,20,0.8)", borderRadius: 7, padding: "3px 9px", fontSize: "0.95rem", color: "#c06a10", fontWeight: 700 }}>⚖️ {c.weight}</div>
-                  {c.verified && <div style={{ position: "absolute", top: 9, right: 9, background: "#c8e8d0", border: "1px solid #74c69d44", borderRadius: 7, padding: "2px 7px", fontSize: "1.05rem", color: "#2d7a3a" }}>{s("verified", lang)}</div>}
+                  {c.verified && <div style={{ position: "absolute", top: 9, right: 9, background: "#c8e8d0", border: "1px solid #FFE50044", borderRadius: 7, padding: "2px 7px", fontSize: "1.05rem", color: "#2d7a3a" }}>{s("verified", lang)}</div>}
                   {c.method === "fly" && <div style={{ position: "absolute", top: 9, left: 9, background: "#c8e8d0", border: "2px solid #60b080", borderRadius: 7, padding: "2px 7px", fontSize: "1.05rem", color: "#2d7a3a" }}>🪶 {lang === "ja" ? "フライ" : "Fly"}</div>}
                 </div>
                 <div style={{ padding: "11px 13px" }}>
@@ -3467,13 +3643,13 @@ If this is NOT a fish or the image is unclear, return:
                   <div style={{ display: "flex", gap: 6 }}>
                     <button onClick={() => toggleLike(c.id)} style={{ flex: 1, padding: "7px", background: liked[c.id] ? "rgba(230,57,70,0.13)" : "#fffdf8", border: `2px solid ${liked[c.id] ? "#b82030" : "#e0dbd0"}`, borderRadius: 8, color: liked[c.id] ? "#e63946" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem" }}>{liked[c.id] ? "❤️" : "🤍"} {c.likes}</button>
                     <button onClick={() => setCommentOpen(commentOpen === c.id ? null : c.id)} style={{ flex: 1, padding: "7px", background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 8, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem" }}>💬 {c.comments.length}</button>
-                    <button onClick={() => shareToLINE(c, lang)} style={{ padding: "7px 10px", background: "#d8f0d8", border: "2px solid #06c755", borderRadius: 8, color: "#06c755", cursor: "pointer", fontSize: "1.05rem", fontWeight: 700 }}>LINE</button>
+                    <button onClick={() => shareToLINE(c, lang)} style={{ padding: "7px 10px", background: "#e0f2f2", border: "2px solid #06c755", borderRadius: 8, color: "#06c755", cursor: "pointer", fontSize: "1.05rem", fontWeight: 700 }}>LINE</button>
                     <button onClick={() => shareToTwitter(c, lang)} style={{ padding: "7px 10px", background: "#e8f0f8", border: "2px solid #1da1f2", borderRadius: 8, color: "#1da1f2", cursor: "pointer", fontSize: "1.05rem" }}>𝕏</button>
                   </div>
                   {commentOpen === c.id && (
                     <div style={{ marginTop: 8, display: "flex", gap: 6, animation: "fadeUp 0.2s ease" }}>
-                      <input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder={s("addComment", lang)} onKeyDown={e => e.key === "Enter" && addComment(c.id)} style={{ flex: 1, background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 7, padding: "7px 10px", color: "#1a1a14", fontSize: "1.05rem" }} />
-                      <button onClick={() => addComment(c.id)} style={{ background: "#d0eae8", border: "2px solid #80b0c8", borderRadius: 7, padding: "7px 10px", color: "#0d7377", cursor: "pointer", fontSize: "1.05rem" }}>→</button>
+                      <input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder={s("addComment", lang)} onKeyDown={e => e.key === "Enter" && addComment(c.id)} style={{ flex: 1, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 7, padding: "7px 10px", color: "#0d7377", fontSize: "1.05rem" }} />
+                      <button onClick={() => addComment(c.id)} style={{ background: "#d0eae8", border: "2px solid #c8b800", borderRadius: 7, padding: "7px 10px", color: "#0d7377", cursor: "pointer", fontSize: "1.05rem" }}>→</button>
                     </div>
                   )}
                 </div>
@@ -3486,14 +3662,14 @@ If this is NOT a fish or the image is unclear, return:
         {/* ── PROFILE ── */}
         {tab === "Profile" && (
           <div style={{ animation: "fadeUp 0.4s ease" }}>
-            <div style={{ background: "linear-gradient(135deg,rgba(72,202,228,0.1),rgba(13,33,55,0.9))", border: "2px solid #a0c8d0", borderRadius: 19, padding: 17, marginBottom: 13 }}>
+            <div style={{ background: "linear-gradient(135deg,rgba(72,202,228,0.1),rgba(13,33,55,0.9))", border: "2px solid #FFE500", borderRadius: 19, padding: 17, marginBottom: 13 }}>
               <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 13 }}>
                 <div style={{ position: "relative" }}>
-                  <div style={{ width: 58, height: 58, borderRadius: "50%", background: "rgba(72,202,228,0.13)", border: "3px solid #0d7377", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem" }}>{profile.avatar}</div>
+                  <div style={{ width: 58, height: 58, borderRadius: "50%", background: "rgba(72,202,228,0.13)", border: "3px solid #1a1a14", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem" }}>{profile.avatar}</div>
                   <div style={{ position: "absolute", bottom: -2, right: -2, width: 17, height: 17, borderRadius: "50%", background: "#2d7a3a", border: "2px solid #f5f0e8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.5rem" }}>✓</div>
                 </div>
                 <div style={{ flex: 1 }}>
-                  {editProfile ? <input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} style={{ background: "#f0ebe0", border: "2px solid #70a8b8", borderRadius: 7, padding: "4px 9px", color: "#1a1a14", fontSize: "0.92rem", fontWeight: 700, width: "100%", marginBottom: 4 }} /> : <div style={{ fontWeight: 700, fontSize: "0.98rem" }}>{profile.name}</div>}
+                  {editProfile ? <input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} style={{ background: "#f0ebe0", border: "2px solid #70a8b8", borderRadius: 7, padding: "4px 9px", color: "#0d7377", fontSize: "0.92rem", fontWeight: 700, width: "100%", marginBottom: 4 }} /> : <div style={{ fontWeight: 700, fontSize: "0.98rem" }}>{profile.name}</div>}
                   {editProfile ? <input value={profile.bio} onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))} style={{ background: "#f0ebe0", border: "2px solid #70a8b8", borderRadius: 7, padding: "4px 9px", color: "#5a5a4a", fontSize: "1.05rem", width: "100%" }} /> : <div style={{ color: "#5a5a4a", fontSize: "1.05rem" }}>{profile.bio}</div>}
                 </div>
                 <button onClick={() => setEditProfile(!editProfile)} style={{ background: "#fffdf8", border: "2px solid #d4cfc4", borderRadius: 7, padding: "5px 9px", color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{editProfile ? s("save", lang) : s("edit", lang)}</button>
@@ -3529,7 +3705,7 @@ If this is NOT a fish or the image is unclear, return:
 
             <div style={{ display: "flex", gap: 5, marginBottom: 13 }}>
               {[{ k: "catches", ja: "🎣 釣果記録", en: "🎣 My Catches" }, { k: "trophy", ja: "🏆 記録", en: "🏆 Records" }, { k: "calendar", ja: "🗓️ 釣り暦", en: "🗓️ Calendar" }, { k: "journal", ja: "📓 日誌", en: "📓 Journal" }, { k: "leaderboard", ja: "👑 ランク", en: "👑 Rank" }, { k: "pro", ja: "💎 PRO", en: "💎 PRO" }].map(pt => (
-                <button key={pt.k} onClick={() => setProfileTab(pt.k)} style={{ flex: 1, padding: "8px", borderRadius: 9, border: `1px solid ${profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.6)" : "#0d7377") : "#d4cfc4"}`, background: profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.15)" : "rgba(72,202,228,0.1)") : "transparent", color: profileTab === pt.k ? (pt.k === "pro" ? "#9060e0" : "#0d7377") : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: profileTab === pt.k ? 700 : 400 }}>{pt[lang]}</button>
+                <button key={pt.k} onClick={() => setProfileTab(pt.k)} style={{ flex: 1, padding: "8px", borderRadius: 9, border: `1px solid ${profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.6)" : "#1a1a14") : "#d4cfc4"}`, background: profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.15)" : "rgba(72,202,228,0.1)") : "transparent", color: profileTab === pt.k ? (pt.k === "pro" ? "#9060e0" : "#1a1a14") : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: profileTab === pt.k ? 700 : 400 }}>{pt[lang]}</button>
               ))}
             </div>
 
@@ -3537,10 +3713,10 @@ If this is NOT a fish or the image is unclear, return:
               <>
                 <button onClick={() => setLogOpen(!logOpen)} style={{ width: "100%", padding: "12px", marginBottom: 11, background: "linear-gradient(135deg,rgba(72,202,228,0.15),rgba(72,202,228,0.05))", border: "2px solid #80b8c8", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>{s("logCatch", lang)}</button>
                 {logOpen && (
-                  <div style={{ background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 15, padding: 13, marginBottom: 11, animation: "fadeUp 0.3s ease" }}>
+                  <div style={{ background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 15, padding: 13, marginBottom: 11, animation: "fadeUp 0.3s ease" }}>
                     <div style={{ fontWeight: 700, marginBottom: 10, color: "#0d7377", fontSize: "1rem" }}>🎣 {lang === "ja" ? "釣果を記録" : "Record Your Catch"}</div>
                     <div onClick={() => !photoPreview && fileRef.current.click()}
-                      style={{ minHeight: 110, border: "2px dashed #a0c8d0", borderRadius: 11, marginBottom: 9, cursor: photoPreview ? "default" : "pointer", background: photoPreview ? "transparent" : "#f0f8f8", overflow: "hidden", position: "relative" }}>
+                      style={{ minHeight: 110, border: "2px dashed #FFE500", borderRadius: 11, marginBottom: 9, cursor: photoPreview ? "default" : "pointer", background: photoPreview ? "transparent" : "#f0f8f8", overflow: "hidden", position: "relative" }}>
                       {photoPreview ? (
                         <>
                           <img src={photoPreview} alt="" style={{ width: "100%", maxHeight: 160, objectFit: "cover", display: "block" }} />
@@ -3564,7 +3740,7 @@ If this is NOT a fish or the image is unclear, return:
 
                     {/* AI Fish ID Loading */}
                     {fishIDLoading && (
-                      <div style={{ background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 12, padding: "14px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 12, animation: "fadeUp 0.3s ease" }}>
+                      <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 12, padding: "14px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 12, animation: "fadeUp 0.3s ease" }}>
                         <div style={{ fontSize: "1.8rem", animation: "spin 1s linear infinite" }}>🔍</div>
                         <div>
                           <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#0d7377" }}>{lang === "ja" ? "AIが魚を識別中..." : "AI identifying fish..."}</div>
@@ -3578,7 +3754,7 @@ If this is NOT a fish or the image is unclear, return:
                       <div style={{ borderRadius: 12, marginBottom: 10, overflow: "hidden", animation: "fadeUp 0.3s ease", border: `2px solid ${fishIDResult.isFish ? (fishIDResult.isKeepable ? "#2d7a3a" : "#c06a10") : "#b82030"}` }}>
                         {fishIDResult.isFish ? (
                           <>
-                            <div style={{ background: fishIDResult.isKeepable ? "#d8f0d8" : "#f8e8d0", padding: "12px 14px" }}>
+                            <div style={{ background: fishIDResult.isKeepable ? "#e0f2f2" : "#f8e8d0", padding: "12px 14px" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                                 <div>
                                   <div style={{ fontWeight: 900, fontSize: "1.15rem" }}>{fishIDResult.species?.[lang]}</div>
@@ -3598,7 +3774,7 @@ If this is NOT a fish or the image is unclear, return:
                               <div style={{ background: "#f8f4ec", padding: "10px 14px", fontSize: "0.88rem", color: "#3a3a2a", lineHeight: 1.6 }}>{fishIDResult.description[lang]}</div>
                             )}
                             {fishIDResult.regulations && (
-                              <div style={{ background: fishIDResult.isKeepable ? "#d8f0d8" : "#f8e8d0", padding: "10px 14px", borderTop: "1px solid #e0dbd0" }}>
+                              <div style={{ background: fishIDResult.isKeepable ? "#e0f2f2" : "#f8e8d0", padding: "10px 14px", borderTop: "1px solid #e0dbd0" }}>
                                 <div style={{ fontWeight: 700, fontSize: "0.88rem", marginBottom: 4, color: fishIDResult.isKeepable ? "#2d7a3a" : "#c06a10" }}>
                                   {fishIDResult.isKeepable ? "✅" : "⚠️"} {lang === "ja" ? "規制情報" : "Regulations"}
                                   {fishIDResult.regulations.minSize && <span style={{ marginLeft: 8, fontWeight: 400, fontSize: "0.82rem" }}>{lang === "ja" ? `最小キープサイズ: ${fishIDResult.regulations.minSize}cm` : `Min keep: ${fishIDResult.regulations.minSize}cm`}</span>}
@@ -3624,13 +3800,13 @@ If this is NOT a fish or the image is unclear, return:
                     {/* Method toggle */}
                     <div style={{ display: "flex", gap: 6, marginBottom: 9 }}>
                       {[{ k: "lure", ja: "🎣 ルアー", en: "🎣 Lure" }, { k: "fly", ja: "🪶 フライ", en: "🪶 Fly" }, { k: "bait", ja: "🪱 エサ", en: "🪱 Bait" }].map(m => (
-                        <button key={m.k} onClick={() => setNewCatch(p => ({ ...p, method: m.k }))} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${newCatch.method === m.k ? "rgba(72,202,228,0.5)" : "#d4cfc4"}`, background: newCatch.method === m.k ? "rgba(72,202,228,0.12)" : "transparent", color: newCatch.method === m.k ? "#0d7377" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{m[lang]}</button>
+                        <button key={m.k} onClick={() => setNewCatch(p => ({ ...p, method: m.k }))} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${newCatch.method === m.k ? "rgba(72,202,228,0.5)" : "#d4cfc4"}`, background: newCatch.method === m.k ? "rgba(72,202,228,0.12)" : "transparent", color: newCatch.method === m.k ? "#1a1a14" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{m[lang]}</button>
                       ))}
                     </div>
                     {/* Location sharing opt-in */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, background: locationSharing ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${locationSharing ? "#0d7377" : "#d4cfc4"}`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, background: locationSharing ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${locationSharing ? "#1a1a14" : "#d4cfc4"}`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: "0.88rem", color: locationSharing ? "#0d7377" : "#5a5a4a" }}>
+                        <div style={{ fontWeight: 700, fontSize: "0.88rem", color: locationSharing ? "#1a1a14" : "#5a5a4a" }}>
                           📍 {lang === "ja" ? "釣り場所をマップに共有" : "Share catch location on map"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>
@@ -3638,16 +3814,16 @@ If this is NOT a fish or the image is unclear, return:
                         </div>
                       </div>
                       <button onClick={() => setLocationSharing(!locationSharing)}
-                        style={{ width: 44, height: 24, borderRadius: 99, border: "none", background: locationSharing ? "#0d7377" : "#d4cfc4", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+                        style={{ width: 44, height: 24, borderRadius: 99, border: "none", background: locationSharing ? "#1a1a14" : "#d4cfc4", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
                         <div style={{ width: 18, height: 18, borderRadius: "50%", background: "white", position: "absolute", top: 3, left: locationSharing ? 23 : 3, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }} />
                       </button>
                     </div>
                     {[{ k: "fish", ph: { ja: "魚種（例：ヤマメ）", en: "Species (e.g. Yamame)" } }, { k: "weight", ph: { ja: "重さ（例：0.4 kg）", en: "Weight (e.g. 0.4 kg)" } }, { k: "location", ph: { ja: "釣り場所", en: "Location" } }].map(f => (
-                      <input key={f.k} value={newCatch[f.k]} onChange={e => setNewCatch(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.ph[lang]} style={{ width: "100%", marginBottom: 8, background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", color: "#1a1a14", fontSize: "0.92rem" }} />
+                      <input key={f.k} value={newCatch[f.k]} onChange={e => setNewCatch(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.ph[lang]} style={{ width: "100%", marginBottom: 8, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem" }} />
                     ))}
-                    <textarea value={newCatch.notes} onChange={e => setNewCatch(p => ({ ...p, notes: e.target.value }))} placeholder={lang === "ja" ? "メモ（フライパターン・状況・テクニック）" : "Notes (fly pattern, conditions, technique)"} rows={3} style={{ width: "100%", marginBottom: 10, background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", color: "#1a1a14", fontSize: "0.92rem", resize: "vertical" }} />
+                    <textarea value={newCatch.notes} onChange={e => setNewCatch(p => ({ ...p, notes: e.target.value }))} placeholder={lang === "ja" ? "メモ（フライパターン・状況・テクニック）" : "Notes (fly pattern, conditions, technique)"} rows={3} style={{ width: "100%", marginBottom: 10, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem", resize: "vertical" }} />
                     <div style={{ display: "flex", gap: 6 }}>
-                      <button onClick={submitCatch} style={{ flex: 2, padding: "10px", background: newCatch.fish ? "#d0eae8" : "#e8e3d8", border: `2px solid ${newCatch.fish ? "#80b0c8" : "#c4bfb4"}`, borderRadius: 9, color: newCatch.fish ? "#0d7377" : "#9a9a8a", cursor: newCatch.fish ? "pointer" : "not-allowed", fontFamily: "inherit", fontWeight: 700 }}>{s("saveshare", lang)}</button>
+                      <button onClick={submitCatch} style={{ flex: 2, padding: "10px", background: newCatch.fish ? "#d0eae8" : "#e8e3d8", border: `2px solid ${newCatch.fish ? "#80b0c8" : "#c4bfb4"}`, borderRadius: 9, color: newCatch.fish ? "#1a1a14" : "#9a9a8a", cursor: newCatch.fish ? "pointer" : "not-allowed", fontFamily: "inherit", fontWeight: 700 }}>{s("saveshare", lang)}</button>
                       <button onClick={() => { setLogOpen(false); setPhotoPreview(null); setFishIDResult(null); }} style={{ flex: 1, padding: "10px", background: "#fffdf8", border: "2px solid #d4cfc4", borderRadius: 9, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit" }}>{s("cancel", lang)}</button>
                     </div>
                   </div>
@@ -3691,20 +3867,20 @@ If this is NOT a fish or the image is unclear, return:
               <div style={{ animation: "fadeUp 0.4s ease" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <h3 style={{ margin: 0, fontSize: "1.1rem" }}>📓 {lang === "ja" ? "釣り日誌" : "Fishing Journal"}</h3>
-                  <button onClick={() => setJournalOpen(!journalOpen)} style={{ background: "#e0f2f2", border: "2px solid #a0c8d0", borderRadius: 10, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 700 }}>
+                  <button onClick={() => setJournalOpen(!journalOpen)} style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 10, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 700 }}>
                     + {lang === "ja" ? lang === "ja" ? "新しい日誌" : "New Entry" : "New Entry"}
                   </button>
                 </div>
 
                 {journalOpen && (
-                  <div style={{ background: "#fffdf8", border: "2px solid #a0c8d0", borderRadius: 14, padding: 14, marginBottom: 14, animation: "fadeUp 0.3s ease" }}>
-                    <input value={journalEntry.title} onChange={e => setJournalEntry(p => ({...p, title: e.target.value}))} placeholder={lang === "ja" ? "タイトル（例：矢部川 朝の部）" : "Title (e.g. Yabeji River morning session)"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                  <div style={{ background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 14, animation: "fadeUp 0.3s ease" }}>
+                    <input value={journalEntry.title} onChange={e => setJournalEntry(p => ({...p, title: e.target.value}))} placeholder={lang === "ja" ? "タイトル（例：矢部川 朝の部）" : "Title (e.g. Yabeji River morning session)"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
                     <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                      <input value={journalEntry.weather} onChange={e => setJournalEntry(p => ({...p, weather: e.target.value}))} placeholder={lang === "ja" ? "天気" : "Weather"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
-                      <input value={journalEntry.water} onChange={e => setJournalEntry(p => ({...p, water: e.target.value}))} placeholder={lang === "ja" ? "水温・水量" : "Water temp/level"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                      <input value={journalEntry.weather} onChange={e => setJournalEntry(p => ({...p, weather: e.target.value}))} placeholder={lang === "ja" ? "天気" : "Weather"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                      <input value={journalEntry.water} onChange={e => setJournalEntry(p => ({...p, water: e.target.value}))} placeholder={lang === "ja" ? "水温・水量" : "Water temp/level"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
                     </div>
-                    <input value={journalEntry.flies} onChange={e => setJournalEntry(p => ({...p, flies: e.target.value}))} placeholder={lang === "ja" ? "使用フライ・ルアー" : "Flies/lures used"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
-                    <textarea value={journalEntry.notes} onChange={e => setJournalEntry(p => ({...p, notes: e.target.value}))} placeholder={lang === "ja" ? "メモ・観察・気づき..." : "Notes, observations, insights..."} rows={4} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #a0c8d0", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem", resize: "vertical" }} />
+                    <input value={journalEntry.flies} onChange={e => setJournalEntry(p => ({...p, flies: e.target.value}))} placeholder={lang === "ja" ? "使用フライ・ルアー" : "Flies/lures used"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                    <textarea value={journalEntry.notes} onChange={e => setJournalEntry(p => ({...p, notes: e.target.value}))} placeholder={lang === "ja" ? "メモ・観察・気づき..." : "Notes, observations, insights..."} rows={4} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem", resize: "vertical" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                       <span style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "評価:" : "Rating:"}</span>
                       {[1,2,3,4,5].map(s => (
@@ -3712,7 +3888,7 @@ If this is NOT a fish or the image is unclear, return:
                       ))}
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
-                      <button onClick={() => { if (journalEntry.title) { addEntry(journalEntry); setJournalEntry({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 }); setJournalOpen(false); } }} style={{ flex: 2, padding: "10px", background: "#d0eae8", border: "2px solid #80b0c8", borderRadius: 9, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>{lang === "ja" ? "保存" : "Save"}</button>
+                      <button onClick={() => { if (journalEntry.title) { addEntry(journalEntry); setJournalEntry({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 }); setJournalOpen(false); } }} style={{ flex: 2, padding: "10px", background: "#d0eae8", border: "2px solid #c8b800", borderRadius: 9, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>{lang === "ja" ? "保存" : "Save"}</button>
                       <button onClick={() => setJournalOpen(false)} style={{ flex: 1, padding: "10px", background: "#fffdf8", border: "2px solid #d4cfc4", borderRadius: 9, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit" }}>{lang === "ja" ? "キャンセル" : "Cancel"}</button>
                     </div>
                   </div>
@@ -3769,7 +3945,7 @@ If this is NOT a fish or the image is unclear, return:
                       </div>
                     </div>
                   ))}
-                  <div style={{ background: "rgba(72,202,228,0.07)", border: "2px solid #a0c8d0", borderRadius: 12, padding: "10px 13px", display: "flex", gap: 10, alignItems: "center" }}>
+                  <div style={{ background: "rgba(72,202,228,0.07)", border: "2px solid #FFE500", borderRadius: 12, padding: "10px 13px", display: "flex", gap: 10, alignItems: "center" }}>
                     <div style={{ fontSize: "1.05rem", minWidth: 26, textAlign: "center", fontWeight: 700, color: "#0d7377" }}>#8</div>
                     <div style={{ fontSize: "1.2rem" }}>{profile.avatar}</div>
                     <div style={{ flex: 1 }}>
@@ -3806,7 +3982,7 @@ If this is NOT a fish or the image is unclear, return:
               <>
                 <div style={{ background: "linear-gradient(135deg,rgba(144,96,224,0.15),rgba(72,202,228,0.08))", border: "2px solid #c0a0e0", borderRadius: 18, padding: 18, marginBottom: 16, textAlign: "center" }}>
                   <div style={{ fontSize: "2.5rem", marginBottom: 8 }}>👑</div>
-                  <div style={{ fontWeight: 700, fontSize: "1.15rem", marginBottom: 6 }}>{lang === "ja" ? "釣りナビ PRO" : "CastWise PRO"}</div>
+                  <div style={{ fontWeight: 700, fontSize: "1.15rem", marginBottom: 6 }}>{lang === "ja" ? "釣りナビ PRO" : "Mabo Fishing"}</div>
                   <div style={{ fontSize: "0.92rem", color: "#5a5a4a", lineHeight: 1.6 }}>{lang === "ja" ? "広告なしで、より多くの機能を楽しもう" : "More features, zero ads"}</div>
                 </div>
                 {[
@@ -3846,9 +4022,9 @@ If this is NOT a fish or the image is unclear, return:
                     </div>
                   ))}
                 </div>
-                <div style={{ marginTop: 16, background: "#e8f4ec", border: "2px solid #a0d0b0", borderRadius: 14, padding: 14, textAlign: "center" }}>
+                <div style={{ marginTop: 16, background: "#e8f4ec", border: "2px solid #FFE500", borderRadius: 14, padding: 14, textAlign: "center" }}>
                   <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 8 }}>{lang === "ja" ? "まず試してみる？" : "Try before subscribing?"}</div>
-                  <button onClick={() => setShowRewarded(true)} style={{ padding: "10px 24px", background: "#d0ead8", border: "2px solid #80c098", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700 }}>
+                  <button onClick={() => setShowRewarded(true)} style={{ padding: "10px 24px", background: "#d0eae8", border: "2px solid #c8b800", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700 }}>
                     🎁 {lang === "ja" ? "動画を見て1日PRO体験" : "Watch an ad for 1-day trial"}
                   </button>
                 </div>
