@@ -79,8 +79,8 @@ function AdsterraBanner() {
 }
 
 function BannerAd({ lang, onDismiss, isPremium }) {
-  if (isPremium) return null;
-  return <AdsterraBanner />;
+  // Ads paused until launch
+  return null;
 }
 // ─── AMAZON AFFILIATE ────────────────────────────────────────────────────────
 const AMAZON_TAG = "mabo-22";
