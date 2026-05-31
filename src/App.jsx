@@ -46,7 +46,6 @@ function s(key, lang) { return T[key]?.[lang] || key; }
 
 
 
-
 // ─── ADSTERRA ADS ────────────────────────────────────────────────────────────
 const ADSTERRA_KEY = "40aa13e6e14b36d178383836e1a4154e";
 
@@ -298,7 +297,6 @@ const SPRITE_DATA = {
   kanpachi:        { col: 2, row: 3 },
 };
 
-const FISH_SVG = {}; // Sprite sheet replaces SVGs
 function FishIllustration({ fishId, size = 80, style = {} }) {
   const spriteKey = APP_ID_TO_SPRITE[fishId];
   const sprite = spriteKey ? SPRITE_DATA[spriteKey] : null;
@@ -2429,8 +2427,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
     { key: "kanto",    ja: "関東",     en: "Kanto",     emoji: "🗼" },
     { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
     { key: "chubu",    ja: "中部",     en: "Chubu",     emoji: "🏯" },
-    { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", emoji: "🌴" },
-    { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
+    { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", emoji: "🌴" },   en: "Kansai",    emoji: "⛩️" },
     { key: "chubu",    ja: "中部",   en: "Chubu",     emoji: "🗻" },
     { key: "all",      ja: "全国",   en: "All Japan", emoji: "🗾" },
   ];
@@ -2956,7 +2953,6 @@ export default function CastWiseJapan() {
   );
 
   // New feature hooks
-  const WEATHER = useRealWeather(userLocation);
   const forecast7day = use7DayForecast(userLocation);
   const tideData = useRealTideData(userLocation);
   const riverConditions = useRiverConditions();
