@@ -2427,7 +2427,8 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
     { key: "kanto",    ja: "関東",     en: "Kanto",     emoji: "🗼" },
     { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
     { key: "chubu",    ja: "中部",     en: "Chubu",     emoji: "🏯" },
-    { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", emoji: "🌴" },   en: "Kansai",    emoji: "⛩️" },
+    { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", emoji: "🌴" },
+    { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
     { key: "chubu",    ja: "中部",   en: "Chubu",     emoji: "🗻" },
     { key: "all",      ja: "全国",   en: "All Japan", emoji: "🗾" },
   ];
