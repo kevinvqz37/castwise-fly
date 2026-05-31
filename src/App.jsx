@@ -3475,7 +3475,7 @@ If this is NOT a fish or the image is unclear, return:
                 <div onClick={() => { setSelectedFish(fish); switchTab("FishGuide"); setGearTab("gear"); }}
                   style={{ background: sty.bg, border: `2px solid ${sty.border}`, borderRadius: 16, padding: "14px 16px", marginBottom: 14, cursor: "pointer", animation: "fadeUp 0.3s ease" }}>
                   <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                    <FishIllustration fishId={fish.id} size={60} />
+                    <FishIllustration fishId={fish.id} spriteId={fish.spriteId} size={60} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
                         <span style={{ width: 8, height: 8, borderRadius: "50%", background: sty.dot, boxShadow: `0 0 8px ${sty.dot}88`, flexShrink: 0 }} />
@@ -3563,7 +3563,7 @@ If this is NOT a fish or the image is unclear, return:
                   onMouseEnter={e => e.currentTarget.style.transform = "translateY(-3px)"}
                   onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
                   {fish.flyFriendly && <div style={{ position: "absolute", top: 8, right: 8, fontSize: "1.05rem", background: "#c8e8d0", border: "2px solid #60b080", borderRadius: 6, padding: "1px 5px" }}>🪶</div>}
-                  <div style={{ marginBottom: 6, animation: "float 3s ease-in-out infinite", animationDelay: `${i * 0.4}s` }}><FishIllustration fishId={fish.id} size={64} /></div>
+                  <div style={{ marginBottom: 6, animation: "float 3s ease-in-out infinite", animationDelay: `${i * 0.4}s` }}><FishIllustration fishId={fish.id} spriteId={fish.spriteId} size={64} /></div>
                   <div style={{ fontWeight: 700, fontSize: "1rem", lineHeight: 1.3, marginBottom: 3 }}>{fish.name}</div>
                   <div style={{ fontSize: "0.8rem", color: "#5a5a4a", marginBottom: 5 }}>{fish.nameEn}</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 5 }}>
@@ -3593,7 +3593,7 @@ If this is NOT a fish or the image is unclear, return:
                 <div style={{ background: `linear-gradient(135deg,${selectedFish.color}50,${selectedFish.color}18)`, border: `1px solid ${selectedFish.accent}44`, borderRadius: 20, padding: 18, marginBottom: 12 }}>
                   <button onClick={() => setSelectedFish(null)} style={{ background: "#e8e3d8", border: "none", borderRadius: 8, padding: "4px 10px", color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", marginBottom: 10 }}>{s("back", lang)}</button>
                   <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                    <div style={{ animation: "float 3s ease-in-out infinite" }}><FishIllustration fishId={selectedFish.id} size={80} /></div>
+                    <div style={{ animation: "float 3s ease-in-out infinite" }}><FishIllustration fishId={selectedFish.id} spriteId={selectedFish.spriteId} size={80} /></div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700, fontSize: "1.2rem", lineHeight: 1.2 }}>{selectedFish.name}</div>
                       <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 6 }}>{selectedFish.nameEn}</div>
@@ -3726,7 +3726,7 @@ If this is NOT a fish or the image is unclear, return:
                 {i === 2 && !isPremium && <BannerAd lang={lang} isPremium={isPremium} />}
                 <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 17, overflow: "hidden", marginBottom: 13, animation: `fadeUp ${0.18 + i * 0.07}s ease both` }}>
                 <div style={{ height: 140, background: "linear-gradient(135deg,#e8e3d8,#d8d3c8)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-                  {c.photo ? <img src={c.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ animation: "float 3s ease-in-out infinite" }}><FishIllustration fishId={FISH_DATA.find(f=>f.name===c.fish)?.id || 1} size={100} /></div>}
+                  {c.photo ? <img src={c.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ animation: "float 3s ease-in-out infinite" }}><FishIllustration fishId={FISH_DATA.find(f=>f.name===c.fish)?.id || 1} spriteId={FISH_DATA.find(f=>f.name===c.fish)?.spriteId} size={100} /></div>}
                   <div style={{ position: "absolute", bottom: 9, right: 9, background: "rgba(30,30,20,0.8)", borderRadius: 7, padding: "3px 9px", fontSize: "0.95rem", color: "#c06a10", fontWeight: 700 }}>⚖️ {c.weight}</div>
                   {c.verified && <div style={{ position: "absolute", top: 9, right: 9, background: "#c8e8d0", border: "1px solid #FFE50044", borderRadius: 7, padding: "2px 7px", fontSize: "1.05rem", color: "#2d7a3a" }}>{s("verified", lang)}</div>}
                   {c.method === "fly" && <div style={{ position: "absolute", top: 9, left: 9, background: "#c8e8d0", border: "2px solid #60b080", borderRadius: 7, padding: "2px 7px", fontSize: "1.05rem", color: "#2d7a3a" }}>🪶 {lang === "ja" ? "フライ" : "Fly"}</div>}
