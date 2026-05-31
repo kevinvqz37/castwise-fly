@@ -3134,12 +3134,7 @@ export default function CastWiseJapan() {
     if (!isPremium) {
       const newCount = tabSwitchCount + 1;
       setTabSwitchCount(newCount);
-      // Show interstitial every 10 tab switches
-      if (newCount % 10 === 0) {
-        setPendingTab(newTab);
-        setShowInterstitial(true);
-        return;
-      }
+      // Ads paused until launch
     }
     setTab(newTab);
   }
