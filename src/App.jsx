@@ -2954,6 +2954,7 @@ export default function CastWiseJapan() {
   );
 
   // New feature hooks
+  const WEATHER = useRealWeather(userLocation);
   const forecast7day = use7DayForecast(userLocation);
   const tideData = useRealTideData(userLocation);
   const riverConditions = useRiverConditions();
