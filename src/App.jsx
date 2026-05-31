@@ -247,7 +247,53 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
   );
 }
 
-// ─── FISH ILLUSTRATION (Sprite Sheet System) ─────────────────────────────────
+// ─── CARIBBEAN SPRITE SHEET ──────────────────────────────────────────────────
+const CARIBBEAN_SPRITE_URL = "/caribbean_spritesheet.png";
+const CARIBBEAN_COLS = 7;
+const CARIBBEAN_ROWS = 2;
+
+const CARIBBEAN_SPRITE_DATA = {
+  tarpon:         { col: 0, row: 0 }, snook:          { col: 1, row: 0 },
+  bonefish:       { col: 2, row: 0 }, permit:         { col: 3, row: 0 },
+  mahi_mahi:      { col: 4, row: 0 }, wahoo:          { col: 5, row: 0 },
+  barracuda:      { col: 6, row: 0 }, red_snapper:    { col: 0, row: 1 },
+  grouper:        { col: 1, row: 1 }, jack_crevalle:  { col: 2, row: 1 },
+  redfish:        { col: 3, row: 1 }, marlin:         { col: 4, row: 1 },
+  yellowfin_tuna: { col: 5, row: 1 }, needlefish:     { col: 6, row: 1 },
+};
+
+const CARIBBEAN_EMOJI = {
+  tarpon: "🐟", snook: "🐟", bonefish: "🐟", permit: "🐟",
+  mahi_mahi: "🐠", wahoo: "🐟", barracuda: "🦈", red_snapper: "🐠",
+  grouper: "🐟", jack_crevalle: "🐟", redfish: "🐟", marlin: "🐟",
+  yellowfin_tuna: "🐟", needlefish: "🐟",
+};
+
+function CaribbeanFishIllustration({ fishId, size = 80, style = {} }) {
+  const sprite = CARIBBEAN_SPRITE_DATA[fishId];
+  if (CARIBBEAN_SPRITE_URL && sprite) {
+    const xPercent = (sprite.col / (CARIBBEAN_COLS - 1)) * 100;
+    const yPercent = (sprite.row / (CARIBBEAN_ROWS - 1)) * 100;
+    return (
+      <div style={{
+        width: size, height: size,
+        backgroundImage: `url(${CARIBBEAN_SPRITE_URL})`,
+        backgroundSize: `${CARIBBEAN_COLS * 100}% ${CARIBBEAN_ROWS * 100}%`,
+        backgroundPosition: `${xPercent}% ${yPercent}%`,
+        backgroundRepeat: "no-repeat",
+        display: "inline-block",
+        ...style,
+      }} />
+    );
+  }
+  return (
+    <div style={{ width: size, height: size, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.55, ...style }}>
+      {CARIBBEAN_EMOJI[fishId] || "🐟"}
+    </div>
+  );
+}
+
+
 // Maps FISH_DATA appId -> sprite key
 const APP_ID_TO_SPRITE = {
   1: "largemouth_bass", 2: "ayu", 3: "yamame", 4: "seabass",
@@ -297,7 +343,26 @@ const SPRITE_DATA = {
   kanpachi:        { col: 2, row: 3 },
 };
 
-function FishIllustration({ fishId, size = 80, style = {} }) {
+function FishIllustration({ fishId, spriteId, size = 80, style = {} }) {
+  // Check if this is a Caribbean fish
+  const caribSprite = spriteId ? CARIBBEAN_SPRITE_DATA[spriteId] : null;
+  if (CARIBBEAN_SPRITE_URL && caribSprite) {
+    const xPercent = (caribSprite.col / (CARIBBEAN_COLS - 1)) * 100;
+    const yPercent = (caribSprite.row / (CARIBBEAN_ROWS - 1)) * 100;
+    return (
+      <div style={{
+        width: size, height: size,
+        backgroundImage: `url(${CARIBBEAN_SPRITE_URL})`,
+        backgroundSize: `${CARIBBEAN_COLS * 100}% ${CARIBBEAN_ROWS * 100}%`,
+        backgroundPosition: `${xPercent}% ${yPercent}%`,
+        backgroundRepeat: "no-repeat",
+        display: "inline-block",
+        ...style,
+      }} />
+    );
+  }
+
+  // Japan sprite sheet
   const spriteKey = APP_ID_TO_SPRITE[fishId];
   const sprite = spriteKey ? SPRITE_DATA[spriteKey] : null;
 
@@ -345,6 +410,63 @@ const FISH_DATA = [
   { id: 14, name: "クロダイ", nameEn: "Black Bream / Kurodai", emoji: "🐟", color: "#3a3a3a", accent: "#a0a0a0", difficulty: "advanced", flyFriendly: false, season: { ja: "通年（春の乗っ込み期が最盛期）", en: "Year-round (spring spawning run peak)" }, habitat: { ja: "磯・防波堤・河口域・湾内", en: "Rocky shores, breakwaters, estuaries, harbors" }, bestTime: { ja: "早朝・夕方・潮の動く時間", en: "Early morning, evening & tidal movement" }, description: { ja: "ウキフカセ釣りの代表的ターゲット。タナ（棚）とコマセ（撒き餌）のコントロールが釣果を分ける、テクニカルな釣り。", en: "The quintessential float fishing target. Mastering berley (burley/chum) and float depth makes the difference." }, gear: { rod: { ja: "磯竿 1〜1.5号 5〜5.3m", en: "1.0–1.5 class 5–5.3m ISO rod" }, reel: { ja: "レバーブレーキ付きスピニング 2500〜3000番", en: "2500–3000 lever-brake spinning reel" }, line: { ja: "ナイロン 1.5〜2.5号", en: "1.5–2.5 nylon" }, hooks: { ja: "#3〜6 チヌ針", en: "#3–6 chinu hook" }, lures: ["オキアミ（コマセ・ツケエサ）", "コーン", "ダンゴ餌", "練りエサ"], tips: { ja: "コマセを定期的に打ち、魚を一か所に集める。ツケエサとコマセが同調することが最重要。", en: "Berley regularly to concentrate fish. The key is timing your hook bait to fall through the berley cloud." } }, spots: [{ name: "神奈川・三浦半島磯", rating: 4.8, type: { ja: "磯", en: "Rocky Shore" } }, { name: "和歌山・白浜磯", rating: 4.9, type: { ja: "磯", en: "Rocky Shore" } }, { name: "長崎・五島列島", rating: 5.0, type: { ja: "離島磯", en: "Island Shore" } }] },
   { id: 15, name: "ハマチ（ショア）", nameEn: "Young Yellowtail (Shore)", emoji: "🦈", color: "#203848", accent: "#ffd020", difficulty: "intermediate", flyFriendly: false, season: { ja: "夏〜秋（7〜11月）", en: "Summer–Autumn (July–November)" }, habitat: { ja: "地磯・サーフ・港湾の外側", en: "Shore reefs, surf, outer harbor walls" }, bestTime: { ja: "朝マズメ・夕マズメ", en: "Dawn & dusk feeding windows" }, description: { ja: "ショアジギング最人気ターゲット。岸から大型青物を狙う爽快感はたまらない。遠投メタルジグを100gクラスで全力でシャクる。", en: "Shore jigging's most exciting target. Hurling heavy jigs from the rocks at charging pelagics is Japan's fastest-growing shore style." }, gear: { rod: { ja: "ショアジギングロッド 10〜11フィート H〜XH", en: "10–11ft H–XH shore jigging rod" }, reel: { ja: "5000〜6000番スピニング", en: "5000–6000 spinning reel" }, line: { ja: "PE 2.0〜3.0号 + フロロリーダー 35〜50lb", en: "PE 2.0–3.0 + 35–50lb fluoro leader" }, hooks: { ja: "アシストフック #2/0〜4/0", en: "Assist hook #2/0–4/0" }, lures: ["メタルジグ 60〜100g（ブルピン/シルバー）", "ポッパー 100mm以上", "ペンシルベイト（水面の炸裂を楽しむ）"], tips: { ja: "早朝の第一投が黄金。太陽が高くなる前の30分が最も熱い。全力遠投してスピードジャーキング。", en: "The first cast at dawn is golden. The 30-minute window before the sun rises is peak. Cast far, retrieve fast." } }, spots: [{ name: "大分・蒲江地磯", rating: 5.0, type: { ja: "地磯", en: "Shore Reef" } }, { name: "高知・足摺岬", rating: 4.9, type: { ja: "地磯", en: "Shore Reef" } }, { name: "静岡・御前崎", rating: 4.7, type: { ja: "地磯", en: "Shore Reef" } }] },
   { id: 16, name: "メバル", nameEn: "Rockfish (Mebaru)", emoji: "🐟", color: "#5a3818", accent: "#e0b060", difficulty: "beginner", flyFriendly: false, season: { ja: "通年（冬〜春が最盛期）", en: "Year-round (peak winter–spring)" }, habitat: { ja: "磯・防波堤・港湾の岩礁周り", en: "Rocky shores, breakwaters, harbor reefs" }, bestTime: { ja: "夜間〜早朝・常夜灯周り", en: "Night to early morning, harbor lights" }, description: { ja: "メバリングで大人気のライトゲームターゲット。繊細なアタリと軽量タックルの組み合わせが醍醐味。夜の常夜灯周りに多く集まる。", en: "The star of mebaring light-game fishing. Ultra-sensitive bites on ultra-light tackle make it addictive. Gathers under harbor lights at night." }, gear: { rod: { ja: "メバリングロッド 6〜7フィート L〜UL", en: "6–7ft L–UL mebaring rod" }, reel: { ja: "1000〜2000番スピニング", en: "1000–2000 spinning reel" }, line: { ja: "PE 0.2〜0.4号 + フロロリーダー 3〜5lb", en: "PE 0.2–0.4 + 3–5lb fluoro leader" }, hooks: { ja: "ジグヘッド 0.5〜1.5g #8〜10", en: "Jig head 0.5–1.5g #8–10" }, lures: ["1.5〜2インチワーム（クリアカラー）", "プラグ", "スプーン", "フローティングミノー"], tips: { ja: "夜の常夜灯周りは超一級ポイント。ゆっくりとしたデッドスローリトリーブが基本。ラインの動きでアタリを取る。", en: "Night lights in harbors are prime. Ultra-slow retrieve is key. Watch the line for the subtlest bites." } }, spots: [{ name: "横浜港・山下ふ頭", rating: 4.5, type: { ja: "港湾", en: "Harbor" } }, { name: "神戸港・ポートアイランド", rating: 4.6, type: { ja: "港湾", en: "Harbor" } }, { name: "松山港（愛媛）", rating: 4.7, type: { ja: "港湾", en: "Harbor" } }] },
+  // ── CARIBBEAN / PUERTO RICO ─────────────────────────────────────────────────
+  { id: 17, name: "タリポン", nameEn: "Tarpon", spriteId: "tarpon", emoji: "🐟", category: "saltwater", difficulty: "advanced",
+    desc: { ja: "カリブ海の王者。100lb超の個体も珍しくない。ジャンプが凄まじく釣り人を魅了する。", en: "King of the Caribbean. Fish over 100lb are common. Aerial acrobatics are legendary." },
+    season: { ja: "通年（夏最高）", en: "Year-round (summer peak)" }, color: "#c8e6f0", accent: "#1565a0",
+    gear: { rods: { ja: "ヘビーロッド 8' H、またはフライロッド12番", en: "Heavy 8' rod or 12-weight fly rod" }, line: { ja: "PE3〜5号、リーダー100lb", en: "30-50lb braid, 100lb leader" }, lures: ["Bubble Walker", "Mullet plug", "Crab fly", "Deceiver"], technique: { ja: "夜の常夜灯周りでポッパー。朝夕のフラットでフライ。", en: "Poppers around night lights. Fly on flats at dawn and dusk." } },
+    spots: [{ name: "Laguna Tortuguero", rating: 4.9 }, { name: "Boca de Cangrejos", rating: 4.7 }, { name: "Vieques - Mosquito Pier", rating: 4.9 }],
+    regulations: { ja: "キャッチ＆リリース推奨。遊漁ライセンス不要（海釣り）", en: "C&R recommended. No license required for saltwater fishing in PR." } },
+
+  { id: 18, name: "スノック", nameEn: "Snook", spriteId: "snook", emoji: "🐟", category: "saltwater", difficulty: "intermediate",
+    desc: { ja: "マングローブの王様。鋭いエラ蓋で仕掛けを切る。繊細なアプローチが必要。", en: "King of the mangroves. Sharp gill plate cuts lines. Requires finesse." },
+    season: { ja: "通年（秋春最高）", en: "Year-round (fall/spring best)" }, color: "#d4e8d0", accent: "#2d6a1f",
+    gear: { rods: { ja: "ライトロッド 7' M", en: "7' medium spinning or 8-weight fly rod" }, line: { ja: "PE1.5〜2号、リーダー40lb", en: "15-20lb braid, 40lb fluorocarbon leader" }, lures: ["Live mullet", "DOA shrimp", "Clouser Minnow", "Topwater plug"], technique: { ja: "マングローブの根際をタイトに狙う。朝夕のトップウォーターが最高。", en: "Cast tight to mangrove roots. Topwater at dawn and dusk is explosive." } },
+    spots: [{ name: "Laguna Tortuguero", rating: 4.9 }, { name: "Humacao Nature Reserve", rating: 4.6 }],
+    regulations: { ja: "最小サイズ: 28インチ。禁漁期: 12〜2月", en: "Minimum 28 inches. Closed Dec–Feb (spawning)." } },
+
+  { id: 19, name: "ボーンフィッシュ", nameEn: "Bonefish", spriteId: "bonefish", emoji: "🐟", category: "saltwater", difficulty: "advanced",
+    desc: { ja: "フラットフィッシングの究極ターゲット。透明な浅瀬で銀色に輝く魚体を発見してキャストする。", en: "The ultimate flats target. Spotting silver shapes in crystal shallows and making the perfect cast." },
+    season: { ja: "11〜5月", en: "Nov–May" }, color: "#e8f4f0", accent: "#0d7377",
+    gear: { rods: { ja: "フライロッド8〜9番", en: "8-9 weight fly rod" }, line: { ja: "ボーンフィッシュテーパー、ティペット16lb", en: "Bonefish taper fly line, 16lb tippet" }, lures: ["Crazy Charlie", "Gotcha", "Crab pattern", "Shrimp fly"], technique: { ja: "干潮時に干潟をウェーディングしてサイトフィッシング。", en: "Wade the flats at low tide and sight fish. Stealth is everything." } },
+    spots: [{ name: "Vieques - Red Beach Flats", rating: 5.0 }, { name: "Culebra - Flamenco Beach Flats", rating: 4.9 }],
+    regulations: { ja: "キャッチ＆リリース推奨", en: "C&R strongly recommended." } },
+
+  { id: 20, name: "パーミット", nameEn: "Permit", spriteId: "permit", emoji: "🐟", category: "saltwater", difficulty: "advanced",
+    desc: { ja: "フラットフィッシングで最も難しいターゲット。1匹釣れれば一生の思い出。", en: "The most difficult flats fish. Landing one on fly is a lifetime achievement." },
+    season: { ja: "春〜初夏", en: "Spring–early summer" }, color: "#f0f4e8", accent: "#5a7a20",
+    gear: { rods: { ja: "フライロッド9〜10番", en: "9-10 weight fly rod" }, line: { ja: "ボーンフィッシュラインと同様", en: "Similar to bonefish setup" }, lures: ["Merkin crab", "EP Crab", "Del's Merkin", "Live crab"], technique: { ja: "カニフライをパーミットの鼻先にプレゼンテーション。絶対に急がない。", en: "Present a crab fly to the permit's nose. Never rush the presentation." } },
+    spots: [{ name: "Vieques - Blue Beach", rating: 4.9 }, { name: "Culebra - Flamenco Beach Flats", rating: 4.9 }],
+    regulations: { ja: "キャッチ＆リリース強く推奨", en: "C&R strongly recommended." } },
+
+  { id: 21, name: "マヒマヒ", nameEn: "Mahi-Mahi (Dorado)", spriteId: "mahi_mahi", emoji: "🐠", category: "offshore", difficulty: "beginner",
+    desc: { ja: "最もカラフルな海の魚。青・緑・金の輝きが美しく食味も最高。", en: "Most colorful fish in the sea. Spectacular colors and exceptional table fare." },
+    season: { ja: "3〜8月", en: "Mar–Aug" }, color: "#e8f8e0", accent: "#2d8a2d",
+    gear: { rods: { ja: "ライトロッド、PE2〜3号", en: "Light to medium rod, 20-30lb braid" }, line: { ja: "PE2〜3号、リーダー40lb", en: "20-30lb braid, 40lb leader" }, lures: ["Ballyhoo", "Feather jig", "Mahi fly", "Popper"], technique: { ja: "流木・藻の周りに集まる。チャムで引き寄せてからルアー。", en: "Gather around floating debris. Chum them up then switch to lures." } },
+    spots: [{ name: "La Parguera", rating: 5.0 }, { name: "Vieques - Offshore", rating: 5.0 }],
+    regulations: { ja: "サイズ・数量制限なし（プエルトリコ）", en: "No size or bag limit in PR." } },
+
+  { id: 22, name: "ワフー", nameEn: "Wahoo (Ono)", spriteId: "wahoo", emoji: "🐟", category: "offshore", difficulty: "intermediate",
+    desc: { ja: "海で最も速い魚の一つ。60mph以上で泳ぐ。引きが強烈で食味は最高級。", en: "One of the fastest fish in the ocean at 60mph+. Intense fight and premium eating." },
+    season: { ja: "通年（秋冬最高）", en: "Year-round (fall/winter best)" }, color: "#e8f0f8", accent: "#1a5a8a",
+    gear: { rods: { ja: "ヘビーロッド、PE4〜6号", en: "Heavy rod, 40-60lb braid" }, line: { ja: "PE4〜6号、ワイヤーリーダー必須", en: "40-60lb braid, wire leader essential" }, lures: ["High-speed lure", "Rapala X-Rap", "Drone spoon"], technique: { ja: "高速トローリング（12〜15ノット）が最も効果的。", en: "High-speed trolling at 12-15 knots is most effective." } },
+    spots: [{ name: "Vieques - Offshore", rating: 5.0 }, { name: "La Parguera", rating: 5.0 }],
+    regulations: { ja: "サイズ・数量制限なし（プエルトリコ）", en: "No size or bag limit in PR." } },
+
+  { id: 23, name: "バラクーダ", nameEn: "Barracuda", spriteId: "barracuda", emoji: "🦈", category: "saltwater", difficulty: "beginner",
+    desc: { ja: "鋭い歯を持つスピードスター。シルバーのルアーに猛突進する。", en: "Speed demon with razor teeth. Will charge at silver lures with explosive strikes." },
+    season: { ja: "通年", en: "Year-round" }, color: "#f0f0f8", accent: "#445580",
+    gear: { rods: { ja: "ミディアムロッド、PE2〜3号", en: "Medium rod, 20-30lb braid" }, line: { ja: "PE2〜3号、ワイヤーリーダー推奨", en: "20-30lb braid, wire leader recommended" }, lures: ["Silver spoon", "Tube lure", "Needlefish lure", "Rapala"], technique: { ja: "リーフや岩礁際を高速リトリーブ。シルバーカラーに強い反応。", en: "Fast retrieve along reefs. Silver colors get the strongest reactions." } },
+    spots: [{ name: "Culebra Island", rating: 5.0 }, { name: "Vieques - North Shore Reef", rating: 4.8 }],
+    regulations: { ja: "大型個体の食用は避けること（シガテラ毒）", en: "Avoid eating large barracuda due to ciguatera risk." } },
+
+  { id: 24, name: "レッドスナッパー", nameEn: "Red Snapper", spriteId: "red_snapper", emoji: "🐠", category: "reef", difficulty: "beginner",
+    desc: { ja: "カリブ海で最も人気の食用魚。赤い体が美しくリーフ釣りの定番ターゲット。", en: "One of the Caribbean's most prized food fish. Classic reef bottom fishing target." },
+    season: { ja: "通年", en: "Year-round" }, color: "#fce8e8", accent: "#c0302a",
+    gear: { rods: { ja: "ミディアムヘビーロッド、PE3〜4号", en: "Medium-heavy rod, 30-40lb braid" }, line: { ja: "PE3〜4号、リーダー40〜60lb", en: "30-40lb braid, 40-60lb leader" }, lures: ["Squid", "Live bait", "Jig 60-100g", "Cut fish"], technique: { ja: "リーフの根際でボトムフィッシング。生餌か冷凍イカが有効。", en: "Bottom fishing along reef structures. Live or frozen squid is most effective." } },
+    spots: [{ name: "Vieques - North Shore Reef", rating: 4.8 }, { name: "Culebra Island", rating: 5.0 }],
+    regulations: { ja: "最小サイズ: 10インチ。DNER規制を確認", en: "Minimum 10 inches. Check current DNER regulations." } },
+
 ];
 
 // ─── SEASONAL INTELLIGENCE ───────────────────────────────────────────────────
@@ -2954,7 +3076,6 @@ export default function CastWiseJapan() {
   );
 
   // New feature hooks
-  const WEATHER = useRealWeather(userLocation);
   const forecast7day = use7DayForecast(userLocation);
   const tideData = useRealTideData(userLocation);
   const riverConditions = useRiverConditions();
@@ -3028,10 +3149,10 @@ export default function CastWiseJapan() {
   }
 
   const diffMap = { all: { ja: "すべて", en: "All" }, beginner: { ja: "初心者", en: "Beginner" }, intermediate: { ja: "中級者", en: "Intermediate" }, advanced: { ja: "上級者", en: "Advanced" } };
-  const catMap = { all: { ja: "すべて", en: "All" }, freshwater: { ja: "淡水", en: "Freshwater" }, saltwater: { ja: "海水", en: "Saltwater" }, shore: { ja: "ショア", en: "Shore" } };
+  const catMap = { all: { ja: "すべて", en: "All" }, freshwater: { ja: "淡水", en: "Freshwater" }, saltwater: { ja: "海水", en: "Saltwater" }, shore: { ja: "ショア", en: "Shore" }, caribbean: { ja: "🌴 カリブ", en: "🌴 Caribbean" } };
 
 
-  const FISH_CATS = { 1:"freshwater", 2:"freshwater", 3:"freshwater", 4:"saltwater", 5:"freshwater", 6:"saltwater", 7:"saltwater", 8:"saltwater", 9:"freshwater", 10:"freshwater", 11:"freshwater", 12:"saltwater", 13:"saltwater", 14:"saltwater", 15:"shore", 16:"saltwater" };
+  const FISH_CATS = { 1:"freshwater", 2:"freshwater", 3:"freshwater", 4:"saltwater", 5:"freshwater", 6:"saltwater", 7:"saltwater", 8:"saltwater", 9:"freshwater", 10:"freshwater", 11:"freshwater", 12:"saltwater", 13:"saltwater", 14:"saltwater", 15:"shore", 16:"saltwater", 17:"caribbean", 18:"caribbean", 19:"caribbean", 20:"caribbean", 21:"caribbean", 22:"caribbean", 23:"caribbean", 24:"caribbean" };
 
   const filteredFish = FISH_DATA.filter(f =>
     (f.name.includes(search) || f.nameEn.toLowerCase().includes(search.toLowerCase())) &&
