@@ -1149,8 +1149,8 @@ function TournamentView({ lang, profile, myCatches }) {
         <div style={{ color: "#aaa", fontSize: "0.78rem" }}>{lang === "ja" ? "マボチャンネル主催の公式釣り大会" : "Official fishing tournaments by Mabo Channel"}</div>
       </div>
 
-      {MABO_TOURNAMENTS.map(t => (
-        t.rivalry ? (
+      {MABO_TOURNAMENTS.map(t => {
+        if (t.rivalry) return (
           <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: "linear-gradient(135deg, #1a1a14, #2a1a00)", border: "2px solid #FFE500", borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <span style={{ background: "#FFE500", color: "#1a1a14", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>⚔️ {lang === "ja" ? "ライバル対決" : "RIVALRY"}</span>
@@ -1175,22 +1175,23 @@ function TournamentView({ lang, profile, myCatches }) {
               {lang === "ja" ? "釣果を提出して勝負！→" : "Submit your catch & win! →"}
             </div>
           </div>
-        ) : (
-        <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: t.status === "live" ? "#1a1a14" : "white", border: `2px solid ${t.status === "live" ? "#74c69d" : "#e0e0d8"}`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-            <span style={{ background: t.status === "live" ? "#74c69d" : "#555", color: t.status === "live" ? "#1a1a14" : "#74c69d", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>
-              {t.status === "live" ? (lang === "ja" ? `🔴 開催中 · ${t.participants}名参加` : `🔴 LIVE · ${t.participants} anglers`) : (lang === "ja" ? "近日開催" : "UPCOMING")}
-            </span>
+        );
+        return (
+          <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: t.status === "live" ? "#1a1a14" : "white", border: `2px solid ${t.status === "live" ? "#74c69d" : "#e0e0d8"}`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+              <span style={{ background: t.status === "live" ? "#74c69d" : "#555", color: t.status === "live" ? "#1a1a14" : "#74c69d", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>
+                {t.status === "live" ? (lang === "ja" ? `🔴 開催中 · ${t.participants}名参加` : `🔴 LIVE · ${t.participants} anglers`) : (lang === "ja" ? "近日開催" : "UPCOMING")}
+              </span>
+            </div>
+            <div style={{ fontWeight: 800, fontSize: "0.95rem", color: t.status === "live" ? "#74c69d" : "#1a1a14", marginBottom: 4 }}>{t.name[lang]}</div>
+            <div style={{ fontSize: "0.78rem", color: t.status === "live" ? "#aaa" : "#888", marginBottom: 4 }}>📍 {t.location[lang]} · {t.period[lang]}</div>
+            <div style={{ fontSize: "0.82rem", color: t.status === "live" ? "#74c69d" : "#2d7a3a", fontWeight: 700 }}>{t.prize[lang]}</div>
+            <div style={{ marginTop: 10, background: t.status === "live" ? "#74c69d" : "#1a1a14", color: t.status === "live" ? "#1a1a14" : "#74c69d", borderRadius: 8, padding: "7px", textAlign: "center", fontSize: "0.85rem", fontWeight: 800 }}>
+              {t.status === "live" ? (lang === "ja" ? "参加・詳細を見る →" : "Join & View Details →") : (lang === "ja" ? "詳細を見る →" : "View Details →")}
+            </div>
           </div>
-          <div style={{ fontWeight: 800, fontSize: "0.95rem", color: t.status === "live" ? "#74c69d" : "#1a1a14", marginBottom: 4 }}>{t.name[lang]}</div>
-          <div style={{ fontSize: "0.78rem", color: t.status === "live" ? "#aaa" : "#888", marginBottom: 4 }}>📍 {t.location[lang]} · {t.period[lang]}</div>
-          <div style={{ fontSize: "0.82rem", color: t.status === "live" ? "#74c69d" : "#2d7a3a", fontWeight: 700 }}>{t.prize[lang]}</div>
-          <div style={{ marginTop: 10, background: t.status === "live" ? "#74c69d" : "#1a1a14", color: t.status === "live" ? "#1a1a14" : "#74c69d", borderRadius: 8, padding: "7px", textAlign: "center", fontSize: "0.85rem", fontWeight: 800 }}>
-            {t.status === "live" ? (lang === "ja" ? "参加・詳細を見る →" : "Join & View Details →") : (lang === "ja" ? "詳細を見る →" : "View Details →")}
-          </div>
-        </div>
-        )
-      ))}
+        );
+      })}
     </div>
   );
 }
