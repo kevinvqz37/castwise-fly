@@ -1014,6 +1014,23 @@ function PredictionZoneModal({ spot, score, weather, tideData, lang, onClose }) 
 // ─── MABO TOURNAMENTS ────────────────────────────────────────────────────────
 const MABO_TOURNAMENTS = [
   {
+    id: 0,
+    name: { ja: "⚔️ Kevin vs 柳井 — 一騎打ち大会", en: "⚔️ Kevin vs 柳井 — Head to Head" },
+    status: "live",
+    participants: 2,
+    location: { ja: "九州全域（どこでも可）", en: "Anywhere in Kyushu" },
+    period: { ja: "随時開催中", en: "Ongoing rivalry" },
+    target: { ja: "全魚種（最大1匹の重量）", en: "All species — largest single fish wins" },
+    rule: { ja: "最大1匹の重量で勝負。写真証明必須。", en: "Largest single fish by weight. Photo proof required." },
+    prize: { ja: "🏆 永遠の自慢権 + ビール1本", en: "🏆 Eternal bragging rights + one beer" },
+    rivalry: true,
+    players: [
+      { name: "Kevin", flag: "🇵🇷", best: null, species: null, location: null },
+      { name: "柳井", flag: "🇯🇵", best: null, species: null, location: null },
+    ],
+    leaderboard: []
+  },
+  {
     id: 1,
     name: { ja: "マボカップ2025 春季大会", en: "Mabo Cup 2025 Spring" },
     status: "live",
@@ -1133,6 +1150,32 @@ function TournamentView({ lang, profile, myCatches }) {
       </div>
 
       {MABO_TOURNAMENTS.map(t => (
+        t.rivalry ? (
+          <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: "linear-gradient(135deg, #1a1a14, #2a1a00)", border: "2px solid #FFE500", borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ background: "#FFE500", color: "#1a1a14", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>⚔️ {lang === "ja" ? "ライバル対決" : "RIVALRY"}</span>
+              <span style={{ color: "#FFE500", fontSize: "0.75rem" }}>🇵🇷 vs 🇯🇵</span>
+            </div>
+            <div style={{ fontWeight: 900, fontSize: "0.95rem", color: "#FFE500", marginBottom: 10 }}>{t.name[lang]}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <div style={{ flex: 1, background: "rgba(255,255,255,0.07)", borderRadius: 10, padding: "8px", textAlign: "center" }}>
+                <div style={{ fontSize: "1.4rem" }}>🇵🇷</div>
+                <div style={{ color: "white", fontWeight: 800, fontSize: "0.88rem" }}>Kevin</div>
+                <div style={{ color: "#aaa", fontSize: "0.72rem", marginTop: 2 }}>{lang === "ja" ? "未記録" : "No catch yet"}</div>
+              </div>
+              <div style={{ color: "#FFE500", fontWeight: 900, fontSize: "1.3rem" }}>VS</div>
+              <div style={{ flex: 1, background: "rgba(255,255,255,0.07)", borderRadius: 10, padding: "8px", textAlign: "center" }}>
+                <div style={{ fontSize: "1.4rem" }}>🇯🇵</div>
+                <div style={{ color: "white", fontWeight: 800, fontSize: "0.88rem" }}>柳井</div>
+                <div style={{ color: "#aaa", fontSize: "0.72rem", marginTop: 2 }}>{lang === "ja" ? "未記録" : "No catch yet"}</div>
+              </div>
+            </div>
+            <div style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>🏆 {t.prize[lang]}</div>
+            <div style={{ background: "#FFE500", color: "#1a1a14", borderRadius: 8, padding: "7px", textAlign: "center", fontSize: "0.85rem", fontWeight: 800 }}>
+              {lang === "ja" ? "釣果を提出して勝負！→" : "Submit your catch & win! →"}
+            </div>
+          </div>
+        ) : (
         <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: t.status === "live" ? "#1a1a14" : "white", border: `2px solid ${t.status === "live" ? "#74c69d" : "#e0e0d8"}`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
             <span style={{ background: t.status === "live" ? "#74c69d" : "#555", color: t.status === "live" ? "#1a1a14" : "#74c69d", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>
@@ -1146,6 +1189,7 @@ function TournamentView({ lang, profile, myCatches }) {
             {t.status === "live" ? (lang === "ja" ? "参加・詳細を見る →" : "Join & View Details →") : (lang === "ja" ? "詳細を見る →" : "View Details →")}
           </div>
         </div>
+        )
       ))}
     </div>
   );
