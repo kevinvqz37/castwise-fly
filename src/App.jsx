@@ -247,6 +247,27 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
   );
 }
 
+
+// ─── JAPAN2 SPRITE SHEET (Species 25-36) ─────────────────────────────────────
+const JAPAN2_SPRITE_URL = "/japan2_spritesheet.png";
+const JAPAN2_COLS = 4;
+const JAPAN2_ROWS = 3;
+
+const JAPAN2_SPRITE_DATA = {
+  maguro:   { col: 0, row: 0 }, katsuo:   { col: 1, row: 0 },
+  sawara:   { col: 2, row: 0 }, hiramasa: { col: 3, row: 0 },
+  gure:     { col: 0, row: 1 }, kawahagi: { col: 1, row: 1 },
+  itou:     { col: 2, row: 1 }, sake:     { col: 3, row: 1 },
+  saba:     { col: 0, row: 2 }, kijihata: { col: 1, row: 2 },
+  akame:    { col: 2, row: 2 }, nodoguro: { col: 3, row: 2 },
+};
+
+const JAPAN2_ID_MAP = {
+  25: "maguro", 26: "katsuo", 27: "sawara", 28: "hiramasa",
+  29: "gure",   30: "kawahagi", 31: "itou", 32: "sake",
+  33: "saba",   34: "kijihata", 35: "akame", 36: "nodoguro",
+};
+
 // ─── CARIBBEAN SPRITE SHEET ──────────────────────────────────────────────────
 const CARIBBEAN_SPRITE_URL = "/caribbean_spritesheet.png";
 const CARIBBEAN_COLS = 7;
@@ -344,6 +365,25 @@ const SPRITE_DATA = {
 };
 
 function FishIllustration({ fishId, spriteId, size = 80, style = {} }) {
+  // Check if this is a Japan2 fish (ids 25-36)
+  const japan2Key = JAPAN2_ID_MAP[fishId];
+  const japan2Sprite = japan2Key ? JAPAN2_SPRITE_DATA[japan2Key] : null;
+  if (JAPAN2_SPRITE_URL && japan2Sprite) {
+    const xPct = (japan2Sprite.col / (JAPAN2_COLS - 1)) * 100;
+    const yPct = (japan2Sprite.row / (JAPAN2_ROWS - 1)) * 100;
+    return (
+      <div style={{
+        width: size, height: size,
+        backgroundImage: `url(${JAPAN2_SPRITE_URL})`,
+        backgroundSize: `${JAPAN2_COLS * 100}% ${JAPAN2_ROWS * 100}%`,
+        backgroundPosition: `${xPct}% ${yPct}%`,
+        backgroundRepeat: "no-repeat",
+        display: "inline-block",
+        ...style,
+      }} />
+    );
+  }
+
   // Check if this is a Caribbean fish
   const caribSprite = spriteId ? CARIBBEAN_SPRITE_DATA[spriteId] : null;
   if (CARIBBEAN_SPRITE_URL && caribSprite) {
@@ -2535,11 +2575,237 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
   );
 }
 
-function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData }) {
+// ─── AR CAMERA VIEW ──────────────────────────────────────────────────────────
+function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [compass, setCompass] = useState(null);
+  const [camError, setCamError] = useState(null);
+  const [arSpots, setArSpots] = useState([]);
+  const [permission, setPermission] = useState("pending");
+  const streamRef = useRef(null);
+
+  // Calculate bearing from user to a spot
+  function getBearing(lat1, lng1, lat2, lng2) {
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const lat1r = lat1 * Math.PI / 180;
+    const lat2r = lat2 * Math.PI / 180;
+    const y = Math.sin(dLng) * Math.cos(lat2r);
+    const x = Math.cos(lat1r) * Math.sin(lat2r) - Math.sin(lat1r) * Math.cos(lat2r) * Math.cos(dLng);
+    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  }
+
+  // Calculate distance in meters
+  function getDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  // Format distance
+  function fmtDist(m) {
+    return m < 1000 ? `${Math.round(m)}m` : `${(m/1000).toFixed(1)}km`;
+  }
+
+  // Start camera
+  useEffect(() => {
+    async function startCam() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+        setPermission("granted");
+      } catch (e) {
+        setCamError(lang === "ja" ? "カメラへのアクセスが拒否されました" : "Camera access denied");
+        setPermission("denied");
+      }
+    }
+    startCam();
+    return () => {
+      if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    };
+  }, []);
+
+  // Compass listener
+  useEffect(() => {
+    function handleOrientation(e) {
+      if (e.absolute && e.alpha !== null) {
+        setCompass(e.alpha);
+      } else if (e.webkitCompassHeading !== undefined) {
+        setCompass(e.webkitCompassHeading);
+      }
+    }
+
+    if (typeof DeviceOrientationEvent !== 'undefined') {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(p => { if (p === 'granted') window.addEventListener('deviceorientation', handleOrientation); })
+          .catch(() => {});
+      } else {
+        window.addEventListener('deviceorientation', handleOrientation);
+      }
+    }
+    return () => window.removeEventListener('deviceorientation', handleOrientation);
+  }, []);
+
+  // Calculate AR spot positions
+  useEffect(() => {
+    if (!userLocation || compass === null) return;
+
+    const nearby = spots
+      .filter(s => {
+        const coords = SPOT_COORDS[s.name] || (s.lat ? { lat: s.lat, lng: s.lng } : null);
+        if (!coords) return false;
+        const dist = getDistance(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+        return dist < 50000; // within 50km
+      })
+      .map(s => {
+        const coords = SPOT_COORDS[s.name] || { lat: s.lat, lng: s.lng };
+        const dist = getDistance(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+        const bearing = getBearing(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+        // Angle relative to where camera is pointing
+        let relAngle = bearing - compass;
+        if (relAngle > 180) relAngle -= 360;
+        if (relAngle < -180) relAngle += 360;
+        // Only show spots within 60 degrees of camera direction
+        const inView = Math.abs(relAngle) < 60;
+        // X position: center=50%, ±60deg maps to 0-100%
+        const xPct = 50 + (relAngle / 60) * 50;
+        return { ...s, dist, bearing, relAngle, inView, xPct, coords };
+      })
+      .filter(s => s.inView)
+      .sort((a, b) => a.dist - b.dist)
+      .slice(0, 5);
+
+    setArSpots(nearby);
+  }, [compass, userLocation, spots]);
+
+  const FOV = 60; // field of view degrees
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "#000", zIndex: 500, display: "flex", flexDirection: "column" }}>
+      {/* Camera feed */}
+      <video ref={videoRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} playsInline muted />
+
+      {/* AR overlays */}
+      {permission === "granted" && arSpots.map((spot, i) => {
+        const score = calcSpotScore(spot, weather, [], []);
+        const scoreColor = score >= 80 ? "#00ff88" : score >= 60 ? "#FFE500" : "#ff6644";
+        return (
+          <div key={spot.id || i} style={{
+            position: "absolute",
+            left: `${spot.xPct}%`,
+            top: `${20 + (i * 14)}%`,
+            transform: "translateX(-50%)",
+            animation: "fadeUp 0.4s ease",
+            zIndex: 10,
+          }}>
+            {/* Connector line */}
+            <div style={{ width: 2, height: 30, background: scoreColor, margin: "0 auto", opacity: 0.7 }} />
+            {/* Spot card */}
+            <div style={{
+              background: "rgba(0,0,0,0.75)",
+              border: `2px solid ${scoreColor}`,
+              borderRadius: 12,
+              padding: "8px 12px",
+              minWidth: 140,
+              backdropFilter: "blur(8px)",
+              boxShadow: `0 0 20px ${scoreColor}44`,
+            }}>
+              <div style={{ color: scoreColor, fontWeight: 800, fontSize: "0.82rem", marginBottom: 2 }}>
+                {spot.icon} {spot.name.length > 12 ? spot.name.slice(0, 12) + "…" : spot.name}
+              </div>
+              <div style={{ color: "white", fontSize: "0.72rem", opacity: 0.85 }}>
+                📏 {fmtDist(spot.dist)} · ⭐ {spot.rating}
+              </div>
+              <div style={{ color: typeof spot.fish === "object" ? "white" : "white", fontSize: "0.7rem", opacity: 0.75, marginTop: 2 }}>
+                🐟 {typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
+                <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 99 }}>
+                  <div style={{ width: `${score}%`, height: "100%", background: scoreColor, borderRadius: 99 }} />
+                </div>
+                <span style={{ color: scoreColor, fontWeight: 800, fontSize: "0.75rem" }}>{score}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Compass indicator */}
+      <div style={{ position: "absolute", top: 60, left: "50%", transform: "translateX(-50%)", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "6px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: "1rem" }}>🧭</span>
+        <span style={{ color: "white", fontSize: "0.82rem", fontWeight: 700 }}>
+          {compass !== null ? `${Math.round(compass)}°` : (lang === "ja" ? "コンパス取得中..." : "Getting compass...")}
+        </span>
+        {arSpots.length > 0 && (
+          <span style={{ color: "#00ff88", fontSize: "0.75rem" }}>
+            · {lang === "ja" ? `${arSpots.length}スポット` : `${arSpots.length} spots`}
+          </span>
+        )}
+      </div>
+
+      {/* No spots message */}
+      {permission === "granted" && arSpots.length === 0 && compass !== null && (
+        <div style={{ position: "absolute", bottom: 140, left: "50%", transform: "translateX(-50%)", background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 12, padding: "12px 20px", textAlign: "center" }}>
+          <div style={{ color: "white", fontSize: "0.88rem", fontWeight: 700 }}>
+            {lang === "ja" ? "📷 周りを見回してください" : "📷 Look around to find spots"}
+          </div>
+          <div style={{ color: "#aaa", fontSize: "0.75rem", marginTop: 4 }}>
+            {lang === "ja" ? "60°以内にスポットが表示されます" : "Spots within 60° will appear"}
+          </div>
+        </div>
+      )}
+
+      {/* Error message */}
+      {camError && (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
+          <div style={{ fontSize: "3rem" }}>📷</div>
+          <div style={{ color: "white", fontWeight: 700, fontSize: "1rem" }}>{camError}</div>
+          <div style={{ color: "#aaa", fontSize: "0.82rem" }}>
+            {lang === "ja" ? "設定からカメラを許可してください" : "Please allow camera in settings"}
+          </div>
+        </div>
+      )}
+
+      {/* Crosshair */}
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", pointerEvents: "none" }}>
+        <div style={{ width: 40, height: 40, border: "2px solid rgba(255,255,255,0.5)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: 4, height: 4, background: "rgba(255,255,255,0.8)", borderRadius: "50%" }} />
+        </div>
+      </div>
+
+      {/* Close button */}
+      <button onClick={onClose} style={{
+        position: "absolute", top: 16, right: 16,
+        width: 44, height: 44, borderRadius: "50%",
+        background: "rgba(0,0,0,0.7)", border: "2px solid rgba(255,255,255,0.3)",
+        color: "white", fontSize: "1.2rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"
+      }}>✕</button>
+
+      {/* Bottom bar */}
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "linear-gradient(transparent, rgba(0,0,0,0.8))", padding: "20px 16px 32px", textAlign: "center" }}>
+        <div style={{ color: "white", fontSize: "0.78rem", opacity: 0.7 }}>
+          {lang === "ja" ? "🎣 釣りナビ AR — カメラを釣り場に向けてください" : "🎣 CastWise AR — Point camera toward fishing spots"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
   const [activeSpot, setActiveSpot] = useState(null);
   const [regionFilter, setRegionFilter] = useState("kyushu");
   const [showCommunityPins, setShowCommunityPins] = useState(true);
   const [mapMode, setMapMode] = useState("spots"); // "spots" | "prediction"
+  const [showAR, setShowAR] = useState(false);
   const [predictionSpot, setPredictionSpot] = useState(null);
   const [predictionScore, setPredictionScore] = useState(null);
 
@@ -2568,6 +2834,22 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
   return (
     <div style={{ animation: "fadeUp 0.4s ease" }}>
       <h2 style={{ margin: "0 0 4px", fontSize: "1.2rem" }}>{selectedFish ? `${selectedFish.name}の釣り場` : (lang === "ja" ? "近くの釣り場" : "Spots Near You")}</h2>
+
+      {/* AR Camera button */}
+      <button onClick={() => setShowAR(true)} style={{ width: "100%", marginBottom: 10, padding: "10px", background: "#1a1a14", border: "none", borderRadius: 12, color: "#FFE500", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        📷 {lang === "ja" ? "ARカメラで釣り場を探す" : "Find Spots with AR Camera"}
+      </button>
+
+      {/* AR Camera View */}
+      {showAR && (
+        <ARCameraView
+          userLocation={userLocation}
+          spots={MAP_SPOTS}
+          lang={lang}
+          weather={weather}
+          onClose={() => setShowAR(false)}
+        />
+      )}
 
       {/* Mode toggle */}
       <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
