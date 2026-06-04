@@ -2846,13 +2846,6 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
 }
 
 
-  const [activeSpot, setActiveSpot] = useState(null);
-  const [regionFilter, setRegionFilter] = useState("kyushu");
-  const [showCommunityPins, setShowCommunityPins] = useState(true);
-  const [mapMode, setMapMode] = useState("spots"); // "spots" | "prediction"
-  const [showAR, setShowAR] = useState(false);
-  const [predictionSpot, setPredictionSpot] = useState(null);
-  const [predictionScore, setPredictionScore] = useState(null);
 
   const REGIONS = [
     { key: "kyushu",   ja: "九州",     en: "Kyushu",    emoji: "🌋" },
@@ -3034,6 +3027,13 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
 
 // ─── MAP VIEW ────────────────────────────────────────────────────────────────
 function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData }) {
+  const [activeSpot, setActiveSpot] = useState(null);
+  const [regionFilter, setRegionFilter] = useState("kyushu");
+  const [showCommunityPins, setShowCommunityPins] = useState(true);
+  const [mapMode, setMapMode] = useState("spots"); // "spots" | "prediction"
+  const [showAR, setShowAR] = useState(false);
+  const [predictionSpot, setPredictionSpot] = useState(null);
+  const [predictionScore, setPredictionScore] = useState(null);
   const REGIONS = [
     { key: "kyushu",     ja: "九州",       en: "Kyushu",     es: "Kyushu",      emoji: "🌋" },
     { key: "hokkaido",   ja: "北海道",     en: "Hokkaido",   es: "Hokkaido",    emoji: "🏔️" },
