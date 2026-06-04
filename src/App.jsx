@@ -201,7 +201,7 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
               {[{ icon: "⭐", text: { ja: "+100 釣りポイント", en: "+100 Fishing Points" } }, { icon: "🤖", text: { ja: "AIアドバイス 3回分", en: "3 free AI advice uses" } }, { icon: "🪶", text: { ja: "プレミアムフライパターン解放", en: "Premium fly pattern unlocked" } }].map((r, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: i < 2 ? 8 : 0 }}>
                   <span style={{ fontSize: "1.2rem" }}>{r.icon}</span>
-                  <span style={{ fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 600 }}>{r.text[lang]}</span>
+                  <span style={{ fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 600 }}>{r.gl(text, lang)}</span>
                 </div>
               ))}
             </div>
@@ -1309,13 +1309,13 @@ function TidalCalendar({ lang, userLocation }) {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <h3 style={{ margin: 0, fontSize: "1.05rem" }}>🗓️ {monthNames[lang][month]} {year}</h3>
+        <h3 style={{ margin: 0, fontSize: "1.05rem" }}>🗓️ {gl(monthNames, lang)[month]} {year}</h3>
         <div style={{ fontSize: "0.82rem", color: "#0d7377" }}>{lang === "ja" ? lang === "ja" ? "月齢ベース釣り指数" : "Lunar fishing index" : "Lunar-based fishing index"}</div>
       </div>
 
       {/* Day headers */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3, marginBottom: 3 }}>
-        {dayNames[lang].map((d, i) => (
+        {gl(dayNames, lang).map((d, i) => (
           <div key={i} style={{ textAlign: "center", fontSize: "0.75rem", color: i === 0 ? "#b82030" : i === 6 ? "#1565a0" : "#7a7a6a", fontWeight: 700, padding: "4px 0" }}>{d}</div>
         ))}
       </div>
@@ -1346,7 +1346,7 @@ function TidalCalendar({ lang, userLocation }) {
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {bestDays.sort((a,b)=>a-b).map(d => (
             <span key={d} style={{ background: "#2d7a3a", color: "white", borderRadius: 99, padding: "3px 10px", fontSize: "0.82rem", fontWeight: 700 }}>
-              {monthNames[lang][month]}{d}日 ({getDayScore(d)})
+              {gl(monthNames, lang)[month]}{d}日 ({getDayScore(d)})
             </span>
           ))}
         </div>
@@ -1972,7 +1972,7 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
   const tip = getSeasonalTip(fishId);
   if (!tip) return null;
   const style = URGENCY_STYLES[tip.urgency];
-  const monthName = MONTH_NAMES[lang][CURRENT_MONTH];
+  const monthName = gl(MONTH_NAMES, lang)[CURRENT_MONTH];
 
   if (compact) {
     return (
@@ -2017,13 +2017,13 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
 function DiffBadge({ level, lang }) {
   const m = { beginner: { ja: "初心者", en: "Beginner", c: "#2d7a3a", bg: "#e0f2f2" }, intermediate: { ja: "中級者", en: "Intermediate", c: "#c06a10", bg: "#f8e8d0" }, advanced: { ja: "上級者", en: "Advanced", c: "#b82030", bg: "#f8d8d8" } };
   const d = m[level] || m.beginner;
-  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{d[lang]}</span>;
+  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{gl(d, lang)}</span>;
 }
 
 function FlyTypeBadge({ type, lang }) {
   const m = { dry: { ja: "ドライ", en: "Dry Fly", c: "#c06a10", bg: "#f8e8d0" }, nymph: { ja: "ニンフ", en: "Nymph", c: "#1565a0", bg: "#d0e4f8" }, streamer: { ja: "ストリーマー", en: "Streamer", c: "#b82030", bg: "#f8d8d8" }, tenkara: { ja: "テンカラ", en: "Tenkara", c: "#2d7a3a", bg: "#e0f2f2" } };
   const d = m[type] || m.dry;
-  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{d[lang]}</span>;
+  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{gl(d, lang)}</span>;
 }
 
 function ScoreRing({ score, lang = "ja" }) {
@@ -2201,7 +2201,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
       {/* Sub-tabs */}
       <div style={{ display: "flex", gap: 4, marginBottom: 14, overflowX: "auto" }}>
         {flyTabs.map(ft => (
-          <button key={ft.k} onClick={() => setFlyTab(ft.k)} style={{ flex: "0 0 auto", padding: "7px 11px", borderRadius: 10, border: `1px solid ${flyTab === ft.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: flyTab === ft.k ? "rgba(116,198,157,0.15)" : "transparent", color: flyTab === ft.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap", fontWeight: flyTab === ft.k ? 700 : 400 }}>{ft[lang]}</button>
+          <button key={ft.k} onClick={() => setFlyTab(ft.k)} style={{ flex: "0 0 auto", padding: "7px 11px", borderRadius: 10, border: `1px solid ${flyTab === ft.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: flyTab === ft.k ? "rgba(116,198,157,0.15)" : "transparent", color: flyTab === ft.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap", fontWeight: flyTab === ft.k ? 700 : 400 }}>{gl(ft, lang)}</button>
         ))}
       </div>
 
@@ -2229,7 +2229,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                     { la: { ja: "ターゲット", en: "Target" }, v: (selPattern.target?.[lang] || selPattern.target?.en || "") },
                   ].map(row => (
                     <div key={row.la.ja} style={{ display: "flex", gap: 12, alignItems: "center", background: "#fffdf8", borderRadius: 10, padding: "9px 12px" }}>
-                      <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 64 }}>{row.la[lang]}</span>
+                      <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 64 }}>{row.gl(la, lang)}</span>
                       <span style={{ fontSize: "0.95rem", fontWeight: 600 }}>{row.v}</span>
                     </div>
                   ))}
@@ -2248,7 +2248,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
             <>
               <div style={{ display: "flex", gap: 5, marginBottom: 12, overflowX: "auto", paddingBottom: 2 }}>
                 {typeFilters.map(tf => (
-                  <button key={tf.k} onClick={() => setTypeFilter(tf.k)} style={{ flex: "0 0 auto", padding: "5px 12px", borderRadius: 99, border: `1px solid ${typeFilter === tf.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: typeFilter === tf.k ? "rgba(116,198,157,0.14)" : "transparent", color: typeFilter === tf.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap" }}>{tf[lang]}</button>
+                  <button key={tf.k} onClick={() => setTypeFilter(tf.k)} style={{ flex: "0 0 auto", padding: "5px 12px", borderRadius: 99, border: `1px solid ${typeFilter === tf.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: typeFilter === tf.k ? "rgba(116,198,157,0.14)" : "transparent", color: typeFilter === tf.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap" }}>{gl(tf, lang)}</button>
                 ))}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -2382,7 +2382,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
           {/* Line formula */}
           <div style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 12 }}>
             <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 8, color: "#2d7a3a" }}>📏 {lang === "ja" ? "ライン長さの公式" : "Line Length Formula"}</div>
-            <div style={{ fontSize: "0.88rem", color: "#1a4a22", lineHeight: 1.7, fontWeight: 600 }}>{LINE_FORMULA[lang]}</div>
+            <div style={{ fontSize: "0.88rem", color: "#1a4a22", lineHeight: 1.7, fontWeight: 600 }}>{gl(LINE_FORMULA, lang)}</div>
             <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[3.0, 3.3, 3.6, 3.9, 4.5].map(len => (
                 <div key={len} style={{ background: "#fffdf8", border: "1px solid #FFE500", borderRadius: 8, padding: "6px 10px", textAlign: "center" }}>
@@ -2425,7 +2425,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                 { ja: "📏 固定ライン", en: "📏 Fixed line" },
                 { ja: "🪶 毛鉤のみ", en: "🪶 Single fly" },
                 { ja: "⛰️ 渓流特化", en: "⛰️ Stream-focused" },
-              ].map(b => <span key={b.ja} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "4px 10px", fontSize: "0.95rem", color: "#2d7a3a" }}>{b[lang]}</span>)}
+              ].map(b => <span key={b.ja} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "4px 10px", fontSize: "0.95rem", color: "#2d7a3a" }}>{gl(b, lang)}</span>)}
             </div>
           </div>
 
@@ -2458,8 +2458,8 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               { la: { ja: "毛鉤", en: "Fly" }, v: { ja: "逆さ毛鉤 #10〜14（3〜5本あれば十分）", en: "Sakasa kebari #10–14 (3–5 flies is all you need)" } },
             ].map(row => (
               <div key={row.la.ja} style={{ display: "flex", gap: 10, marginBottom: 6, fontSize: "0.92rem" }}>
-                <span style={{ color: "#5a5a4a", minWidth: 50 }}>{row.la[lang]}</span>
-                <span style={{ color: "#0d7377" }}>{row.v[lang]}</span>
+                <span style={{ color: "#5a5a4a", minWidth: 50 }}>{row.gl(la, lang)}</span>
+                <span style={{ color: "#0d7377" }}>{row.gl(v, lang)}</span>
               </div>
             ))}
           </div>
@@ -3107,7 +3107,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
         ].map(c => (
           <div key={c.la.ja} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: "12px 14px" }}>
             <div style={{ fontSize: "1.1rem", marginBottom: 4 }}>{c.icon}</div>
-            <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{c.la[lang]}</div>
+            <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{c.gl(la, lang)}</div>
             <div style={{ fontWeight: 700, fontSize: "1.05rem", margin: "2px 0" }}>{c.v}</div>
             <div style={{ fontSize: "0.95rem", color: "#0d7377" }}>{(c.sub?.[lang] || c.sub?.en || "")}</div>
           </div>
@@ -3249,7 +3249,7 @@ function LocalAIAdvisor({ userLocation, lang, weather, onClose }) {
       const locationStr = userLocation?.display || (lang === "ja" ? "現在地不明" : "unknown location");
       const spotsStr = nearestSpots.map(s => `${s.name}（${s.distKm}km）`).join("、");
       const spotsStrEn = nearestSpots.map(s => `${s.name} (${s.distKm}km)`).join(", ");
-      const monthName = MONTH_NAMES[lang][CURRENT_MONTH];
+      const monthName = gl(MONTH_NAMES, lang)[CURRENT_MONTH];
 
       const jaPrompt = `あなたは日本の地元釣りガイドです。以下の情報をもとに、釣りアドバイスをしてください。
 
@@ -3763,7 +3763,7 @@ If this is NOT a fish or the image is unclear, return:
           {TABS_DATA.map(td => (
             <button key={td.key} onClick={() => switchTab(td.key)} style={{ flex: "0 0 auto", padding: "10px 12px 12px", border: "none", background: tab === td.key ? "#fffdf8" : "transparent", color: tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#1a1a14") : "#7a7a6a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: tab === td.key ? 700 : 500, whiteSpace: "nowrap", borderBottom: `3px solid ${tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#1a1a14") : "transparent"}`, minHeight: 48 }}>
               <div style={{ fontSize: "1.1rem", marginBottom: 3 }}>{td.icon}</div>
-              {td[lang]}
+              {tgl(d, lang)}
             </button>
           ))}
         </div>
@@ -3808,7 +3808,7 @@ If this is NOT a fish or the image is unclear, return:
                           {lang === "ja" ? "🗓️ 今が旬！" : "🗓️ In Season Now!"}
                         </span>
                         <span style={{ marginLeft: "auto", background: sty.border, color: "#fff", borderRadius: 99, padding: "2px 9px", fontSize: "0.75rem", fontWeight: 700, flexShrink: 0 }}>
-                          {MONTH_NAMES[lang][CURRENT_MONTH]}
+                          {gl(MONTH_NAMES, lang)[CURRENT_MONTH]}
                         </span>
                       </div>
                       <div style={{ fontWeight: 700, fontSize: "1.05rem", color: sty.text, marginBottom: 3 }}>
@@ -3844,14 +3844,14 @@ If this is NOT a fish or the image is unclear, return:
             <div style={{ display: "flex", gap: 7, marginBottom: 10 }}>
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder={s("search", lang)} style={{ flex: 1, background: "#f8f4ec", border: "2px solid #FFE500", borderRadius: 9, padding: "9px 12px", color: "#0d7377", fontSize: "0.95rem" }} />
               <select value={filterDiff} onChange={e => setFilterDiff(e.target.value)} style={{ background: "#f8f4ec", border: "2px solid #FFE500", borderRadius: 9, padding: "9px", color: "#0d7377", fontSize: "1rem", cursor: "pointer" }}>
-                {Object.entries(diffMap).map(([k, v]) => <option key={k} value={k} style={{ background: "#f5f0e8" }}>{v[lang]}</option>)}
+                {Object.entries(diffMap).map(([k, v]) => <option key={k} value={k} style={{ background: "#f5f0e8" }}>{gl(v, lang)}</option>)}
               </select>
             </div>
             {/* Category filter chips */}
             <div style={{ display: "flex", gap: 5, marginBottom: 10, overflowX: "auto", paddingBottom: 2 }}>
               {Object.entries(catMap).map(([k, v]) => (
                 <button key={k} onClick={() => setFilterCat(k)} style={{ flex: "0 0 auto", padding: "5px 12px", borderRadius: 99, border: `1px solid ${filterCat === k ? "rgba(72,202,228,0.6)" : "#d4cfc4"}`, background: filterCat === k ? "rgba(72,202,228,0.14)" : "transparent", color: filterCat === k ? "#1a1a14" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap" }}>
-                  {k === "freshwater" ? "🏞️" : k === "saltwater" ? "🌊" : k === "shore" ? "🪨" : "🐟"} {v[lang]}
+                  {k === "freshwater" ? "🏞️" : k === "saltwater" ? "🌊" : k === "shore" ? "🪨" : "🐟"} {gl(v, lang)}
                 </button>
               ))}
             </div>
@@ -3948,7 +3948,7 @@ If this is NOT a fish or the image is unclear, return:
 
                 <div style={{ display: "flex", gap: 5, marginBottom: 12 }}>
                   {[{ k: "gear", ja: "🎣 タックル", en: "🎣 Gear" }, { k: "spots", ja: "📍 釣り場", en: "📍 Spots" }, { k: "map", ja: "🗺️ マップ", en: "🗺️ Map" }].map(tt => (
-                    <button key={tt.k} onClick={() => setGearTab(tt.k)} style={{ flex: 1, padding: "8px 4px", borderRadius: 9, border: `1px solid ${gearTab === tt.k ? selectedFish.accent + "88" : "#d4cfc4"}`, background: gearTab === tt.k ? selectedFish.color + "44" : "transparent", color: gearTab === tt.k ? selectedFish.accent : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: gearTab === tt.k ? 700 : 400 }}>{tt[lang]}</button>
+                    <button key={tt.k} onClick={() => setGearTab(tt.k)} style={{ flex: 1, padding: "8px 4px", borderRadius: 9, border: `1px solid ${gearTab === tt.k ? selectedFish.accent + "88" : "#d4cfc4"}`, background: gearTab === tt.k ? selectedFish.color + "44" : "transparent", color: gearTab === tt.k ? selectedFish.accent : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: gearTab === tt.k ? 700 : 400 }}>{gl(tt, lang)}</button>
                   ))}
                 </div>
 
@@ -3956,7 +3956,7 @@ If this is NOT a fish or the image is unclear, return:
                   <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                     {[{ la: { ja: "🎋 ロッド", en: "🎋 Rod" }, v: selectedFish.gear.rod }, { la: { ja: "🔧 リール", en: "🔧 Reel" }, v: selectedFish.gear.reel }, { la: { ja: "🧵 ライン", en: "🧵 Line" }, v: selectedFish.gear.line }, { la: { ja: "🪝 フック", en: "🪝 Hook" }, v: selectedFish.gear.hooks }].map(row => (
                       <div key={row.la.ja} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 11, padding: "10px 13px", display: "flex", gap: 11, alignItems: "center" }}>
-                        <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 68 }}>{row.la[lang]}</span>
+                        <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 68 }}>{row.gl(la, lang)}</span>
                         <span style={{ fontSize: "0.83rem", fontWeight: 600 }}>{row.v?.[lang] || row.v}</span>
                       </div>
                     ))}
@@ -4118,7 +4118,7 @@ If this is NOT a fish or the image is unclear, return:
                 ].map((st, i) => (
                   <div key={st.la.ja} style={{ flex: 1, textAlign: "center", borderLeft: i > 0 ? "1px solid #e0dbd0" : "none" }}>
                     <div style={{ fontWeight: 700, fontSize: "1rem", color: "#0d7377" }}>{st.v}</div>
-                    <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{st.la[lang]}</div>
+                    <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{st.gl(la, lang)}</div>
                   </div>
                 ))}
               </div>
@@ -4140,7 +4140,7 @@ If this is NOT a fish or the image is unclear, return:
 
             <div style={{ display: "flex", gap: 5, marginBottom: 13 }}>
               {[{ k: "catches", ja: "🎣 釣果記録", en: "🎣 My Catches" }, { k: "trophy", ja: "🏆 記録", en: "🏆 Records" }, { k: "calendar", ja: "🗓️ 釣り暦", en: "🗓️ Calendar" }, { k: "journal", ja: "📓 日誌", en: "📓 Journal" }, { k: "leaderboard", ja: "👑 ランク", en: "👑 Rank" }, { k: "pro", ja: "💎 PRO", en: "💎 PRO" }].map(pt => (
-                <button key={pt.k} onClick={() => setProfileTab(pt.k)} style={{ flex: 1, padding: "8px", borderRadius: 9, border: `1px solid ${profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.6)" : "#1a1a14") : "#d4cfc4"}`, background: profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.15)" : "rgba(72,202,228,0.1)") : "transparent", color: profileTab === pt.k ? (pt.k === "pro" ? "#9060e0" : "#1a1a14") : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: profileTab === pt.k ? 700 : 400 }}>{pt[lang]}</button>
+                <button key={pt.k} onClick={() => setProfileTab(pt.k)} style={{ flex: 1, padding: "8px", borderRadius: 9, border: `1px solid ${profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.6)" : "#1a1a14") : "#d4cfc4"}`, background: profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.15)" : "rgba(72,202,228,0.1)") : "transparent", color: profileTab === pt.k ? (pt.k === "pro" ? "#9060e0" : "#1a1a14") : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: profileTab === pt.k ? 700 : 400 }}>{gl(pt, lang)}</button>
               ))}
             </div>
 
@@ -4254,7 +4254,7 @@ If this is NOT a fish or the image is unclear, return:
                       </button>
                     </div>
                     {[{ k: "fish", ph: { ja: "魚種（例：ヤマメ）", en: "Species (e.g. Yamame)" } }, { k: "weight", ph: { ja: "重さ（例：0.4 kg）", en: "Weight (e.g. 0.4 kg)" } }, { k: "location", ph: { ja: "釣り場所", en: "Location" } }].map(f => (
-                      <input key={f.k} value={newCatch[f.k]} onChange={e => setNewCatch(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.ph[lang]} style={{ width: "100%", marginBottom: 8, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem" }} />
+                      <input key={f.k} value={newCatch[f.k]} onChange={e => setNewCatch(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.gl(ph, lang)} style={{ width: "100%", marginBottom: 8, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem" }} />
                     ))}
                     <textarea value={newCatch.notes} onChange={e => setNewCatch(p => ({ ...p, notes: e.target.value }))} placeholder={lang === "ja" ? "メモ（フライパターン・状況・テクニック）" : "Notes (fly pattern, conditions, technique)"} rows={3} style={{ width: "100%", marginBottom: 10, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem", resize: "vertical" }} />
                     <div style={{ display: "flex", gap: 6 }}>
@@ -4362,7 +4362,7 @@ If this is NOT a fish or the image is unclear, return:
               <div>
                 <div style={{ display: "flex", gap: 5, marginBottom: 11 }}>
                   {[{ k: "points", ja: "ポイント", en: "Points" }, { k: "catches", ja: "釣果数", en: "Catches" }, { k: "streak", ja: "連続日数", en: "Streak" }].map(f => (
-                    <button key={f.k} onClick={() => setLeaderFilter(f.k)} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${leaderFilter === f.k ? "#c06a10" : "#d4cfc4"}`, background: leaderFilter === f.k ? "rgba(244,162,97,0.1)" : "transparent", color: leaderFilter === f.k ? "#f4a261" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{f[lang]}</button>
+                    <button key={f.k} onClick={() => setLeaderFilter(f.k)} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${leaderFilter === f.k ? "#c06a10" : "#d4cfc4"}`, background: leaderFilter === f.k ? "rgba(244,162,97,0.1)" : "transparent", color: leaderFilter === f.k ? "#f4a261" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{gl(f, lang)}</button>
                   ))}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
@@ -4408,7 +4408,7 @@ If this is NOT a fish or the image is unclear, return:
                 {[{ icon: "🚫", text: { ja: "全広告非表示", en: "All ads removed" } }, { icon: "🤖", text: { ja: "AI診断 無制限", en: "Unlimited AI advice" } }, { icon: "🪶", text: { ja: "プレミアムフライパターン", en: "Premium fly patterns" } }, { icon: "📊", text: { ja: "詳細釣果分析", en: "Detailed catch analytics" } }, { icon: "🗺️", text: { ja: "オフラインマップ", en: "Offline maps" } }].map((f, i) => (
                   <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", padding: "10px 14px", background: "#f4f0f8", border: "2px solid #d0b8e8", borderRadius: 12, marginBottom: 8 }}>
                     <span style={{ fontSize: "1.3rem" }}>{f.icon}</span>
-                    <span style={{ fontSize: "0.95rem", color: "#6040a0" }}>{f.text[lang]}</span>
+                    <span style={{ fontSize: "0.95rem", color: "#6040a0" }}>{f.gl(text, lang)}</span>
                     <span style={{ marginLeft: "auto", color: "#6040a0", fontSize: "1.05rem" }}>✓</span>
                   </div>
                 ))}
