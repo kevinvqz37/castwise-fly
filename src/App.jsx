@@ -941,7 +941,7 @@ function PredictionZoneCard({ spot, weather, tideData, activeUsers, lang, onAskA
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#0d7377" }}>{spot.icon} {spot.name}</div>
-          <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>📌 {spot.pref} · {typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
+          <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>📌 {spot.pref} · {typeof spot.type === "object" ? gl(spot.type, lang) : spot.type}</div>
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
           <div style={{ fontSize: "1.6rem", fontWeight: 900, color: colors.text, lineHeight: 1 }}>{score}</div>
@@ -951,7 +951,7 @@ function PredictionZoneCard({ spot, weather, tideData, activeUsers, lang, onAskA
       <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}>
         <span style={{ fontSize: "0.82rem", fontWeight: 700, color: colors.text }}>{colors.label} {score >= 80 ? (lang === "ja" ? "最高の条件！" : lang === "es" ? "¡Condiciones óptimas!" : "Prime conditions!") : score >= 60 ? (lang === "ja" ? "良い条件" : lang === "es" ? "Buenas condiciones" : "Good conditions") : score >= 40 ? (lang === "ja" ? "普通" : lang === "es" ? "Regular" : "Fair") : (lang === "ja" ? "不向き" : lang === "es" ? "Malo" : "Poor")}</span>
         {crowd && crowd.count > 0 && <span style={{ fontSize: "0.75rem", color: crowd.color, fontWeight: 600 }}>{(crowd.label?.[lang] || crowd.label?.en || "")}</span>}
-        <span style={{ fontSize: "0.75rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : spot.fish}</span>
+        <span style={{ fontSize: "0.75rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? gl(spot.fish, lang) : spot.fish}</span>
       </div>
       <button onClick={() => onAskAI(spot, score)} style={{ width: "100%", padding: "7px", background: "rgba(255,255,255,0.7)", border: `1px solid ${colors.border}`, borderRadius: 8, color: colors.text, cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 600 }}>
         🤖 {lang === "ja" ? "AIに詳しく聞く →" : lang === "es" ? "Preguntarle a IA →" : "Ask AI for details →"}
@@ -1980,7 +1980,7 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
           <span style={{ fontWeight: 700, fontSize: "0.92rem", color: style.text }}>{(tip.badge?.[lang] || tip.badge?.en || "")}</span>
           <span style={{ marginLeft: "auto", fontSize: "0.78rem", color: style.text, opacity: 0.7 }}>{monthName}</span>
         </div>
-        <p style={{ margin: "0 0 8px", fontSize: "0.88rem", color: style.text, lineHeight: 1.5 }}>{tip.tip[lang]}</p>
+        <p style={{ margin: "0 0 8px", fontSize: "0.88rem", color: style.text, lineHeight: 1.5 }}>{gl(tip.tip, lang)}</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
           {(tip.hotLures?.[lang] || tip.hotLures?.en || "").map(l => (
             <LureTag key={l} lure={l} lang={lang} />
@@ -1999,7 +1999,7 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
       </div>
       <div style={{ background: "rgba(255,255,255,0.5)", borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
         <div style={{ fontWeight: 700, fontSize: "0.92rem", color: style.text, marginBottom: 4 }}>{(tip.badge?.[lang] || tip.badge?.en || "")}</div>
-        <p style={{ margin: 0, fontSize: "0.88rem", color: style.text, lineHeight: 1.6 }}>{tip.tip[lang]}</p>
+        <p style={{ margin: 0, fontSize: "0.88rem", color: style.text, lineHeight: 1.6 }}>{gl(tip.tip, lang)}</p>
       </div>
       <div style={{ fontSize: "0.8rem", color: style.text, fontWeight: 700, marginBottom: 6 }}>{lang === "ja" ? "🎯 今月のホットルアー" : "🎯 Hot Lures Right Now"}</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -2239,7 +2239,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               </div>
               <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.12), transparent)", border: "2px solid #FFE500", borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 7 }}>💡 {s("proTip", lang)}</div>
-                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selPattern.tip[lang]}</p>
+                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{gl(selPattern.tip, lang)}</p>
               </div>
             </div>
           ) : (
@@ -2329,7 +2329,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               </div>
               <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.1), transparent)", border: "2px solid #FFE500", borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 7 }}>💡 {s("proTip", lang)}</div>
-                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selTechnique.tip[lang]}</p>
+                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{gl(selTechnique.tip, lang)}</p>
               </div>
             </div>
           ) : (
@@ -2372,7 +2372,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                   <span style={{ fontSize: "0.82rem", color: "#0d7377", background: "#e0f2f2", borderRadius: 99, padding: "2px 8px" }}>{lang === "ja" ? `ライン: ${rod.line}` : `Line: ${rod.line}`}</span>
                 </div>
                 <div style={{ fontSize: "0.88rem", color: "#2d7a3a", fontWeight: 600, marginBottom: 2 }}>📍 {(rod.target?.[lang] || rod.target?.en || "")}</div>
-                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>💡 {rod.tip[lang]}</div>
+                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>💡 {gl(rod.tip, lang)}</div>
               </div>
             ))}
           </div>
@@ -2437,8 +2437,8 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {[
-                    { icon: "🐟", v: r.fish[lang] },
-                    { icon: "🚃", v: r.access[lang] },
+                    { icon: "🐟", v: gl(r.fish, lang) },
+                    { icon: "🚃", v: gl(r.access, lang) },
                     { icon: "📅", v: (r.season?.[lang] || r.season?.en || "") },
                     { icon: "🎫", v: (r.permit?.[lang] || r.permit?.en || "") },
                   ].map(d => <span key={d.v} style={{ fontSize: "0.95rem", color: "#5a5a4a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{d.icon} {d.v}</span>)}
@@ -2549,8 +2549,8 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
         .bindPopup(`
           <div style="font-family:sans-serif;min-width:160px">
             <div style="font-weight:700;font-size:14px;margin-bottom:4px">${spot.name}</div>
-            <div style="color:#0d7377;font-size:12px">🐟 ${typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")}</div>
-            <div style="color:#5a5a4a;font-size:12px">⭐ ${spot.rating} · ${typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
+            <div style="color:#0d7377;font-size:12px">🐟 ${typeof spot.fish === "object" ? gl(spot.fish, lang) : (spot.fishName || spot.fish || "")}</div>
+            <div style="color:#5a5a4a;font-size:12px">⭐ ${spot.rating} · ${typeof spot.type === "object" ? gl(spot.type, lang) : spot.type}</div>
             ${spot.distKm != null ? `<div style="color:#b8a000;font-weight:700;font-size:12px;margin-top:2px">📏 ${spot.distKm} km</div>` : ""}
             ${crowdText}
           </div>
@@ -2770,7 +2770,7 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
                 📏 {fmtDist(spot.dist)} · ⭐ {spot.rating}
               </div>
               <div style={{ color: typeof spot.fish === "object" ? "white" : "white", fontSize: "0.7rem", opacity: 0.75, marginTop: 2 }}>
-                🐟 {typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")}
+                🐟 {typeof spot.fish === "object" ? gl(spot.fish, lang) : (spot.fishName || spot.fish || "")}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
                 <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 99 }}>
@@ -2960,9 +2960,9 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
         <div style={{ background: "#e0f2f2", border: "2px solid #1a1a14", borderRadius: 14, padding: "12px 16px", marginBottom: 14, animation: "fadeUp 0.2s ease" }}>
           <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 4 }}>{activeSpot.icon || "📍"} {activeSpot.name}</div>
           <div style={{ fontSize: "0.88rem", color: "#0d7377" }}>
-            🐟 {typeof activeSpot.fish === "object" ? activeSpot.fish[lang] : (activeSpot.fishName || activeSpot.fish || "")}
+            🐟 {typeof activeSpot.fish === "object" ? gl(activeSpot.fish, lang) : (activeSpot.fishName || activeSpot.fish || "")}
             {" · "}⭐ {activeSpot.rating}
-            {" · "}{typeof activeSpot.type === "object" ? activeSpot.type[lang] : activeSpot.type}
+            {" · "}{typeof activeSpot.type === "object" ? gl(activeSpot.type, lang) : activeSpot.type}
             {activeSpot.distKm != null && ` · 📏 ${activeSpot.distKm} km`}
           </div>
         </div>
@@ -3002,7 +3002,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
               <div style={{ width: 44, height: 44, borderRadius: 10, background: "#e0f2f2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", flexShrink: 0, boxShadow: crowding ? crowding.glow : "none" }}>{spot.icon || "📍"}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 2 }}>{spot.name}</div>
-                <div style={{ fontSize: "0.85rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")} · {typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
+                <div style={{ fontSize: "0.85rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? gl(spot.fish, lang) : (spot.fishName || spot.fish || "")} · {typeof spot.type === "object" ? gl(spot.type, lang) : spot.type}</div>
                 {spot.pref && <div style={{ fontSize: "0.78rem", color: "#9a9a8a", marginTop: 1 }}>📌 {spot.pref}</div>}
                 {crowding && crowding.count > 0 && (
                   <div style={{ fontSize: "0.75rem", color: crowding.color, fontWeight: 700, marginTop: 2 }}>
@@ -3013,13 +3013,13 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{ color: "#c06a10", fontSize: "1rem", fontWeight: 700 }}>⭐ {spot.rating}</div>
                 {spot.distKm != null && <div style={{ color: "#0d7377", fontSize: "0.85rem", fontWeight: 700 }}>📏 {spot.distKm} km</div>}
-                {spot.bestSeason && <div style={{ fontSize: "0.72rem", color: "#7a7a6a" }}>{spot.bestSeason[lang]}</div>}
+                {spot.bestSeason && <div style={{ fontSize: "0.72rem", color: "#7a7a6a" }}>{gl(spot.bestSeason, lang)}</div>}
               </div>
             </div>
             {spot.tip && activeSpot?.id === spot.id && (
               <div style={{ background: "#f5f0e8", borderRadius: 10, padding: "8px 12px", fontSize: "0.85rem", color: "#3a3a2a", lineHeight: 1.6 }}>
-                💡 {spot.tip[lang]}
-                {spot.access && <div style={{ marginTop: 4, fontSize: "0.78rem", color: "#0d7377" }}>🚗 {spot.access[lang]}</div>}
+                💡 {gl(spot.tip, lang)}
+                {spot.access && <div style={{ marginTop: 4, fontSize: "0.78rem", color: "#0d7377" }}>🚗 {gl(spot.access, lang)}</div>}
               </div>
             )}
           </div>
@@ -3814,7 +3814,7 @@ If this is NOT a fish or the image is unclear, return:
                         <span style={{ marginLeft: 7, fontSize: "0.85rem", opacity: 0.85 }}>{(tip.badge?.[lang] || tip.badge?.en || "")}</span>
                       </div>
                       <div style={{ fontSize: "0.85rem", color: sty.text, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                        {tip.tip[lang]}
+                        {gl(tip.tip, lang)}
                       </div>
                     </div>
                     <span style={{ fontSize: "1.2rem", color: sty.text, opacity: 0.5, flexShrink: 0 }}>→</span>
@@ -3992,7 +3992,7 @@ If this is NOT a fish or the image is unclear, return:
                         <div style={{ width: 28, height: 28, borderRadius: "50%", background: selectedFish.color + "66", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.05rem", fontWeight: 700, color: selectedFish.accent }}>#{i + 1}</div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 600, fontSize: "1rem" }}>📍 {spot.name}</div>
-                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginTop: 2 }}>🗺️ {spot.type[lang]} · ⭐ {spot.rating}</div>
+                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginTop: 2 }}>🗺️ {gl(spot.type, lang)} · ⭐ {spot.rating}</div>
                         </div>
                       </div>
                     ))}
