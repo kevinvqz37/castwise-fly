@@ -3739,7 +3739,6 @@ If this is NOT a fish or the image is unclear, return:
             <div style={{ fontSize: "0.95rem", color: "#7a7a6a", letterSpacing: "0.1em", marginTop: 2 }}>
               {s("appTagline", lang)}
             </div>
-          </div>
             <button onClick={() => setLang(l => l === "ja" ? "en" : l === "en" ? "es" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "1rem", fontWeight: 700 }}>
               {lang === "ja" ? "🇺🇸" : lang === "en" ? "🇵🇷" : "🇯🇵"}
             </button>
