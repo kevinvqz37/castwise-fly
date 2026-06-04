@@ -3767,7 +3767,7 @@ If this is NOT a fish or the image is unclear, return:
           ))}
         </div>
       </div>
-
+      </div>
       {/* Offline banner */}
       {!isOnline && (
         <div style={{ background: "#f8e8d0", border: "2px solid #c06a10", padding: "8px 16px", display: "flex", alignItems: "center", gap: 8, fontSize: "0.88rem", color: "#7a4000" }}>
