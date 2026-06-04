@@ -19,32 +19,30 @@ const storage = getStorage(firebaseApp);
 
 // ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
 const T = {
-  appTagline: { ja: "もっと賢く釣る", en: "fish smarter · catch more" },
-  whatFishing: { ja: "何を釣りますか？", en: "What are you fishing for?" },
-  selectSpecies: { ja: "魚を選んでギア＆釣り場を確認", en: "Select a species for gear & spots" },
-  search: { ja: "魚を検索...", en: "Search fish..." },
-  aiAdvisor: { ja: "🤖 今日のAIルアー診断 →", en: "🤖 AI Lure Advice →" },
-  aiFlyAdvisor: { ja: "🪰 今日のAIフライ診断 →", en: "🪰 AI Fly Pattern Advice →" },
-  proTip: { ja: "プロのコツ", en: "Pro Tip" },
-  back: { ja: "← 戻る", en: "← Back" },
-  browsefish: { ja: "魚を探す →", en: "Browse Fish →" },
-  noCatchYet: { ja: "まだ釣果がありません。\n釣りに行きましょう！", en: "No catches yet.\nGet out there!" },
-  logCatch: { ja: "📸 釣果を記録する", en: "📸 Log a Catch" },
-  saveshare: { ja: "保存＆シェア", en: "Save & Share" },
-  cancel: { ja: "キャンセル", en: "Cancel" },
-  excellent: { ja: "🔥 今日は最高の釣り日和！", en: "🔥 Excellent fishing today!" },
-  good: { ja: "👍 良い条件 — 釣りに行こう", en: "👍 Good conditions — go fish" },
-  fair: { ja: "😐 まずまず — 深場を狙って", en: "😐 Fair — fish deep or wait" },
-  keepFishing: { ja: "🔥 上位を目指して釣り続けよう！", en: "🔥 Keep fishing to climb the ranks!" },
-  verified: { ja: "✓ 認証済", en: "✓ Verified" },
-  addComment: { ja: "コメントを追加...", en: "Add a comment..." },
-  addPhoto: { ja: "タップして写真を追加", en: "Tap to add photo" },
-  edit: { ja: "編集", en: "Edit" },
-  save: { ja: "保存", en: "Save" },
+  appTagline: { ja: "もっと賢く釣る", en: "fish smarter · catch more", es: "pesca más inteligente" },
+  whatFishing: { ja: "何を釣りますか？", en: "What are you fishing for?", es: "¿Qué vas a pescar?" },
+  selectSpecies: { ja: "魚を選んでギア＆釣り場を確認", en: "Select a species for gear & spots", es: "Elige una especie para ver equipos y lugares" },
+  search: { ja: "魚を検索...", en: "Search fish...", es: "Buscar peces..." },
+  aiAdvisor: { ja: "🤖 今日のAIルアー診断 →", en: "🤖 AI Lure Advice →", es: "🤖 Consejo IA de Señuelos →" },
+  aiFlyAdvisor: { ja: "🪰 今日のAIフライ診断 →", en: "🪰 AI Fly Pattern Advice →", es: "🪰 Consejo IA de Mosca →" },
+  proTip: { ja: "プロのコツ", en: "Pro Tip", es: "Consejo Pro" },
+  back: { ja: "← 戻る", en: "← Back", es: "← Volver" },
+  browsefish: { ja: "魚を探す →", en: "Browse Fish →", es: "Ver Peces →" },
+  noCatchYet: { ja: "まだ釣果がありません。\n釣りに行きましょう！", en: "No catches yet.\nGet out there!", es: "Sin capturas todavía.\n¡A pescar!" },
+  logCatch: { ja: "📸 釣果を記録する", en: "📸 Log a Catch", es: "📸 Registrar Captura" },
+  saveshare: { ja: "保存＆シェア", en: "Save & Share", es: "Guardar y Compartir" },
+  cancel: { ja: "キャンセル", en: "Cancel", es: "Cancelar" },
+  excellent: { ja: "🔥 今日は最高の釣り日和！", en: "🔥 Excellent fishing today!", es: "🔥 ¡Excelentes condiciones hoy!" },
+  good: { ja: "👍 良い条件 — 釣りに行こう", en: "👍 Good conditions — go fish", es: "👍 Buenas condiciones — ¡a pescar!" },
+  fair: { ja: "😐 まずまず — 深場を狙って", en: "😐 Fair — fish deep or wait", es: "😐 Regular — pesca profundo o espera" },
+  keepFishing: { ja: "🔥 上位を目指して釣り続けよう！", en: "🔥 Keep fishing to climb the ranks!", es: "🔥 ¡Sigue pescando para subir el ranking!" },
+  verified: { ja: "✓ 認証済", en: "✓ Verified", es: "✓ Verificado" },
+  addComment: { ja: "コメントを追加...", en: "Add a comment...", es: "Añadir comentario..." },
+  addPhoto: { ja: "タップして写真を追加", en: "Tap to add photo", es: "Toca para añadir foto" },
+  edit: { ja: "編集", en: "Edit", es: "Editar" },
+  save: { ja: "保存", en: "Save", es: "Guardar" },
 };
 function s(key, lang) { return T[key]?.[lang] || key; }
-
-
 
 
 
@@ -948,16 +946,16 @@ function PredictionZoneCard({ spot, weather, tideData, activeUsers, lang, onAskA
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
           <div style={{ fontSize: "1.6rem", fontWeight: 900, color: colors.text, lineHeight: 1 }}>{score}</div>
-          <div style={{ fontSize: "0.68rem", color: colors.text, fontWeight: 700 }}>{lang === "ja" ? "釣り指数" : "Score"}</div>
+          <div style={{ fontSize: "0.68rem", color: colors.text, fontWeight: 700 }}>{lang === "ja" ? "釣り指数" : lang === "es" ? "Puntos" : "Score"}</div>
         </div>
       </div>
       <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}>
-        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: colors.text }}>{colors.label} {score >= 80 ? (lang === "ja" ? "最高の条件！" : "Prime conditions!") : score >= 60 ? (lang === "ja" ? "良い条件" : "Good conditions") : score >= 40 ? (lang === "ja" ? "普通" : "Fair") : (lang === "ja" ? "不向き" : "Poor")}</span>
+        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: colors.text }}>{colors.label} {score >= 80 ? (lang === "ja" ? "最高の条件！" : lang === "es" ? "¡Condiciones óptimas!" : "Prime conditions!") : score >= 60 ? (lang === "ja" ? "良い条件" : lang === "es" ? "Buenas condiciones" : "Good conditions") : score >= 40 ? (lang === "ja" ? "普通" : lang === "es" ? "Regular" : "Fair") : (lang === "ja" ? "不向き" : lang === "es" ? "Malo" : "Poor")}</span>
         {crowd && crowd.count > 0 && <span style={{ fontSize: "0.75rem", color: crowd.color, fontWeight: 600 }}>{crowd.label[lang]}</span>}
         <span style={{ fontSize: "0.75rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : spot.fish}</span>
       </div>
       <button onClick={() => onAskAI(spot, score)} style={{ width: "100%", padding: "7px", background: "rgba(255,255,255,0.7)", border: `1px solid ${colors.border}`, borderRadius: 8, color: colors.text, cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 600 }}>
-        🤖 {lang === "ja" ? "AIに詳しく聞く →" : "Ask AI for details →"}
+        🤖 {lang === "ja" ? "AIに詳しく聞く →" : lang === "es" ? "Preguntarle a IA →" : "Ask AI for details →"}
       </button>
     </div>
   );
@@ -996,18 +994,18 @@ function PredictionZoneModal({ spot, score, weather, tideData, lang, onClose }) 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <div>
             <div style={{ fontWeight: 700, fontSize: "1.05rem" }}>{spot.icon} {spot.name}</div>
-            <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>🤖 {lang === "ja" ? "AI釣り予測" : "AI Fishing Prediction"}</div>
+            <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>🤖 {lang === "ja" ? "AI釣り予測" : lang === "es" ? "Predicción IA de Pesca" : "AI Fishing Prediction"}</div>
           </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: "2rem", fontWeight: 900, color: colors.text }}>{score}</div>
-            <div style={{ fontSize: "0.68rem", color: colors.text }}>{lang === "ja" ? "釣り指数" : "Score"}</div>
+            <div style={{ fontSize: "0.68rem", color: colors.text }}>{lang === "ja" ? "釣り指数" : lang === "es" ? "Puntos" : "Score"}</div>
           </div>
         </div>
         <div style={{ background: colors.bg, border: `2px solid ${colors.border}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14, fontSize: "0.92rem", color: "#0d7377", lineHeight: 1.7, minHeight: 80 }}>
           {loading ? <div style={{ textAlign: "center", padding: "20px 0", color: "#5a5a4a" }}>🤖 {lang === "ja" ? "AIが分析中..." : "AI analyzing..."}</div> : advice}
         </div>
         <button onClick={onClose} style={{ width: "100%", padding: "12px", background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
-          {lang === "ja" ? "閉じる" : "Close"}
+          {lang === "ja" ? "閉じる" : lang === "es" ? "Cerrar" : "Close"}
         </button>
       </div>
     </div>
@@ -1156,7 +1154,7 @@ function TournamentView({ lang, profile, myCatches }) {
         t.rivalry ? (
           <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: "linear-gradient(135deg, #1a1a14, #2a1a00)", border: "2px solid #FFE500", borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <span style={{ background: "#FFE500", color: "#1a1a14", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>⚔️ {lang === "ja" ? "ライバル対決" : "RIVALRY"}</span>
+              <span style={{ background: "#FFE500", color: "#1a1a14", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>⚔️ {lang === "ja" ? "ライバル対決" : lang === "es" ? "RIVALIDAD" : "RIVALRY"}</span>
               <span style={{ color: "#FFE500", fontSize: "0.75rem" }}>🇵🇷 vs 🇯🇵</span>
             </div>
             <div style={{ fontWeight: 900, fontSize: "0.95rem", color: "#FFE500", marginBottom: 10 }}>{t.name[lang]}</div>
@@ -1164,7 +1162,7 @@ function TournamentView({ lang, profile, myCatches }) {
               <div style={{ flex: 1, background: "rgba(255,255,255,0.07)", borderRadius: 10, padding: "8px", textAlign: "center" }}>
                 <div style={{ fontSize: "1.4rem" }}>🇵🇷</div>
                 <div style={{ color: "white", fontWeight: 800, fontSize: "0.88rem" }}>Kevin</div>
-                <div style={{ color: "#aaa", fontSize: "0.72rem", marginTop: 2 }}>{lang === "ja" ? "未記録" : "No catch yet"}</div>
+                <div style={{ color: "#aaa", fontSize: "0.72rem", marginTop: 2 }}>{lang === "ja" ? "未記録" : lang === "es" ? "Sin captura" : "No catch yet"}</div>
               </div>
               <div style={{ color: "#FFE500", fontWeight: 900, fontSize: "1.3rem" }}>VS</div>
               <div style={{ flex: 1, background: "rgba(255,255,255,0.07)", borderRadius: 10, padding: "8px", textAlign: "center" }}>
@@ -1175,7 +1173,7 @@ function TournamentView({ lang, profile, myCatches }) {
             </div>
             <div style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>🏆 {t.prize[lang]}</div>
             <div style={{ background: "#FFE500", color: "#1a1a14", borderRadius: 8, padding: "7px", textAlign: "center", fontSize: "0.85rem", fontWeight: 800 }}>
-              {lang === "ja" ? "釣果を提出して勝負！→" : "Submit your catch & win! →"}
+              {lang === "ja" ? "釣果を提出して勝負！→" : lang === "es" ? "¡Envía tu captura y gana! →" : "Submit your catch & win! →"}
             </div>
           </div>
         ) : (
@@ -2790,7 +2788,7 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
       <div style={{ position: "absolute", top: 60, left: "50%", transform: "translateX(-50%)", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "6px 16px", display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ fontSize: "1rem" }}>🧭</span>
         <span style={{ color: "white", fontSize: "0.82rem", fontWeight: 700 }}>
-          {compass !== null ? `${Math.round(compass)}°` : (lang === "ja" ? "コンパス取得中..." : "Getting compass...")}
+          {compass !== null ? `${Math.round(compass)}°` : (lang === "ja" ? "コンパス取得中..." : lang === "es" ? "Obteniendo brújula..." : "Getting compass...")}
         </span>
         {arSpots.length > 0 && (
           <span style={{ color: "#00ff88", fontSize: "0.75rem" }}>
@@ -2848,8 +2846,6 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
 }
 
 
-
-function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData }) {
   const [activeSpot, setActiveSpot] = useState(null);
   const [regionFilter, setRegionFilter] = useState("kyushu");
   const [showCommunityPins, setShowCommunityPins] = useState(true);
@@ -2857,13 +2853,14 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
   const [showAR, setShowAR] = useState(false);
   const [predictionSpot, setPredictionSpot] = useState(null);
   const [predictionScore, setPredictionScore] = useState(null);
+
   const REGIONS = [
     { key: "kyushu",   ja: "九州",     en: "Kyushu",    emoji: "🌋" },
     { key: "hokkaido", ja: "北海道",   en: "Hokkaido",  emoji: "🏔️" },
     { key: "kanto",    ja: "関東",     en: "Kanto",     emoji: "🗼" },
     { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
     { key: "chubu",    ja: "中部",     en: "Chubu",     emoji: "🏯" },
-    { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", emoji: "🌴" },
+    { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", es: "Puerto Rico", emoji: "🌴" },
     { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
     { key: "chubu",    ja: "中部",   en: "Chubu",     emoji: "🗻" },
     { key: "all",      ja: "全国",   en: "All Japan", emoji: "🗾" },
@@ -2881,11 +2878,11 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
 
   return (
     <div style={{ animation: "fadeUp 0.4s ease" }}>
-      <h2 style={{ margin: "0 0 4px", fontSize: "1.2rem" }}>{selectedFish ? `${selectedFish.name}の釣り場` : (lang === "ja" ? "近くの釣り場" : "Spots Near You")}</h2>
+      <h2 style={{ margin: "0 0 4px", fontSize: "1.2rem" }}>{selectedFish ? `${selectedFish.name}の釣り場` : (lang === "ja" ? "近くの釣り場" : lang === "es" ? "Spots Cerca" : "Spots Near You")}</h2>
 
       {/* AR Camera button */}
       <button onClick={() => setShowAR(true)} style={{ width: "100%", marginBottom: 10, padding: "10px", background: "#1a1a14", border: "none", borderRadius: 12, color: "#FFE500", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-        📷 {lang === "ja" ? "ARカメラで釣り場を探す" : "Find Spots with AR Camera"}
+        📷 {lang === "ja" ? "ARカメラで釣り場を探す" : lang === "es" ? "Buscar con Cámara AR" : "Find Spots with AR Camera"}
       </button>
 
       {/* AR Camera View */}
@@ -3035,6 +3032,127 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
 }
 
 
+// ─── MAP VIEW ────────────────────────────────────────────────────────────────
+function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData }) {
+  const REGIONS = [
+    { key: "kyushu",     ja: "九州",       en: "Kyushu",     es: "Kyushu",      emoji: "🌋" },
+    { key: "hokkaido",   ja: "北海道",     en: "Hokkaido",   es: "Hokkaido",    emoji: "🏔️" },
+    { key: "kanto",      ja: "関東",       en: "Kanto",      es: "Kanto",       emoji: "🗼" },
+    { key: "kansai",     ja: "関西",       en: "Kansai",     es: "Kansai",      emoji: "⛩️" },
+    { key: "chubu",      ja: "中部",       en: "Chubu",      es: "Chubu",       emoji: "🗻" },
+    { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", emoji: "🌴" },
+    { key: "all",        ja: "全国",       en: "All Japan",  es: "Todo Japón",  emoji: "🗾" },
+  ];
+
+  const rawSpots = selectedFish
+    ? selectedFish.spots.map((sp, i) => ({ ...sp, id: i + 100, fishName: selectedFish.name, icon: selectedFish.emoji || "📍" }))
+    : MAP_SPOTS.filter(sp => regionFilter === "all" || sp.region === regionFilter);
+
+  const spots = rawSpots.map(sp => {
+    const coords = SPOT_COORDS[sp.name] || (sp.lat ? { lat: sp.lat, lng: sp.lng } : null);
+    if (!coords || !userLocation) return { ...sp, distKm: null };
+    return { ...sp, distKm: Math.round(distKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng)) };
+  }).sort((a, b) => (a.distKm ?? 9999) - (b.distKm ?? 9999));
+
+  return (
+    <div style={{ animation: "fadeUp 0.4s ease" }}>
+      <h2 style={{ margin: "0 0 4px", fontSize: "1.2rem" }}>{selectedFish ? `${selectedFish.name}の釣り場` : (lang === "ja" ? "近くの釣り場" : "Spots Near You")}</h2>
+
+      {/* AR Camera button */}
+      <button onClick={() => setShowAR(true)} style={{ width: "100%", marginBottom: 10, padding: "10px", background: "#1a1a14", border: "none", borderRadius: 12, color: "#FFE500", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        📷 {lang === "ja" ? "ARカメラで釣り場を探す" : "Find Spots with AR Camera"}
+      </button>
+
+      {showAR && <ARCameraView userLocation={userLocation} spots={MAP_SPOTS} lang={lang} weather={weather} onClose={() => setShowAR(false)} />}
+
+      {/* Mode toggle */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+        {[{ k: "spots", ja: "📍 釣り場", en: "📍 Spots" }, { k: "prediction", ja: "🔮 AI予測", en: "🔮 AI Predict" }].map(m => (
+          <button key={m.k} onClick={() => setMapMode(m.k)} style={{ flex: 1, padding: "8px", background: mapMode === m.k ? "#e0f2f2" : "#fffdf8", border: `2px solid ${mapMode === m.k ? "#0d7377" : "#d4cfc4"}`, borderRadius: 10, color: mapMode === m.k ? "#0d7377" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: mapMode === m.k ? 700 : 400 }}>{m[lang]}</button>
+        ))}
+      </div>
+
+      {/* Region filter */}
+      {!selectedFish && (
+        <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 6, marginBottom: 8, scrollbarWidth: "none" }}>
+          {REGIONS.map(r => (
+            <button key={r.key} onClick={() => setRegionFilter(r.key)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 99, border: `2px solid ${regionFilter === r.key ? "#0d7377" : "#d4cfc4"}`, background: regionFilter === r.key ? "#e0f2f2" : "#f5f0e8", color: regionFilter === r.key ? "#0d7377" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: regionFilter === r.key ? 700 : 400 }}>
+              {r.emoji} {r[lang]}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Location status bar */}
+      {userLocation && (
+        <div style={{ background: "#e0f2f2", border: "1px solid #a0c8d0", borderRadius: 10, padding: "6px 12px", marginBottom: 8, fontSize: "0.78rem", color: "#0d7377", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>📍 {lang === "ja" ? "現在地取得済み" : "Location found"}</span>
+          <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
+            <input type="checkbox" checked={locationSharing} onChange={e => setLocationSharing(e.target.checked)} />
+            <span>{lang === "ja" ? "位置情報をシェア" : "Share location"}</span>
+          </label>
+        </div>
+      )}
+
+      {/* Prediction zone list */}
+      {mapMode === "prediction" && (
+        <div style={{ animation: "fadeUp 0.3s ease" }}>
+          <div style={{ fontSize: "0.82rem", color: "#5a5a4a", marginBottom: 10, background: "#e0f2f2", borderRadius: 10, padding: "8px 12px" }}>
+            🤖 {lang === "ja" ? `現在の条件でスポットをAI分析中` : `AI analyzing spots for current conditions`}
+          </div>
+          {[...spots].sort((a, b) => calcSpotScore(b, weather, tideData, activeUsers) - calcSpotScore(a, weather, tideData, activeUsers)).slice(0, 15).map(spot => (
+            <PredictionZoneCard key={spot.id} spot={spot} weather={weather} tideData={tideData} activeUsers={activeUsers} lang={lang} onAskAI={(s, sc) => { setPredictionSpot(s); setPredictionScore(sc); }} />
+          ))}
+        </div>
+      )}
+
+      {predictionSpot && <PredictionZoneModal spot={predictionSpot} score={predictionScore} weather={weather} tideData={tideData} lang={lang} onClose={() => setPredictionSpot(null)} />}
+
+      {/* Spots list */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {mapMode === "spots" && spots.length === 0 && (
+          <div style={{ textAlign: "center", padding: "30px 20px", color: "#7a7a6a" }}>
+            <div style={{ fontSize: "2rem", marginBottom: 8 }}>🗺️</div>
+            <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "このエリアのスポットは準備中です" : "Spots for this area coming soon"}</div>
+          </div>
+        )}
+        {mapMode === "spots" && spots.map((spot, i) => {
+          const coords = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
+          const crowd = coords ? getCrowdingLevel(coords.lat, coords.lng, activeUsers) : null;
+          const score = calcSpotScore(spot, weather, tideData, activeUsers);
+          const scoreColor = score >= 80 ? "#2d7a3a" : score >= 60 ? "#c06a10" : "#888";
+          return (
+            <div key={spot.id || i} style={{ background: "white", border: `1.5px solid ${activeSpot?.id === spot.id ? "#0d7377" : "#e0dbd0"}`, borderRadius: 14, padding: "12px 14px", cursor: "pointer", boxShadow: activeSpot?.id === spot.id ? "0 0 0 2px #0d737744" : "none" }} onClick={() => setActiveSpot(activeSpot?.id === spot.id ? null : spot)}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1a1a14" }}>{spot.icon} {spot.name}</div>
+                  <div style={{ fontSize: "0.78rem", color: "#5a5a4a", marginTop: 2 }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : spot.fish}</div>
+                  <div style={{ display: "flex", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                    {spot.pref && <span style={{ fontSize: "0.72rem", background: "#f0ebe0", color: "#5a5a4a", padding: "2px 7px", borderRadius: 99 }}>📌 {spot.pref}</span>}
+                    {spot.distKm !== null && <span style={{ fontSize: "0.72rem", background: "#e0f2f2", color: "#0d7377", padding: "2px 7px", borderRadius: 99 }}>📏 {spot.distKm}km</span>}
+                    {crowd && crowd.count > 0 && <span style={{ fontSize: "0.72rem", color: crowd.color, fontWeight: 600 }}>{crowd.label[lang]}</span>}
+                  </div>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  {"⭐".repeat(Math.round(spot.rating || 0))}
+                  <div style={{ fontSize: "0.75rem", color: scoreColor, fontWeight: 700, marginTop: 2 }}>{score}pt</div>
+                </div>
+              </div>
+              {spot.tip && activeSpot?.id === spot.id && (
+                <div style={{ background: "#f5f0e8", borderRadius: 10, padding: "8px 12px", marginTop: 8, fontSize: "0.82rem", color: "#3a3a2a", lineHeight: 1.6 }}>
+                  💡 {spot.tip[lang]}
+                  {spot.access && <div style={{ marginTop: 4, fontSize: "0.78rem", color: "#5a5a4a" }}>🚗 {spot.access[lang]}</div>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── WEATHER VIEW ─────────────────────────────────────────────────────────────
 function WeatherView({ lang, weather, forecast, tides, rivers }) {
   const WEATHER = weather || {};
   const fi = WEATHER.fishingIndex ?? 75;
@@ -3396,7 +3514,7 @@ export default function CastWiseJapan() {
           </div>
         </div>
         <button onClick={onLangToggle} style={{ background: MABO_BLACK, color: MABO_YELLOW, border: "none", borderRadius: 8, padding: "5px 12px", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer" }}>
-          {lang === "ja" ? "EN" : "JP"}
+          {lang === "ja" ? "EN" : lang === "en" ? "ES" : "JP"}
         </button>
       </div>
       <div style={{ background: MABO_BLACK, textAlign: "center", fontSize: "0.72rem", fontWeight: 700, color: MABO_YELLOW, padding: "4px", letterSpacing: "0.1em" }}>
@@ -3475,7 +3593,7 @@ export default function CastWiseJapan() {
   }
 
   const diffMap = { all: { ja: "すべて", en: "All" }, beginner: { ja: "初心者", en: "Beginner" }, intermediate: { ja: "中級者", en: "Intermediate" }, advanced: { ja: "上級者", en: "Advanced" } };
-  const catMap = { all: { ja: "すべて", en: "All" }, freshwater: { ja: "淡水", en: "Freshwater" }, saltwater: { ja: "海水", en: "Saltwater" }, shore: { ja: "ショア", en: "Shore" }, caribbean: { ja: "🌴 カリブ", en: "🌴 Caribbean" } };
+  const catMap = { all: { ja: "すべて", en: "All", es: "Todo" }, freshwater: { ja: "淡水", en: "Freshwater", es: "Agua Dulce" }, saltwater: { ja: "海水", en: "Saltwater", es: "Mar" }, shore: { ja: "ショア", en: "Shore", es: "Costa" }, caribbean: { ja: "🌴 カリブ", en: "🌴 Caribbean", es: "🌴 Caribe" } };
 
 
   const FISH_CATS = { 1:"freshwater", 2:"freshwater", 3:"freshwater", 4:"saltwater", 5:"freshwater", 6:"saltwater", 7:"saltwater", 8:"saltwater", 9:"freshwater", 10:"freshwater", 11:"freshwater", 12:"saltwater", 13:"saltwater", 14:"saltwater", 15:"shore", 16:"saltwater", 17:"caribbean", 18:"caribbean", 19:"caribbean", 20:"caribbean", 21:"caribbean", 22:"caribbean", 23:"caribbean", 24:"caribbean" };
@@ -3741,7 +3859,7 @@ If this is NOT a fish or the image is unclear, return:
             </div>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => setLang(l => l === "ja" ? "en" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
+            <button onClick={() => setLang(l => l === "ja" ? "en" : l === "en" ? "es" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
               {lang === "ja" ? "EN" : "日本語"}
             </button>
             {/* Location / AI nearby button */}
@@ -4054,7 +4172,7 @@ If this is NOT a fish or the image is unclear, return:
                   {c.photo ? <img src={c.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ animation: "float 3s ease-in-out infinite" }}><FishIllustration fishId={FISH_DATA.find(f=>f.name===c.fish)?.id || 1} spriteId={FISH_DATA.find(f=>f.name===c.fish)?.spriteId} size={100} /></div>}
                   <div style={{ position: "absolute", bottom: 9, right: 9, background: "rgba(30,30,20,0.8)", borderRadius: 7, padding: "3px 9px", fontSize: "0.95rem", color: "#c06a10", fontWeight: 700 }}>⚖️ {c.weight}</div>
                   {c.verified && <div style={{ position: "absolute", top: 9, right: 9, background: "#c8e8d0", border: "1px solid #FFE50044", borderRadius: 7, padding: "2px 7px", fontSize: "1.05rem", color: "#2d7a3a" }}>{s("verified", lang)}</div>}
-                  {c.method === "fly" && <div style={{ position: "absolute", top: 9, left: 9, background: "#c8e8d0", border: "2px solid #60b080", borderRadius: 7, padding: "2px 7px", fontSize: "1.05rem", color: "#2d7a3a" }}>🪶 {lang === "ja" ? "フライ" : "Fly"}</div>}
+                  {c.method === "fly" && <div style={{ position: "absolute", top: 9, left: 9, background: "#c8e8d0", border: "2px solid #60b080", borderRadius: 7, padding: "2px 7px", fontSize: "1.05rem", color: "#2d7a3a" }}>🪶 {lang === "ja" ? "フライ" : lang === "es" ? "Mosca" : "Fly"}</div>}
                 </div>
                 <div style={{ padding: "11px 13px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
@@ -4311,7 +4429,7 @@ If this is NOT a fish or the image is unclear, return:
                   <div style={{ background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 14, animation: "fadeUp 0.3s ease" }}>
                     <input value={journalEntry.title} onChange={e => setJournalEntry(p => ({...p, title: e.target.value}))} placeholder={lang === "ja" ? "タイトル（例：矢部川 朝の部）" : "Title (e.g. Yabeji River morning session)"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
                     <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                      <input value={journalEntry.weather} onChange={e => setJournalEntry(p => ({...p, weather: e.target.value}))} placeholder={lang === "ja" ? "天気" : "Weather"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                      <input value={journalEntry.weather} onChange={e => setJournalEntry(p => ({...p, weather: e.target.value}))} placeholder={lang === "ja" ? "天気" : lang === "es" ? "Clima" : "Weather"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
                       <input value={journalEntry.water} onChange={e => setJournalEntry(p => ({...p, water: e.target.value}))} placeholder={lang === "ja" ? "水温・水量" : "Water temp/level"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
                     </div>
                     <input value={journalEntry.flies} onChange={e => setJournalEntry(p => ({...p, flies: e.target.value}))} placeholder={lang === "ja" ? "使用フライ・ルアー" : "Flies/lures used"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
@@ -4477,13 +4595,13 @@ If this is NOT a fish or the image is unclear, return:
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, height: 1, background: "linear-gradient(90deg,transparent,#c4bfb4,transparent)", pointerEvents: "none", zIndex: 100 }} />
       {/* Legal footer */}
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: "rgba(245,240,232,0.95)", borderTop: "1px solid #d4cfc4", padding: "6px 16px", display: "flex", justifyContent: "center", gap: 16, zIndex: 99, fontSize: "0.72rem", color: "#9a9a8a" }}>
-        <a href="/legal.html" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "プライバシーポリシー" : "Privacy Policy"}</a>
+        <a href="/legal.html" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "プライバシーポリシー" : lang === "es" ? "Privacidad" : "Privacy Policy"}</a>
         <span>·</span>
-        <a href="/legal.html#terms" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "利用規約" : "Terms"}</a>
+        <a href="/legal.html#terms" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "利用規約" : lang === "es" ? "Términos" : "Terms"}</a>
         <span>·</span>
         <a href="/legal.html#tokushoho" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "特定商取引法" : "Commercial Law"}</a>
         <span>·</span>
-        <a href="/legal.html#affiliate" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "広告について" : "Advertising"}</a>
+        <a href="/legal.html#affiliate" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "広告について" : lang === "es" ? "Publicidad" : "Advertising"}</a>
       </div>
     </div>
   );
