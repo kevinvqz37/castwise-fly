@@ -3740,6 +3740,7 @@ If this is NOT a fish or the image is unclear, return:
               {s("appTagline", lang)}
             </div>
           </div>
+          </div>
             <button onClick={() => setLang(l => l === "ja" ? "en" : l === "en" ? "es" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "1rem", fontWeight: 700 }}>
               {lang === "ja" ? "🇺🇸" : lang === "en" ? "🇵🇷" : "🇯🇵"}
             </button>
@@ -3766,7 +3767,6 @@ If this is NOT a fish or the image is unclear, return:
             </button>
           ))}
         </div>
-      </div>
       </div>
       {/* Offline banner */}
       {!isOnline && (
