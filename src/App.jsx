@@ -78,6 +78,8 @@ function AdsterraBanner() {
   );
 }
 
+function gl(obj, lang) { if (!obj) return ""; return obj[lang] || obj.en || obj.ja || ""; }
+
 function BannerAd({ lang, onDismiss, isPremium }) {
   // Ads paused until launch
   return null;
