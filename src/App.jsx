@@ -3763,7 +3763,7 @@ If this is NOT a fish or the image is unclear, return:
           {TABS_DATA.map(td => (
             <button key={td.key} onClick={() => switchTab(td.key)} style={{ flex: "0 0 auto", padding: "10px 12px 12px", border: "none", background: tab === td.key ? "#fffdf8" : "transparent", color: tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#1a1a14") : "#7a7a6a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: tab === td.key ? 700 : 500, whiteSpace: "nowrap", borderBottom: `3px solid ${tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#1a1a14") : "transparent"}`, minHeight: 48 }}>
               <div style={{ fontSize: "1.1rem", marginBottom: 3 }}>{td.icon}</div>
-              {tgl(d, lang)}
+              {gl(td, lang)}
             </button>
           ))}
         </div>
