@@ -2848,6 +2848,8 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
 }
 
 
+
+function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData }) {
   const [activeSpot, setActiveSpot] = useState(null);
   const [regionFilter, setRegionFilter] = useState("kyushu");
   const [showCommunityPins, setShowCommunityPins] = useState(true);
@@ -2855,8 +2857,6 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
   const [showAR, setShowAR] = useState(false);
   const [predictionSpot, setPredictionSpot] = useState(null);
   const [predictionScore, setPredictionScore] = useState(null);
-
-function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData }) {
   const [activeSpot, setActiveSpot] = useState(null);
   const [regionFilter, setRegionFilter] = useState("kyushu");
   const [showCommunityPins, setShowCommunityPins] = useState(true);
