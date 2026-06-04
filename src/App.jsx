@@ -2847,15 +2847,23 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
 
 
 
+function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData }) {
+  const [activeSpot, setActiveSpot] = useState(null);
+  const [regionFilter, setRegionFilter] = useState("kyushu");
+  const [showCommunityPins, setShowCommunityPins] = useState(true);
+  const [mapMode, setMapMode] = useState("spots");
+  const [showAR, setShowAR] = useState(false);
+  const [predictionSpot, setPredictionSpot] = useState(null);
+  const [predictionScore, setPredictionScore] = useState(null);
+
   const REGIONS = [
-    { key: "kyushu",   ja: "九州",     en: "Kyushu",    emoji: "🌋" },
+    { key: "kyushu",   ja: "九州",     en: "Kyushu",    es: "Kyushu",      emoji: "🌋" },
     { key: "hokkaido", ja: "北海道",   en: "Hokkaido",  emoji: "🏔️" },
     { key: "kanto",    ja: "関東",     en: "Kanto",     emoji: "🗼" },
     { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
     { key: "chubu",    ja: "中部",     en: "Chubu",     emoji: "🏯" },
     { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", es: "Puerto Rico", emoji: "🌴" },
-    { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
-    { key: "chubu",    ja: "中部",   en: "Chubu",     emoji: "🗻" },
+    { key: "kansai",   ja: "関西",     en: "Kansai",    es: "Kansai",      emoji: "⛩️" },
     { key: "all",      ja: "全国",   en: "All Japan", emoji: "🗾" },
   ];
 
