@@ -3980,7 +3980,7 @@ If this is NOT a fish or the image is unclear, return:
                     </div>
                     <div style={{ background: `linear-gradient(135deg,${selectedFish.color}33,transparent)`, border: `1px solid ${selectedFish.accent}33`, borderRadius: 11, padding: 13 }}>
                       <div style={{ fontSize: "0.95rem", color: selectedFish.accent, fontWeight: 700, marginBottom: 6 }}>💡 {s("proTip", lang)}</div>
-                      <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selectedFish.gl(gear.tips, lang)}</p>
+                      <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{gl(selectedFish.gear.tips, lang)}</p>
                     </div>
                   </div>
                 )}
