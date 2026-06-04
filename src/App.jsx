@@ -1149,8 +1149,8 @@ function TournamentView({ lang, profile, myCatches }) {
         <div style={{ color: "#aaa", fontSize: "0.78rem" }}>{lang === "ja" ? "マボチャンネル主催の公式釣り大会" : "Official fishing tournaments by Mabo Channel"}</div>
       </div>
 
-      {MABO_TOURNAMENTS.map(t => {
-        if (t.rivalry) return (
+      {MABO_TOURNAMENTS.map(t => (
+        t.rivalry ? (
           <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: "linear-gradient(135deg, #1a1a14, #2a1a00)", border: "2px solid #FFE500", borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <span style={{ background: "#FFE500", color: "#1a1a14", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>⚔️ {lang === "ja" ? "ライバル対決" : "RIVALRY"}</span>
@@ -1175,23 +1175,22 @@ function TournamentView({ lang, profile, myCatches }) {
               {lang === "ja" ? "釣果を提出して勝負！→" : "Submit your catch & win! →"}
             </div>
           </div>
-        );
-        return (
-          <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: t.status === "live" ? "#1a1a14" : "white", border: `2px solid ${t.status === "live" ? "#74c69d" : "#e0e0d8"}`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-              <span style={{ background: t.status === "live" ? "#74c69d" : "#555", color: t.status === "live" ? "#1a1a14" : "#74c69d", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>
-                {t.status === "live" ? (lang === "ja" ? `🔴 開催中 · ${t.participants}名参加` : `🔴 LIVE · ${t.participants} anglers`) : (lang === "ja" ? "近日開催" : "UPCOMING")}
-              </span>
-            </div>
-            <div style={{ fontWeight: 800, fontSize: "0.95rem", color: t.status === "live" ? "#74c69d" : "#1a1a14", marginBottom: 4 }}>{t.name[lang]}</div>
-            <div style={{ fontSize: "0.78rem", color: t.status === "live" ? "#aaa" : "#888", marginBottom: 4 }}>📍 {t.location[lang]} · {t.period[lang]}</div>
-            <div style={{ fontSize: "0.82rem", color: t.status === "live" ? "#74c69d" : "#2d7a3a", fontWeight: 700 }}>{t.prize[lang]}</div>
-            <div style={{ marginTop: 10, background: t.status === "live" ? "#74c69d" : "#1a1a14", color: t.status === "live" ? "#1a1a14" : "#74c69d", borderRadius: 8, padding: "7px", textAlign: "center", fontSize: "0.85rem", fontWeight: 800 }}>
-              {t.status === "live" ? (lang === "ja" ? "参加・詳細を見る →" : "Join & View Details →") : (lang === "ja" ? "詳細を見る →" : "View Details →")}
-            </div>
+        ) : (
+        <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: t.status === "live" ? "#1a1a14" : "white", border: `2px solid ${t.status === "live" ? "#74c69d" : "#e0e0d8"}`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+            <span style={{ background: t.status === "live" ? "#74c69d" : "#555", color: t.status === "live" ? "#1a1a14" : "#74c69d", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>
+              {t.status === "live" ? (lang === "ja" ? `🔴 開催中 · ${t.participants}名参加` : `🔴 LIVE · ${t.participants} anglers`) : (lang === "ja" ? "近日開催" : "UPCOMING")}
+            </span>
           </div>
-        );
-      })}
+          <div style={{ fontWeight: 800, fontSize: "0.95rem", color: t.status === "live" ? "#74c69d" : "#1a1a14", marginBottom: 4 }}>{t.name[lang]}</div>
+          <div style={{ fontSize: "0.78rem", color: t.status === "live" ? "#aaa" : "#888", marginBottom: 4 }}>📍 {t.location[lang]} · {t.period[lang]}</div>
+          <div style={{ fontSize: "0.82rem", color: t.status === "live" ? "#74c69d" : "#2d7a3a", fontWeight: 700 }}>{t.prize[lang]}</div>
+          <div style={{ marginTop: 10, background: t.status === "live" ? "#74c69d" : "#1a1a14", color: t.status === "live" ? "#1a1a14" : "#74c69d", borderRadius: 8, padding: "7px", textAlign: "center", fontSize: "0.85rem", fontWeight: 800 }}>
+            {t.status === "live" ? (lang === "ja" ? "参加・詳細を見る →" : "Join & View Details →") : (lang === "ja" ? "詳細を見る →" : "View Details →")}
+          </div>
+        </div>
+        )
+      ))}
     </div>
   );
 }
@@ -2854,15 +2853,6 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
   const [predictionSpot, setPredictionSpot] = useState(null);
   const [predictionScore, setPredictionScore] = useState(null);
 
-function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData }) {
-  const [activeSpot, setActiveSpot] = useState(null);
-  const [regionFilter, setRegionFilter] = useState("kyushu");
-  const [showCommunityPins, setShowCommunityPins] = useState(true);
-  const [mapMode, setMapMode] = useState("spots");
-  const [predictionSpot, setPredictionSpot] = useState(null);
-  const [predictionScore, setPredictionScore] = useState(null);
-  const [showAR, setShowAR] = useState(false);
-
   const REGIONS = [
     { key: "kyushu",   ja: "九州",     en: "Kyushu",    emoji: "🌋" },
     { key: "hokkaido", ja: "北海道",   en: "Hokkaido",  emoji: "🏔️" },
@@ -3033,6 +3023,135 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
               </div>
             )}
           </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
+// ─── MAP VIEW ────────────────────────────────────────────────────────────────
+function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData }) {
+  const [activeSpot, setActiveSpot] = useState(null);
+  const [regionFilter, setRegionFilter] = useState("kyushu");
+  const [showCommunityPins, setShowCommunityPins] = useState(true);
+  const [mapMode, setMapMode] = useState("spots");
+  const [predictionSpot, setPredictionSpot] = useState(null);
+  const [predictionScore, setPredictionScore] = useState(null);
+  const [showAR, setShowAR] = useState(false);
+
+  const REGIONS = [
+    { key: "kyushu",     ja: "九州",       en: "Kyushu",     emoji: "🌋" },
+    { key: "hokkaido",   ja: "北海道",     en: "Hokkaido",   emoji: "🏔️" },
+    { key: "kanto",      ja: "関東",       en: "Kanto",      emoji: "🗼" },
+    { key: "kansai",     ja: "関西",       en: "Kansai",     emoji: "⛩️" },
+    { key: "chubu",      ja: "中部",       en: "Chubu",      emoji: "🗻" },
+    { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", emoji: "🌴" },
+    { key: "all",        ja: "全国",       en: "All Japan",  emoji: "🗾" },
+  ];
+
+  const rawSpots = selectedFish
+    ? selectedFish.spots.map((sp, i) => ({ ...sp, id: i + 100, fishName: selectedFish.name, icon: selectedFish.emoji || "📍" }))
+    : MAP_SPOTS.filter(sp => regionFilter === "all" || sp.region === regionFilter);
+
+  const spots = rawSpots.map(sp => {
+    const coords = SPOT_COORDS[sp.name] || (sp.lat ? { lat: sp.lat, lng: sp.lng } : null);
+    if (!coords || !userLocation) return { ...sp, distKm: null };
+    return { ...sp, distKm: Math.round(distKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng)) };
+  }).sort((a, b) => (a.distKm ?? 9999) - (b.distKm ?? 9999));
+
+  return (
+    <div style={{ animation: "fadeUp 0.4s ease" }}>
+      <h2 style={{ margin: "0 0 4px", fontSize: "1.2rem" }}>{selectedFish ? `${selectedFish.name}の釣り場` : (lang === "ja" ? "近くの釣り場" : "Spots Near You")}</h2>
+
+      {/* AR Camera button */}
+      <button onClick={() => setShowAR(true)} style={{ width: "100%", marginBottom: 10, padding: "10px", background: "#1a1a14", border: "none", borderRadius: 12, color: "#FFE500", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        📷 {lang === "ja" ? "ARカメラで釣り場を探す" : "Find Spots with AR Camera"}
+      </button>
+
+      {showAR && <ARCameraView userLocation={userLocation} spots={MAP_SPOTS} lang={lang} weather={weather} onClose={() => setShowAR(false)} />}
+
+      {/* Mode toggle */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+        {[{ k: "spots", ja: "📍 釣り場", en: "📍 Spots" }, { k: "prediction", ja: "🔮 AI予測", en: "🔮 AI Predict" }].map(m => (
+          <button key={m.k} onClick={() => setMapMode(m.k)} style={{ flex: 1, padding: "8px", background: mapMode === m.k ? "#e0f2f2" : "#fffdf8", border: `2px solid ${mapMode === m.k ? "#0d7377" : "#d4cfc4"}`, borderRadius: 10, color: mapMode === m.k ? "#0d7377" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: mapMode === m.k ? 700 : 400 }}>{m[lang]}</button>
+        ))}
+      </div>
+
+      {/* Region filter */}
+      {!selectedFish && (
+        <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 6, marginBottom: 8, scrollbarWidth: "none" }}>
+          {REGIONS.map(r => (
+            <button key={r.key} onClick={() => setRegionFilter(r.key)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 99, border: `2px solid ${regionFilter === r.key ? "#0d7377" : "#d4cfc4"}`, background: regionFilter === r.key ? "#e0f2f2" : "#f5f0e8", color: regionFilter === r.key ? "#0d7377" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: regionFilter === r.key ? 700 : 400 }}>
+              {r.emoji} {r[lang]}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Location status bar */}
+      {userLocation && (
+        <div style={{ background: "#e0f2f2", border: "1px solid #a0c8d0", borderRadius: 10, padding: "6px 12px", marginBottom: 8, fontSize: "0.78rem", color: "#0d7377", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>📍 {lang === "ja" ? "現在地取得済み" : "Location found"}</span>
+          <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
+            <input type="checkbox" checked={locationSharing} onChange={e => setLocationSharing(e.target.checked)} />
+            <span>{lang === "ja" ? "位置情報をシェア" : "Share location"}</span>
+          </label>
+        </div>
+      )}
+
+      {/* Prediction zone list */}
+      {mapMode === "prediction" && (
+        <div style={{ animation: "fadeUp 0.3s ease" }}>
+          <div style={{ fontSize: "0.82rem", color: "#5a5a4a", marginBottom: 10, background: "#e0f2f2", borderRadius: 10, padding: "8px 12px" }}>
+            🤖 {lang === "ja" ? `現在の条件でスポットをAI分析中` : `AI analyzing spots for current conditions`}
+          </div>
+          {[...spots].sort((a, b) => calcSpotScore(b, weather, tideData, activeUsers) - calcSpotScore(a, weather, tideData, activeUsers)).slice(0, 15).map(spot => (
+            <PredictionZoneCard key={spot.id} spot={spot} weather={weather} tideData={tideData} activeUsers={activeUsers} lang={lang} onAskAI={(s, sc) => { setPredictionSpot(s); setPredictionScore(sc); }} />
+          ))}
+        </div>
+      )}
+
+      {predictionSpot && <PredictionZoneModal spot={predictionSpot} score={predictionScore} weather={weather} tideData={tideData} lang={lang} onClose={() => setPredictionSpot(null)} />}
+
+      {/* Spots list */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {mapMode === "spots" && spots.length === 0 && (
+          <div style={{ textAlign: "center", padding: "30px 20px", color: "#7a7a6a" }}>
+            <div style={{ fontSize: "2rem", marginBottom: 8 }}>🗺️</div>
+            <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "このエリアのスポットは準備中です" : "Spots for this area coming soon"}</div>
+          </div>
+        )}
+        {mapMode === "spots" && spots.map((spot, i) => {
+          const coords = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
+          const crowd = coords ? getCrowdingLevel(coords.lat, coords.lng, activeUsers) : null;
+          const score = calcSpotScore(spot, weather, tideData, activeUsers);
+          const scoreColor = score >= 80 ? "#2d7a3a" : score >= 60 ? "#c06a10" : "#888";
+          return (
+            <div key={spot.id || i} style={{ background: "white", border: `1.5px solid ${activeSpot?.id === spot.id ? "#0d7377" : "#e0dbd0"}`, borderRadius: 14, padding: "12px 14px", cursor: "pointer", boxShadow: activeSpot?.id === spot.id ? "0 0 0 2px #0d737744" : "none" }} onClick={() => setActiveSpot(activeSpot?.id === spot.id ? null : spot)}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1a1a14" }}>{spot.icon} {spot.name}</div>
+                  <div style={{ fontSize: "0.78rem", color: "#5a5a4a", marginTop: 2 }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : spot.fish}</div>
+                  <div style={{ display: "flex", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                    {spot.pref && <span style={{ fontSize: "0.72rem", background: "#f0ebe0", color: "#5a5a4a", padding: "2px 7px", borderRadius: 99 }}>📌 {spot.pref}</span>}
+                    {spot.distKm !== null && <span style={{ fontSize: "0.72rem", background: "#e0f2f2", color: "#0d7377", padding: "2px 7px", borderRadius: 99 }}>📏 {spot.distKm}km</span>}
+                    {crowd && crowd.count > 0 && <span style={{ fontSize: "0.72rem", color: crowd.color, fontWeight: 600 }}>{crowd.label[lang]}</span>}
+                  </div>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  {"⭐".repeat(Math.round(spot.rating || 0))}
+                  <div style={{ fontSize: "0.75rem", color: scoreColor, fontWeight: 700, marginTop: 2 }}>{score}pt</div>
+                </div>
+              </div>
+              {spot.tip && activeSpot?.id === spot.id && (
+                <div style={{ background: "#f5f0e8", borderRadius: 10, padding: "8px 12px", marginTop: 8, fontSize: "0.82rem", color: "#3a3a2a", lineHeight: 1.6 }}>
+                  💡 {spot.tip[lang]}
+                  {spot.access && <div style={{ marginTop: 4, fontSize: "0.78rem", color: "#5a5a4a" }}>🚗 {spot.access[lang]}</div>}
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
