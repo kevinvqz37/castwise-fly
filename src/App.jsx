@@ -1018,7 +1018,7 @@ function PredictionZoneModal({ spot, score, weather, tideData, lang, onClose }) 
 const MABO_TOURNAMENTS = [
   {
     id: 0,
-    name: { ja: "⚔️ Kevin vs 柳井 — 一騎打ち大会", en: "⚔️ Kevin vs 柳井 — Head to Head" },
+    name: { ja: "⚔️ Kevin vs 梁井 — 一騎打ち大会", en: "⚔️ Kevin vs 梁井 — Head to Head" },
     status: "live",
     participants: 2,
     location: { ja: "九州全域（どこでも可）", en: "Anywhere in Kyushu" },
@@ -1029,7 +1029,7 @@ const MABO_TOURNAMENTS = [
     rivalry: true,
     players: [
       { name: "Kevin", flag: "🇵🇷", best: null, species: null, location: null },
-      { name: "柳井", flag: "🇯🇵", best: null, species: null, location: null },
+      { name: "梁井", flag: "🇯🇵", best: null, species: null, location: null },
     ],
     leaderboard: []
   },
@@ -1169,7 +1169,7 @@ function TournamentView({ lang, profile, myCatches }) {
               <div style={{ color: "#FFE500", fontWeight: 900, fontSize: "1.3rem" }}>VS</div>
               <div style={{ flex: 1, background: "rgba(255,255,255,0.07)", borderRadius: 10, padding: "8px", textAlign: "center" }}>
                 <div style={{ fontSize: "1.4rem" }}>🇯🇵</div>
-                <div style={{ color: "white", fontWeight: 800, fontSize: "0.88rem" }}>柳井</div>
+                <div style={{ color: "white", fontWeight: 800, fontSize: "0.88rem" }}>梁井</div>
                 <div style={{ color: "#aaa", fontSize: "0.72rem", marginTop: 2 }}>{lang === "ja" ? "未記録" : "No catch yet"}</div>
               </div>
             </div>
