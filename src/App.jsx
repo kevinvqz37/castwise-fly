@@ -1092,7 +1092,7 @@ function TournamentView({ lang, profile, myCatches }) {
             {t.status === "live" ? (lang === "ja" ? "🔴 開催中" : "🔴 LIVE") : (lang === "ja" ? "近日開催" : "UPCOMING")}
             {t.status === "live" && ` · ${lang === "ja" ? `参加者 ${t.participants}名` : `${t.participants} anglers`}`}
           </div>
-          <div style={{ fontSize: "1.1rem", fontWeight: 900, color: "#74c69d", marginBottom: 6 }}>{t.(name[lang] || name?.en || name?.ja || "")}</div>
+          <div style={{ fontSize: "1.1rem", fontWeight: 900, color: "#74c69d", marginBottom: 6 }}>{t[name[lang] || name?.en || name?.ja || ""]}</div>
           <div style={{ fontSize: "0.82rem", color: "#aaa", marginBottom: 4 }}>📍 {t.(location[lang] || location?.en || location?.ja || "")} · {t.(period[lang] || period?.en || period?.ja || "")}</div>
           <div style={{ fontSize: "0.82rem", color: "#aaa", marginBottom: 4 }}>🎯 {t.(target[lang] || target?.en || target?.ja || "")} · {t.(rule[lang] || rule?.en || rule?.ja || "")}</div>
           <div style={{ fontSize: "0.88rem", color: "#74c69d", fontWeight: 700, marginTop: 8 }}>{t.(prize[lang] || prize?.en || prize?.ja || "")}</div>
