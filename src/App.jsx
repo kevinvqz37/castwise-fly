@@ -3475,7 +3475,7 @@ export default function CastWiseJapan() {
   const tideData = useRealTideData(userLocation);
   const riverConditions = useRiverConditions();
   const { isOnline } = useOfflineMode();
-  useFishingAlerts(WEATHER, userLocation, lang);
+  useFishingAlerts(weather, userLocation, lang);
 
   const { journal, addEntry, deleteEntry } = useFishingJournal();
   const [journalOpen, setJournalOpen] = useState(false);
@@ -3819,7 +3819,7 @@ If this is NOT a fish or the image is unclear, return:
               <button onClick={() => setShowRewarded(true)} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", cursor: "pointer", fontWeight: 700 }}>🎁</button>
             )}
             <div style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 700 }}>
-              🔥 {WEATHER.fishingIndex}{bonusPoints > 0 && <span style={{ color: "#c06a10" }}> +{bonusPoints}</span>}
+              🔥 {weather.fishingIndex}{bonusPoints > 0 && <span style={{ color: "#c06a10" }}> +{bonusPoints}</span>}
             </div>
           </div>
         </div>
@@ -3899,8 +3899,8 @@ If this is NOT a fish or the image is unclear, return:
               <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
                 <span style={{ fontSize: "1.3rem" }}>⛅</span>
                 <div>
-                  <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>{WEATHER.temp}℃ · {WEATHER[condition[lang] || condition?.en || condition?.ja || ""]}</div>
-                  <div style={{ fontSize: "0.95rem", color: "#2d7a3a" }}>🔥 {lang === "ja" ? `釣り指数${WEATHER.fishingIndex}/100 — 最高の釣り日和！` : `Index ${WEATHER.fishingIndex}/100 — Excellent!`}</div>
+                  <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>{weather.temp}℃ · {weather[condition[lang] || condition?.en || condition?.ja || ""]}</div>
+                  <div style={{ fontSize: "0.95rem", color: "#2d7a3a" }}>🔥 {lang === "ja" ? `釣り指数${weather.fishingIndex}/100 — 最高の釣り日和！` : `Index ${weather.fishingIndex}/100 — Excellent!`}</div>
                 </div>
               </div>
               <div style={{ color: "#0d7377" }}>→</div>
@@ -4072,7 +4072,7 @@ If this is NOT a fish or the image is unclear, return:
 
         {/* ── FLY FISHING ── */}
         {tab === "FlyFishing" && (
-          <FlyFishingView lang={lang} weather={WEATHER} onOpenAI={() => { setFlyAIFish(null); setShowFlyAI(true); }} />
+          <FlyFishingView lang={lang} weather={weather} onOpenAI={() => { setFlyAIFish(null); setShowFlyAI(true); }} />
         )}
 
         {/* ── MAP ── */}
@@ -4080,7 +4080,7 @@ If this is NOT a fish or the image is unclear, return:
 
         {/* ── WEATHER ── */}
         {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} />}
-        {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} forecast={forecast7day} tides={tideData} rivers={riverConditions} />}
+        {tab === "Weather" && <WeatherView lang={lang} weather={weather} forecast={forecast7day} tides={tideData} rivers={riverConditions} />}
 
         {/* ── COMMUNITY ── */}
         {tab === "Community" && (
@@ -4533,11 +4533,11 @@ If this is NOT a fish or the image is unclear, return:
         )}
       </div>
 
-      {showAI && selectedFish && <AIModal fish={selectedFish} weather={WEATHER} lang={lang} onClose={() => setShowAI(false)} />}
-      {showFlyAI && <AIFlyModal fish={flyAIFish} weather={WEATHER} lang={lang} currentMonth={lang === "ja" ? HATCH_CALENDAR[new Date().getMonth()].month.ja : HATCH_CALENDAR[new Date().getMonth()].month.en} onClose={() => setShowFlyAI(false)} />}
+      {showAI && selectedFish && <AIModal fish={selectedFish} weather={weather} lang={lang} onClose={() => setShowAI(false)} />}
+      {showFlyAI && <AIFlyModal fish={flyAIFish} weather={weather} lang={lang} currentMonth={lang === "ja" ? HATCH_CALENDAR[new Date().getMonth()].month.ja : HATCH_CALENDAR[new Date().getMonth()].month.en} onClose={() => setShowFlyAI(false)} />}
       {showInterstitial && <InterstitialAd lang={lang} isPremium={isPremium} onClose={closeInterstitial} onWatchReward={() => { setShowInterstitial(false); setShowRewarded(true); }} />}
       {showRewarded && <RewardedAdModal lang={lang} onComplete={() => { setShowRewarded(false); setBonusPoints(p => p + 100); if (pendingTab) { setTab(pendingTab); setPendingTab(null); } }} onClose={() => { setShowRewarded(false); if (pendingTab) { setTab(pendingTab); setPendingTab(null); } }} />}
-      {showLocalAI && <LocalAIAdvisor userLocation={userLocation} lang={lang} weather={WEATHER} onClose={() => setShowLocalAI(false)} />}
+      {showLocalAI && <LocalAIAdvisor userLocation={userLocation} lang={lang} weather={weather} onClose={() => setShowLocalAI(false)} />}
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, height: 1, background: "linear-gradient(90deg,transparent,#c4bfb4,transparent)", pointerEvents: "none", zIndex: 100 }} />
       {/* Legal footer */}
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: "rgba(245,240,232,0.95)", borderTop: "1px solid #d4cfc4", padding: "6px 16px", display: "flex", justifyContent: "center", gap: 16, zIndex: 99, fontSize: "0.72rem", color: "#9a9a8a" }}>
