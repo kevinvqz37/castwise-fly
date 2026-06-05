@@ -3067,10 +3067,10 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       <div style={{ background: "linear-gradient(135deg,#FFF9CC,#f0ebe0)", border: "1px solid rgba(72,202,228,0.22)", borderRadius: 20, padding: 18, marginBottom: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <div style={{ fontSize: "2.8rem", lineHeight: 1, fontWeight: 700 }}>{WEATHER.temp}℃</div>
-            <div style={{ fontSize: "0.92rem", color: "#5a5a4a" }}>{lang === "ja" ? `体感${WEATHER.feels}℃` : `Feels ${WEATHER.feels}℃`} · {WEATHER[condition[lang] || condition?.en || condition?.ja || ""]}</div>
+            <div style={{ fontSize: "2.8rem", lineHeight: 1, fontWeight: 700 }}>{weather.temp}℃</div>
+            <div style={{ fontSize: "0.92rem", color: "#5a5a4a" }}>{lang === "ja" ? `体感${weather.feels}℃` : `Feels ${weather.feels}℃`} · {weather[condition[lang] || condition?.en || condition?.ja || ""]}</div>
             <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {[{ icon: "💨", v: WEATHER.wind?.[lang] || "－" }, { icon: "💧", v: `${WEATHER.humidity ?? "－"}%` }, { icon: "🌡️", v: WEATHER.waterTemp != null ? `${lang === "ja" ? "水温" : "Water"}: ${WEATHER.waterTemp}℃` : (lang === "ja" ? "水温: 現地確認" : "Water: check locally") }, { icon: "🌙", v: WEATHER.moonPhase?.[lang] || "－" }].map(i => <span key={i.v} style={{ fontSize: "1rem", color: "#3a3a2a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{i.icon} {i.v}</span>)}
+              {[{ icon: "💨", v: weather.wind?.[lang] || "－" }, { icon: "💧", v: `${weather.humidity ?? "－"}%` }, { icon: "🌡️", v: weather.waterTemp != null ? `${lang === "ja" ? "水温" : "Water"}: ${weather.waterTemp}℃` : (lang === "ja" ? "水温: 現地確認" : "Water: check locally") }, { icon: "🌙", v: weather.moonPhase?.[lang] || "－" }].map(i => <span key={i.v} style={{ fontSize: "1rem", color: "#3a3a2a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{i.icon} {i.v}</span>)}
             </div>
           </div>
           <ScoreRing score={fi} lang={lang} />
@@ -3083,7 +3083,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
         <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em" }}>{lang === "ja" ? "時間別釣り指数" : "HOURLY FISHING INDEX"}</div>
         <div style={{ display: "flex", gap: 5, overflowX: "auto", paddingBottom: 4 }}>
-          {(WEATHER.hourly || []).map(h => (
+          {(weather.hourly || []).map(h => (
             <div key={h.time} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, minWidth: 42 }}>
               <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{h.time}</div>
               <div style={{ fontSize: "1rem" }}>{h.icon}</div>
@@ -3098,9 +3098,9 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
         {[
-          { icon: "🌊", la: { ja: "水温", en: "Water Temp" }, v: WEATHER.waterTemp != null ? `${WEATHER.waterTemp}℃` : (lang === "ja" ? "現地確認" : "Check locally"), sub: { ja: "フライ最適: 8-16℃", en: "Fly optimal: 8–16℃" } },
-          { icon: "👁️", la: { ja: "水質", en: "Clarity" }, v: WEATHER.waterClarity?.[lang] || "－", sub: { ja: "ナチュラル系有効", en: "Natural colors work" } },
-          { icon: "💨", la: { ja: "流れ", en: "Current" }, v: WEATHER.flow?.[lang] || "－", sub: { ja: "ドリフト有効", en: "Good for drifting" } },
+          { icon: "🌊", la: { ja: "水温", en: "Water Temp" }, v: weather.waterTemp != null ? `${weather.waterTemp}℃` : (lang === "ja" ? "現地確認" : "Check locally"), sub: { ja: "フライ最適: 8-16℃", en: "Fly optimal: 8–16℃" } },
+          { icon: "👁️", la: { ja: "水質", en: "Clarity" }, v: weather.waterClarity?.[lang] || "－", sub: { ja: "ナチュラル系有効", en: "Natural colors work" } },
+          { icon: "💨", la: { ja: "流れ", en: "Current" }, v: weather.flow?.[lang] || "－", sub: { ja: "ドリフト有効", en: "Good for drifting" } },
           { icon: "🦋", la: { ja: "ハッチ予測", en: "Hatch Outlook" }, v: { ja: "BWO期待大", en: "BWO likely" }[lang], sub: { ja: "夕方のライズに注目", en: "Watch for evening rises" } },
         ].map(c => (
           <div key={c.la.ja} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: "12px 14px" }}>
