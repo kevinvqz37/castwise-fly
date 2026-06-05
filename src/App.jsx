@@ -3034,7 +3034,11 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
 // ─── MAP VIEW ────────────────────────────────────────────────────────────────
 
 function WeatherView({ lang, weather, forecast, tides, rivers }) {
+  // Add this safety check:
+  // If 'weather' is undefined, set it to an empty object
   const  weatherData = weather || {};
+  
+  // Now, use 'weatherData' = instead of 'weather' everywhere in this function
   const fi = weatherData.fishingIndex ?? 75;
   const fiColor = fi >= 80 ? "#2d7a3a" : fi >= 60 ? "#c06a10" : "#b82030";
   const fiMsg = fi >= 80 ? s("excellent", lang) : fi >= 60 ? s("good", lang) : s("fair", lang);
