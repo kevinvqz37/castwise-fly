@@ -1093,9 +1093,9 @@ function TournamentView({ lang, profile, myCatches }) {
             {t.status === "live" && ` · ${lang === "ja" ? `参加者 ${t.participants}名` : `${t.participants} anglers`}`}
           </div>
           <div style={{ fontSize: "1.1rem", fontWeight: 900, color: "#74c69d", marginBottom: 6 }}>{t[name[lang] || name?.en || name?.ja || ""]}</div>
-          <div style={{ fontSize: "0.82rem", color: "#aaa", marginBottom: 4 }}>📍 {t.(location[lang] || location?.en || location?.ja || "")} · {t.(period[lang] || period?.en || period?.ja || "")}</div>
-          <div style={{ fontSize: "0.82rem", color: "#aaa", marginBottom: 4 }}>🎯 {t.(target[lang] || target?.en || target?.ja || "")} · {t.(rule[lang] || rule?.en || rule?.ja || "")}</div>
-          <div style={{ fontSize: "0.88rem", color: "#74c69d", fontWeight: 700, marginTop: 8 }}>{t.(prize[lang] || prize?.en || prize?.ja || "")}</div>
+          <div style={{ fontSize: "0.82rem", color: "#aaa", marginBottom: 4 }}>📍 {t[location[lang] || location?.en || location?.ja || ""]} · {t[period[lang] || period?.en || period?.ja || ""]}</div>
+          <div style={{ fontSize: "0.82rem", color: "#aaa", marginBottom: 4 }}>🎯 {t[target[lang] || target?.en || target?.ja || ""]} · {t[rule[lang] || rule?.en || rule?.ja || ""]}</div>
+          <div style={{ fontSize: "0.88rem", color: "#74c69d", fontWeight: 700, marginTop: 8 }}>{t[prize[lang] || prize?.en || prize?.ja || ""]}</div>
         </div>
 
         {t.status === "live" && !submitted && (
@@ -1156,7 +1156,7 @@ function TournamentView({ lang, profile, myCatches }) {
               <span style={{ background: "#FFE500", color: "#1a1a14", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>⚔️ {lang === "ja" ? "ライバル対決" : lang === "es" ? "RIVALIDAD" : "RIVALRY"}</span>
               <span style={{ color: "#FFE500", fontSize: "0.75rem" }}>🇵🇷 vs 🇯🇵</span>
             </div>
-            <div style={{ fontWeight: 900, fontSize: "0.95rem", color: "#FFE500", marginBottom: 10 }}>{t.(name[lang] || name?.en || name?.ja || "")}</div>
+            <div style={{ fontWeight: 900, fontSize: "0.95rem", color: "#FFE500", marginBottom: 10 }}>{t[name[lang] || name?.en || name?.ja || ""]}</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <div style={{ flex: 1, background: "rgba(255,255,255,0.07)", borderRadius: 10, padding: "8px", textAlign: "center" }}>
                 <div style={{ fontSize: "1.4rem" }}>🇵🇷</div>
@@ -1170,7 +1170,7 @@ function TournamentView({ lang, profile, myCatches }) {
                 <div style={{ color: "#aaa", fontSize: "0.72rem", marginTop: 2 }}>{lang === "ja" ? "未記録" : "No catch yet"}</div>
               </div>
             </div>
-            <div style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>🏆 {t.(prize[lang] || prize?.en || prize?.ja || "")}</div>
+            <div style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>🏆 {t[prize[lang] || prize?.en || prize?.ja || ""]}</div>
             <div style={{ background: "#FFE500", color: "#1a1a14", borderRadius: 8, padding: "7px", textAlign: "center", fontSize: "0.85rem", fontWeight: 800 }}>
               {lang === "ja" ? "釣果を提出して勝負！→" : lang === "es" ? "¡Envía tu captura y gana! →" : "Submit your catch & win! →"}
             </div>
@@ -1182,9 +1182,9 @@ function TournamentView({ lang, profile, myCatches }) {
               {t.status === "live" ? (lang === "ja" ? `🔴 開催中 · ${t.participants}名参加` : `🔴 LIVE · ${t.participants} anglers`) : (lang === "ja" ? "近日開催" : "UPCOMING")}
             </span>
           </div>
-          <div style={{ fontWeight: 800, fontSize: "0.95rem", color: t.status === "live" ? "#74c69d" : "#1a1a14", marginBottom: 4 }}>{t.(name[lang] || name?.en || name?.ja || "")}</div>
-          <div style={{ fontSize: "0.78rem", color: t.status === "live" ? "#aaa" : "#888", marginBottom: 4 }}>📍 {t.(location[lang] || location?.en || location?.ja || "")} · {t.(period[lang] || period?.en || period?.ja || "")}</div>
-          <div style={{ fontSize: "0.82rem", color: t.status === "live" ? "#74c69d" : "#2d7a3a", fontWeight: 700 }}>{t.(prize[lang] || prize?.en || prize?.ja || "")}</div>
+          <div style={{ fontWeight: 800, fontSize: "0.95rem", color: t.status === "live" ? "#74c69d" : "#1a1a14", marginBottom: 4 }}>{t[name[lang] || name?.en || name?.ja || ""]}</div>
+          <div style={{ fontSize: "0.78rem", color: t.status === "live" ? "#aaa" : "#888", marginBottom: 4 }}>📍 {t[location[lang] || location?.en || location?.ja || ""]} · {t[period[lang] || period?.en || period?.ja || ""]}</div>
+          <div style={{ fontSize: "0.82rem", color: t.status === "live" ? "#74c69d" : "#2d7a3a", fontWeight: 700 }}>{t[prize[lang] || prize?.en || prize?.ja || ""]}</div>
           <div style={{ marginTop: 10, background: t.status === "live" ? "#74c69d" : "#1a1a14", color: t.status === "live" ? "#1a1a14" : "#74c69d", borderRadius: 8, padding: "7px", textAlign: "center", fontSize: "0.85rem", fontWeight: 800 }}>
             {t.status === "live" ? (lang === "ja" ? "参加・詳細を見る →" : "Join & View Details →") : (lang === "ja" ? "詳細を見る →" : "View Details →")}
           </div>
