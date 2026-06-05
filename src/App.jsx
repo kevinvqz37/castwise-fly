@@ -218,7 +218,7 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
             <div style={{ height: 160, background: `linear-gradient(135deg,${ad.bg},${ad.accent}22)`, borderRadius: 16, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 16, gap: 10 }}>
               <div style={{ fontSize: "3.5rem", animation: "float 1s ease-in-out infinite" }}>{ad.logo}</div>
               <div style={{ fontWeight: 700, color: ad.accent, fontSize: "1.1rem" }}>{lang === "ja" ? ad.brand : ad.brandEn}</div>
-              <div style={{ fontSize: "1.05rem", color: "#3a3a2a", textAlign: "center" }}>{ad.(tagline[lang] || tagline?.en || tagline?.ja || "")}</div>
+              <div style={{ fontSize: "1.05rem", color: "#3a3a2a", textAlign: "center" }}>{ad(tagline[lang] || tagline?.en || tagline?.ja || "")}</div>
             </div>
             <div style={{ background: "#fffdf8", borderRadius: 99, height: 8, overflow: "hidden", marginBottom: 8 }}>
               <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg,#FFE500,#48cae4)", borderRadius: 99, transition: "width 0.3s" }} />
