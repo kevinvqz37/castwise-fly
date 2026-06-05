@@ -884,9 +884,9 @@ function calcSpotScore(spot, weather, tideData, activeUsers) {
   else score -= 10;
 
   if (weather) {
-    const temp = parseFloat(weather.temp);
-    const wind = parseFloat(weather.wind);
-    const desc = (weather.desc || "").toLowerCase();
+    const temp = parseFloat(weather?.temp);
+    const wind = parseFloat(weather?.wind);
+    const desc = (weather?.desc || "").toLowerCase();
     if (temp >= 15 && temp <= 25) score += 15;
     else if (temp >= 10 && temp <= 30) score += 8;
     else score -= 10;
@@ -1627,15 +1627,15 @@ function useFishingAlerts(weather, userLocation, lang) {
 
   useEffect(() => {
     if (!weather?.loaded || alertedRef.current) return;
-    if (weather.fishingIndex >= 88) {
+    if (weather?.fishingIndex >= 88) {
       alertedRef.current = true;
       requestNotificationPermission().then(granted => {
         if (granted) {
           sendFishingAlert(
             lang === "ja" ? "🔥 今が釣り日和！" : "🔥 Prime Fishing Conditions!",
             lang === "ja"
-              ? `釣り指数 ${weather.fishingIndex}/100 — ${userLocation?.display || "現在地"}周辺が最高の状態です！`
-              : `Fishing index ${weather.fishingIndex}/100 — Conditions are excellent near ${userLocation?.display || "your location"}!`
+              ? `釣り指数 ${weather?.fishingIndex}/100 — ${userLocation?.display || "現在地"}周辺が最高の状態です！`
+              : `Fishing index ${weather?.fishingIndex}/100 — Conditions are excellent near ${userLocation?.display || "your location"}!`
           );
         }
       });
@@ -2046,10 +2046,10 @@ function AIModal({ fish, weather, lang, onClose }) {
   const [response, setResponse] = useState(""); const [loading, setLoading] = useState(true);
   useEffect(() => {
     (async () => {
-      const jaPrompt = `あなたはベテランの日本の釣りガイドです。${fish.name}（${fish.nameEn}）を今日の条件で釣るためのルアー・エサのアドバイスをしてください。気温:${weather.temp}℃ 水温:${weather.waterTemp}℃ 天気:${weather.condition.ja} 風:${weather.wind.ja} 釣り指数:${weather.fishingIndex}/100。TOP3ルアー（理由付き）、アクション方法、隠し技、最適時間帯を200〜250字で絵文字セクション分けして日本語で回答。`;
-      const enPrompt = `You are an expert Japanese fishing guide. Give lure and bait advice for catching ${fish.nameEn} today. Conditions: ${weather.temp}℃ air, ${weather.waterTemp}℃ water, ${weather.condition.en}, wind ${weather.wind.en}, fishing index ${weather.fishingIndex}/100. Give TOP 3 lures (with reasons), retrieve technique, a pro tip, and the best time window. Keep it under 200 words with emoji section headers.`;
-      const jaFallback = `🥇 本日のルアー診断\n\n🎯 第1位：バイブレーション（ゴールド系）\n水温${weather.waterTemp}℃の条件ではリアクションバイト狙いが◎。底からリフト＆フォール。\n\n🥈 第2位：シンキングペンシル\n流れのある場所でドリフト。橋脚明暗部でスロー引き。\n\n🥉 第3位：ワームリグ（クリア）\nプレッシャー高いポイントはフィネス系。1〜2gジグヘッドでデッドスロー。\n\n🔮 隠し技：カラーローテーション\nナチュラル⇔チャートで即変更。\n\n⏰ 黄金タイム：6〜8時・18〜20時`;
-      const enFallback = `🥇 Today's Top Lure\n\n🎯 #1: Vibration plug (gold)\nAt ${weather.waterTemp}℃, trigger reaction bites. Lift-and-drop off the bottom.\n\n🥈 #2: Sinking pencil\nDrift through currents. Slow retrieve past bridge shadows at night.\n\n🥉 #3: Soft plastic (clear)\nFor pressured spots — deadstick a 1–2g jig head ultra-slow.\n\n🔮 Pro tip: Color rotation\nFlip between natural and chartreuse when bites stop.\n\n⏰ Golden window: 6–8am & 6–8pm`;
+      const jaPrompt = `あなたはベテランの日本の釣りガイドです。${fish.name}（${fish.nameEn}）を今日の条件で釣るためのルアー・エサのアドバイスをしてください。気温:${weather?.temp}℃ 水温:${weather?.waterTemp}℃ 天気:${weather?.condition.ja} 風:${weather?.wind.ja} 釣り指数:${weather?.fishingIndex}/100。TOP3ルアー（理由付き）、アクション方法、隠し技、最適時間帯を200〜250字で絵文字セクション分けして日本語で回答。`;
+      const enPrompt = `You are an expert Japanese fishing guide. Give lure and bait advice for catching ${fish.nameEn} today. Conditions: ${weather?.temp}℃ air, ${weather?.waterTemp}℃ water, ${weather?.condition.en}, wind ${weather?.wind.en}, fishing index ${weather?.fishingIndex}/100. Give TOP 3 lures (with reasons), retrieve technique, a pro tip, and the best time window. Keep it under 200 words with emoji section headers.`;
+      const jaFallback = `🥇 本日のルアー診断\n\n🎯 第1位：バイブレーション（ゴールド系）\n水温${weather?.waterTemp}℃の条件ではリアクションバイト狙いが◎。底からリフト＆フォール。\n\n🥈 第2位：シンキングペンシル\n流れのある場所でドリフト。橋脚明暗部でスロー引き。\n\n🥉 第3位：ワームリグ（クリア）\nプレッシャー高いポイントはフィネス系。1〜2gジグヘッドでデッドスロー。\n\n🔮 隠し技：カラーローテーション\nナチュラル⇔チャートで即変更。\n\n⏰ 黄金タイム：6〜8時・18〜20時`;
+      const enFallback = `🥇 Today's Top Lure\n\n🎯 #1: Vibration plug (gold)\nAt ${weather?.waterTemp}℃, trigger reaction bites. Lift-and-drop off the bottom.\n\n🥈 #2: Sinking pencil\nDrift through currents. Slow retrieve past bridge shadows at night.\n\n🥉 #3: Soft plastic (clear)\nFor pressured spots — deadstick a 1–2g jig head ultra-slow.\n\n🔮 Pro tip: Color rotation\nFlip between natural and chartreuse when bites stop.\n\n⏰ Golden window: 6–8am & 6–8pm`;
       try {
         const res = await fetch("/api/claude", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
         const data = await res.json(); setResponse(data.content?.[0]?.text || "");
@@ -2075,10 +2075,10 @@ function AIFlyModal({ fish, weather, lang, currentMonth, onClose }) {
   const [response, setResponse] = useState(""); const [loading, setLoading] = useState(true);
   useEffect(() => {
     (async () => {
-      const jaPrompt = `あなたは日本のフライフィッシングの専門家です。${fish?.name || "ヤマメ・イワナ"}を${currentMonth}の日本の渓流でフライフィッシング（またはテンカラ）で狙う場合のアドバイスをください。条件：気温${weather.temp}℃、水温${weather.waterTemp}℃、天気${weather.condition.ja}、水の透明度：${weather.waterClarity.ja}。\n\n以下を教えてください：\n1. 今日のベストフライパターン TOP3（理由付き・サイズとカラーも）\n2. プレゼンテーション方法（キャスト・ドリフト技術）\n3. ハッチ（羽化）の予測と対応すべきイミテーション\n4. テンカラvs ウェスタンフライ、今日の条件でどちらが有利か\n5. 今日の最適な時間帯とポイントの選び方\n\n250〜300字で絵文字セクション分け、日本語で回答。`;
-      const enPrompt = `You are a Japanese fly fishing expert. Give advice for catching ${fish?.nameEn || "Yamame / Iwana"} fly fishing (or tenkara) in Japanese mountain streams in ${currentMonth}. Conditions: ${weather.temp}℃ air, ${weather.waterTemp}℃ water, ${weather.condition.en}, water clarity: ${weather.waterClarity.en}.\n\nCover: 1) Top 3 fly patterns (with sizes & colours) 2) Presentation technique 3) Hatch prediction & imitation 4) Tenkara vs western fly — which wins today? 5) Best time window and spot selection. Under 250 words, emoji section headers.`;
-      const jaFallback = `🪶 本日のフライ診断（${currentMonth}）\n\n🥇 第1位：パラシュートアダムス #14\n水温${weather.waterTemp}℃でBWOのハッチが期待できる。くもりの光条件でパラシュートポストが見やすい。\n\n🥈 第2位：フェザントテールニンフ #14-16（ビーズヘッド）\nハッチ前後にインジケーター付きで深場をドリフト。\n\n🥉 第3位：テンカラ逆さ毛鉤 #10-12\n源流のコンパクトな渓流では竿のコントロールが活きる。テンション＆リリースで誘う。\n\n🌊 ハッチ予測\n気温14℃・水温${weather.waterTemp}℃はBWOとヒゲナガのハッチ好条件。特に夕方のライズに注目。\n\n🎋 テンカラ vs ウェスタン\n水質良好で木が多い源流ではテンカラ有利。開けた区間はウェスタンのメンディングが有効。\n\n⏰ ベストタイム：6〜9時と17〜19時のイブニングハッチを狙え！`;
-      const enFallback = `🪶 Fly Fishing Forecast — ${currentMonth}\n\n🥇 #1: Parachute Adams #14\nAt ${weather.waterTemp}℃ water, BWO hatch is likely. White post stays visible in flat light.\n\n🥈 #2: Pheasant Tail Nymph #14-16 (bead head)\nBetween hatches, drift deep under an indicator.\n\n🥉 #3: Tenkara Sakasa Kebari #10-12\nIn tight headwater gorges, rod control beats line management every time.\n\n🌊 Hatch Outlook\n14℃ air, ${weather.waterTemp}℃ water — prime BWO and sedge conditions. Watch for evening rises.\n\n🎋 Tenkara vs Western\nClear water + overhanging trees → tenkara wins. Open runs → western mending has the edge.\n\n⏰ Best windows: 6–9am and the 5–7pm evening hatch.`;
+      const jaPrompt = `あなたは日本のフライフィッシングの専門家です。${fish?.name || "ヤマメ・イワナ"}を${currentMonth}の日本の渓流でフライフィッシング（またはテンカラ）で狙う場合のアドバイスをください。条件：気温${weather?.temp}℃、水温${weather?.waterTemp}℃、天気${weather?.condition.ja}、水の透明度：${weather?.waterClarity.ja}。\n\n以下を教えてください：\n1. 今日のベストフライパターン TOP3（理由付き・サイズとカラーも）\n2. プレゼンテーション方法（キャスト・ドリフト技術）\n3. ハッチ（羽化）の予測と対応すべきイミテーション\n4. テンカラvs ウェスタンフライ、今日の条件でどちらが有利か\n5. 今日の最適な時間帯とポイントの選び方\n\n250〜300字で絵文字セクション分け、日本語で回答。`;
+      const enPrompt = `You are a Japanese fly fishing expert. Give advice for catching ${fish?.nameEn || "Yamame / Iwana"} fly fishing (or tenkara) in Japanese mountain streams in ${currentMonth}. Conditions: ${weather?.temp}℃ air, ${weather?.waterTemp}℃ water, ${weather?.condition.en}, water clarity: ${weather?.waterClarity.en}.\n\nCover: 1) Top 3 fly patterns (with sizes & colours) 2) Presentation technique 3) Hatch prediction & imitation 4) Tenkara vs western fly — which wins today? 5) Best time window and spot selection. Under 250 words, emoji section headers.`;
+      const jaFallback = `🪶 本日のフライ診断（${currentMonth}）\n\n🥇 第1位：パラシュートアダムス #14\n水温${weather?.waterTemp}℃でBWOのハッチが期待できる。くもりの光条件でパラシュートポストが見やすい。\n\n🥈 第2位：フェザントテールニンフ #14-16（ビーズヘッド）\nハッチ前後にインジケーター付きで深場をドリフト。\n\n🥉 第3位：テンカラ逆さ毛鉤 #10-12\n源流のコンパクトな渓流では竿のコントロールが活きる。テンション＆リリースで誘う。\n\n🌊 ハッチ予測\n気温14℃・水温${weather?.waterTemp}℃はBWOとヒゲナガのハッチ好条件。特に夕方のライズに注目。\n\n🎋 テンカラ vs ウェスタン\n水質良好で木が多い源流ではテンカラ有利。開けた区間はウェスタンのメンディングが有効。\n\n⏰ ベストタイム：6〜9時と17〜19時のイブニングハッチを狙え！`;
+      const enFallback = `🪶 Fly Fishing Forecast — ${currentMonth}\n\n🥇 #1: Parachute Adams #14\nAt ${weather?.waterTemp}℃ water, BWO hatch is likely. White post stays visible in flat light.\n\n🥈 #2: Pheasant Tail Nymph #14-16 (bead head)\nBetween hatches, drift deep under an indicator.\n\n🥉 #3: Tenkara Sakasa Kebari #10-12\nIn tight headwater gorges, rod control beats line management every time.\n\n🌊 Hatch Outlook\n14℃ air, ${weather?.waterTemp}℃ water — prime BWO and sedge conditions. Watch for evening rises.\n\n🎋 Tenkara vs Western\nClear water + overhanging trees → tenkara wins. Open runs → western mending has the edge.\n\n⏰ Best windows: 6–9am and the 5–7pm evening hatch.`;
       try {
         const res = await fetch("/api/claude", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
         const data = await res.json(); setResponse(data.content?.[0]?.text || "");
@@ -3071,10 +3071,10 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       <div style={{ background: "linear-gradient(135deg,#FFF9CC,#f0ebe0)", border: "1px solid rgba(72,202,228,0.22)", borderRadius: 20, padding: 18, marginBottom: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <div style={{ fontSize: "2.8rem", lineHeight: 1, fontWeight: 700 }}>{weather.temp}℃</div>
-            <div style={{ fontSize: "0.92rem", color: "#5a5a4a" }}>{lang === "ja" ? `体感${weather.feels}℃` : `Feels ${weather.feels}℃`} · {weather[condition[lang] || condition?.en || condition?.ja || ""]}</div>
+            <div style={{ fontSize: "2.8rem", lineHeight: 1, fontWeight: 700 }}>{weather?.temp}℃</div>
+            <div style={{ fontSize: "0.92rem", color: "#5a5a4a" }}>{lang === "ja" ? `体感${weather?.feels}℃` : `Feels ${weather?.feels}℃`} · {weather[condition[lang] || condition?.en || condition?.ja || ""]}</div>
             <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {[{ icon: "💨", v: weather.wind?.[lang] || "－" }, { icon: "💧", v: `${weather.humidity ?? "－"}%` }, { icon: "🌡️", v: weather.waterTemp != null ? `${lang === "ja" ? "水温" : "Water"}: ${weather.waterTemp}℃` : (lang === "ja" ? "水温: 現地確認" : "Water: check locally") }, { icon: "🌙", v: weather.moonPhase?.[lang] || "－" }].map(i => <span key={i.v} style={{ fontSize: "1rem", color: "#3a3a2a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{i.icon} {i.v}</span>)}
+              {[{ icon: "💨", v: weather?.wind?.[lang] || "－" }, { icon: "💧", v: `${weather?.humidity ?? "－"}%` }, { icon: "🌡️", v: weather?.waterTemp != null ? `${lang === "ja" ? "水温" : "Water"}: ${weather?.waterTemp}℃` : (lang === "ja" ? "水温: 現地確認" : "Water: check locally") }, { icon: "🌙", v: weather?.moonPhase?.[lang] || "－" }].map(i => <span key={i.v} style={{ fontSize: "1rem", color: "#3a3a2a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{i.icon} {i.v}</span>)}
             </div>
           </div>
           <ScoreRing score={fi} lang={lang} />
@@ -3087,7 +3087,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
         <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em" }}>{lang === "ja" ? "時間別釣り指数" : "HOURLY FISHING INDEX"}</div>
         <div style={{ display: "flex", gap: 5, overflowX: "auto", paddingBottom: 4 }}>
-          {(weather.hourly || []).map(h => (
+          {(weather?.hourly || []).map(h => (
             <div key={h.time} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, minWidth: 42 }}>
               <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{h.time}</div>
               <div style={{ fontSize: "1rem" }}>{h.icon}</div>
@@ -3102,9 +3102,9 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
         {[
-          { icon: "🌊", la: { ja: "水温", en: "Water Temp" }, v: weather.waterTemp != null ? `${weather.waterTemp}℃` : (lang === "ja" ? "現地確認" : "Check locally"), sub: { ja: "フライ最適: 8-16℃", en: "Fly optimal: 8–16℃" } },
-          { icon: "👁️", la: { ja: "水質", en: "Clarity" }, v: weather.waterClarity?.[lang] || "－", sub: { ja: "ナチュラル系有効", en: "Natural colors work" } },
-          { icon: "💨", la: { ja: "流れ", en: "Current" }, v: weather.flow?.[lang] || "－", sub: { ja: "ドリフト有効", en: "Good for drifting" } },
+          { icon: "🌊", la: { ja: "水温", en: "Water Temp" }, v: weather?.waterTemp != null ? `${weather?.waterTemp}℃` : (lang === "ja" ? "現地確認" : "Check locally"), sub: { ja: "フライ最適: 8-16℃", en: "Fly optimal: 8–16℃" } },
+          { icon: "👁️", la: { ja: "水質", en: "Clarity" }, v: weather?.waterClarity?.[lang] || "－", sub: { ja: "ナチュラル系有効", en: "Natural colors work" } },
+          { icon: "💨", la: { ja: "流れ", en: "Current" }, v: weather?.flow?.[lang] || "－", sub: { ja: "ドリフト有効", en: "Good for drifting" } },
           { icon: "🦋", la: { ja: "ハッチ予測", en: "Hatch Outlook" }, v: { ja: "BWO期待大", en: "BWO likely" }[lang], sub: { ja: "夕方のライズに注目", en: "Watch for evening rises" } },
         ].map(c => (
           <div key={c.la.ja} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: "12px 14px" }}>
@@ -3257,7 +3257,7 @@ function LocalAIAdvisor({ userLocation, lang, weather, onClose }) {
 
 📍 現在地: ${locationStr}
 🗓️ 月: ${monthName}
-🌡️ 天気: 気温${weather.temp}℃・水温${weather.waterTemp}℃・${weather.condition.ja}・釣り指数${weather.fishingIndex}/100
+🌡️ 天気: 気温${weather?.temp}℃・水温${weather?.waterTemp}℃・${weather?.condition.ja}・釣り指数${weather?.fishingIndex}/100
 🐟 今月の旬な魚: ${peakFish || "ブラックバス、アオリイカ"}
 📍 近くの釣り場TOP5: ${spotsStr}
 
@@ -3273,7 +3273,7 @@ function LocalAIAdvisor({ userLocation, lang, weather, onClose }) {
 
 📍 Location: ${locationStr}
 🗓️ Month: ${monthName}
-🌡️ Conditions: ${weather.temp}℃ air, ${weather.waterTemp}℃ water, ${weather.condition.en}, fishing index ${weather.fishingIndex}/100
+🌡️ Conditions: ${weather?.temp}℃ air, ${weather?.waterTemp}℃ water, ${weather?.condition.en}, fishing index ${weather?.fishingIndex}/100
 🐟 In-season fish this month: ${peakFish || "Largemouth Bass, Squid"}
 📍 Nearest fishing spots: ${spotsStrEn}
 
@@ -3823,7 +3823,7 @@ If this is NOT a fish or the image is unclear, return:
               <button onClick={() => setShowRewarded(true)} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", cursor: "pointer", fontWeight: 700 }}>🎁</button>
             )}
             <div style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 700 }}>
-              🔥 {weather.fishingIndex}{bonusPoints > 0 && <span style={{ color: "#c06a10" }}> +{bonusPoints}</span>}
+              🔥 {weather?.fishingIndex}{bonusPoints > 0 && <span style={{ color: "#c06a10" }}> +{bonusPoints}</span>}
             </div>
           </div>
         </div>
@@ -3903,8 +3903,8 @@ If this is NOT a fish or the image is unclear, return:
               <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
                 <span style={{ fontSize: "1.3rem" }}>⛅</span>
                 <div>
-                  <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>{weather.temp}℃ · {weather[condition[lang] || condition?.en || condition?.ja || ""]}</div>
-                  <div style={{ fontSize: "0.95rem", color: "#2d7a3a" }}>🔥 {lang === "ja" ? `釣り指数${weather.fishingIndex}/100 — 最高の釣り日和！` : `Index ${weather.fishingIndex}/100 — Excellent!`}</div>
+                  <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>{weather?.temp}℃ · {weather[condition[lang] || condition?.en || condition?.ja || ""]}</div>
+                  <div style={{ fontSize: "0.95rem", color: "#2d7a3a" }}>🔥 {lang === "ja" ? `釣り指数${weather?.fishingIndex}/100 — 最高の釣り日和！` : `Index ${weather?.fishingIndex}/100 — Excellent!`}</div>
                 </div>
               </div>
               <div style={{ color: "#0d7377" }}>→</div>
