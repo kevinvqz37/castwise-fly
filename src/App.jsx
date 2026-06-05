@@ -3071,8 +3071,8 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       <div style={{ background: "linear-gradient(135deg,#FFF9CC,#f0ebe0)", border: "1px solid rgba(72,202,228,0.22)", borderRadius: 20, padding: 18, marginBottom: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <div style={{ fontSize: "2.8rem", lineHeight: 1, fontWeight: 700 }}>{weather?.temp}℃</div>
-            <div style={{ fontSize: "0.92rem", color: "#5a5a4a" }}>{lang === "ja" ? `体感${weather?.feels}℃` : `Feels ${weather?.feels}℃`} · {weather[condition[lang] || condition?.en || condition?.ja || ""]}</div>
+            <div style={{ fontSize: "2.8rem", lineHeight: 1, fontWeight: 700 }}>{weatherData.temp}℃</div>
+            <div style={{ fontSize: "0.92rem", color: "#5a5a4a" }}>{lang === "ja" ? `体感${weatherData.feels}℃` : `Feels ${weatherData.feels}℃`} · {weatherData[condition[lang] || condition?.en || condition?.ja || ""]}</div>
             <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
               {[{ icon: "💨", v: weather?.wind?.[lang] || "－" }, { icon: "💧", v: `${weather?.humidity ?? "－"}%` }, { icon: "🌡️", v: weather?.waterTemp != null ? `${lang === "ja" ? "水温" : "Water"}: ${weather?.waterTemp}℃` : (lang === "ja" ? "水温: 現地確認" : "Water: check locally") }, { icon: "🌙", v: weather?.moonPhase?.[lang] || "－" }].map(i => <span key={i.v} style={{ fontSize: "1rem", color: "#3a3a2a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{i.icon} {i.v}</span>)}
             </div>
