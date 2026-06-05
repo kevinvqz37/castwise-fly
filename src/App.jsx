@@ -3034,18 +3034,19 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
 // ─── MAP VIEW ────────────────────────────────────────────────────────────────
 
 function WeatherView({ lang, weather, forecast, tides, rivers }) {
-  const WEATHER = weather || {};
-  const fi = WEATHER.fishingIndex ?? 75;
+  const // To this
+const weatherData = weather || {};
+  const fi = weatherData.fishingIndex ?? 75;
   const fiColor = fi >= 80 ? "#2d7a3a" : fi >= 60 ? "#c06a10" : "#b82030";
   const fiMsg = fi >= 80 ? s("excellent", lang) : fi >= 60 ? s("good", lang) : s("fair", lang);
 
-  const isLoading = !WEATHER.loaded;
+  const isLoading = !weatherData.loaded;
 
   return (
     <div style={{ animation: "fadeUp 0.4s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
         <h2 style={{ margin: 0, fontSize: "1.2rem" }}>{lang === "ja" ? "釣り天気予報" : "Fishing Weather"}</h2>
-        {WEATHER.loaded ? (
+        {weatherData.loaded ? (
           <span style={{ fontSize: "0.78rem", color: "#0d7377", fontWeight: 600 }}>🌐 Open-Meteo · JMA</span>
         ) : (
           <span style={{ fontSize: "0.78rem", color: "#7a7a6a" }}>⏳ {lang === "ja" ? "位置情報待ち..." : "Waiting for GPS..."}</span>
