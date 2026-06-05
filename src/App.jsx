@@ -950,7 +950,7 @@ function PredictionZoneCard({ spot, weather, tideData, activeUsers, lang, onAskA
       </div>
       <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}>
         <span style={{ fontSize: "0.82rem", fontWeight: 700, color: colors.text }}>{colors.label} {score >= 80 ? (lang === "ja" ? "最高の条件！" : lang === "es" ? "¡Condiciones óptimas!" : "Prime conditions!") : score >= 60 ? (lang === "ja" ? "良い条件" : lang === "es" ? "Buenas condiciones" : "Good conditions") : score >= 40 ? (lang === "ja" ? "普通" : lang === "es" ? "Regular" : "Fair") : (lang === "ja" ? "不向き" : lang === "es" ? "Malo" : "Poor")}</span>
-        {crowd && crowd.count > 0 && <span style={{ fontSize: "0.75rem", color: crowd.color, fontWeight: 600 }}>{crowd.(label[lang] || label?.en || label?.ja || "")}</span>}
+        {crowd && crowd.count > 0 && <span style={{ fontSize: "0.75rem", color: crowd.color, fontWeight: 600 }}>{crowd[label[lang] || label?.en || label?.ja || ""]}</span>}
         <span style={{ fontSize: "0.75rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : spot.fish}</span>
       </div>
       <button onClick={() => onAskAI(spot, score)} style={{ width: "100%", padding: "7px", background: "rgba(255,255,255,0.7)", border: `1px solid ${colors.border}`, borderRadius: 8, color: colors.text, cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 600 }}>
