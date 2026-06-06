@@ -3419,6 +3419,20 @@ export default function CastWiseJapan() {
 
 
   const WEATHER = useRealWeather(userLocation);
+  const forecast7day = use7DayForecast(userLocation);
+  const tideData = useRealTideData(userLocation);
+  const riverConditions = useRiverConditions();
+  const { isOnline } = useOfflineMode();
+  useFishingAlerts(WEATHER, userLocation, lang);
+  const { journal, addEntry, deleteEntry } = useFishingJournal();
+  const [journalOpen, setJournalOpen] = useState(false);
+  const [journalEntry, setJournalEntry] = useState({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 });
+  const [locationSharing, setLocationSharing] = useLocalStorage("mabo_sharing", false);
+  const userId = useRef(getOrCreateUserId()).current;
+  const activeUsers = useActiveUsers(db, userLocation, locationSharing, userId);
+  const [fishIDResult, setFishIDResult] = useState(null);
+  const [fishIDLoading, setFishIDLoading] = useState(false);
+  const fileRef = useRef();
 
   const diffMap = { all: { ja: "すべて", en: "All" }, beginner: { ja: "初心者", en: "Beginner" }, intermediate: { ja: "中級者", en: "Intermediate" }, advanced: { ja: "上級者", en: "Advanced" } };
 
@@ -3444,6 +3458,51 @@ export default function CastWiseJapan() {
     { key: "Profile",    ja: "マイ",   en: "Profile",  es: "Perfil",   icon: "👤" },
   ];
 
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        // Reverse geocode to get city name
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+          const data = await res.json();
+          const city = data.address?.city || data.address?.town || data.address?.municipality || data.address?.county || "";
+          const pref = data.address?.state || "";
+          setUserLocation({ lat, lng, city, pref, display: city ? `${city}${pref ? "・" + pref : ""}` : `${lat.toFixed(2)}, ${lng.toFixed(2)}` });
+        } catch {
+          setUserLocation({ lat, lng, city: "", pref: "", display: `${lat.toFixed(2)}, ${lng.toFixed(2)}` });
+        }
+        setLocationLoading(false);
+      },
+      (err) => { setLocationError(err.message); setLocationLoading(false); },
+      { timeout: 10000, maximumAge: 300000 }
+    );
+  }, []);
+
+  // Load catches from Firestore on startup
+  useEffect(() => {
+    const q = query(collection(db, "catches"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      const loaded = snap.docs.map(d => {
+        const data = d.data();
+        return {
+          ...data,
+          photo: data.photoURL || null,
+          date: { ja: data.dateJa || "記録済", en: data.dateEn || "Logged" },
+          comments: data.comments || [],
+          firestoreId: d.id,
+        };
+      });
+      // If Firestore has data use it, otherwise show mock catches
+      setCatches(loaded.length > 0 ? loaded : MOCK_CATCHES);
+      setMyCatches(loaded.filter(c => c.user === profile.name));
+      setCatchesLoading(false);
+    }, (err) => console.warn("Firestore listen error:", err));
+    return () => unsub();
+  }, []);
 
   if (showOnboarding) {
     const avatars = ["🎣","🪶","🐟","🦈","🌊","🏄","⛵","🦭","🐠","🎿","🏔️","🌴"];
@@ -3501,49 +3560,12 @@ export default function CastWiseJapan() {
   }
 
 
-  const forecast7day = use7DayForecast(userLocation);
-  const tideData = useRealTideData(userLocation);
-  const riverConditions = useRiverConditions();
-  const { isOnline } = useOfflineMode();
-  useFishingAlerts(WEATHER, userLocation, lang);
 
-  const { journal, addEntry, deleteEntry } = useFishingJournal();
-  const [journalOpen, setJournalOpen] = useState(false);
-  const [journalEntry, setJournalEntry] = useState({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 });
 
   // Active users & location sharing
-  const [locationSharing, setLocationSharing] = useLocalStorage("mabo_sharing", false);
-  const userId = useRef(getOrCreateUserId()).current;
-  const activeUsers = useActiveUsers(db, userLocation, locationSharing, userId);
 
-  const [fishIDResult, setFishIDResult] = useState(null);
-  const [fishIDLoading, setFishIDLoading] = useState(false);
-  useEffect(() => {
-  const fileRef = useRef();
 
   // Request GPS on first load
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    setLocationLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        // Reverse geocode to get city name
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
-          const data = await res.json();
-          const city = data.address?.city || data.address?.town || data.address?.municipality || data.address?.county || "";
-          const pref = data.address?.state || "";
-          setUserLocation({ lat, lng, city, pref, display: city ? `${city}${pref ? "・" + pref : ""}` : `${lat.toFixed(2)}, ${lng.toFixed(2)}` });
-        } catch {
-          setUserLocation({ lat, lng, city: "", pref: "", display: `${lat.toFixed(2)}, ${lng.toFixed(2)}` });
-        }
-        setLocationLoading(false);
-      },
-      (err) => { setLocationError(err.message); setLocationLoading(false); },
-      { timeout: 10000, maximumAge: 300000 }
-    );
-  }, []);
 
 
 
@@ -3750,26 +3772,6 @@ If this is NOT a fish or the image is unclear, return:
     setLogOpen(false);
   }
 
-  // Load catches from Firestore on startup
-    const q = query(collection(db, "catches"), orderBy("createdAt", "desc"));
-    const unsub = onSnapshot(q, (snap) => {
-      const loaded = snap.docs.map(d => {
-        const data = d.data();
-        return {
-          ...data,
-          photo: data.photoURL || null,
-          date: { ja: data.dateJa || "記録済", en: data.dateEn || "Logged" },
-          comments: data.comments || [],
-          firestoreId: d.id,
-        };
-      });
-      // If Firestore has data use it, otherwise show mock catches
-      setCatches(loaded.length > 0 ? loaded : MOCK_CATCHES);
-      setMyCatches(loaded.filter(c => c.user === profile.name));
-      setCatchesLoading(false);
-    }, (err) => console.warn("Firestore listen error:", err));
-    return () => unsub();
-  }, []);
 
   return (
     <div style={{ fontFamily: "'Noto Sans JP','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif", background: "#f5f0e8", minHeight: "100vh", color: "#0d7377", maxWidth: 430, margin: "0 auto", position: "relative", boxShadow: "0 4px 40px rgba(0,0,0,0.12)", fontSize: "16px", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
