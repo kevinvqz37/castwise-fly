@@ -3342,6 +3342,27 @@ Keep it under 220 words, emoji section headers.`;
 }
 
 // ─── MAIN APP ────────────────────────────────────────────────────────────────
+const MaboHeader = ({ lang, onLangToggle }) => (
+    <div style={{ background: MABO_YELLOW, borderBottom: `3px solid ${MABO_BLACK}` }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px 6px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 42, height: 42, background: MABO_BLACK, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", border: `2px solid ${MABO_BLACK}` }}>🐟</div>
+          <div>
+            <div style={{ fontSize: "1.15rem", fontWeight: 900, color: MABO_BLACK, lineHeight: 1.1 }}>釣りナビ PRO</div>
+            <div style={{ fontSize: "0.68rem", color: "#555", fontWeight: 700, letterSpacing: "0.04em" }}>MABO CHANNEL FISHING</div>
+          </div>
+        </div>
+        <button onClick={onLangToggle} style={{ background: MABO_BLACK, color: MABO_YELLOW, border: "none", borderRadius: 8, padding: "5px 12px", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer" }}>
+          {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇵🇷 ES"}
+        </button>
+      </div>
+      <div style={{ background: MABO_BLACK, textAlign: "center", fontSize: "0.72rem", fontWeight: 700, color: MABO_YELLOW, padding: "4px", letterSpacing: "0.1em" }}>
+        もっと賢く釣る
+      </div>
+    </div>
+  )
+
+
 export default function CastWiseJapan() {
   const [lang, setLang] = useLocalStorage("mabo_lang", "ja");
   const [tab, setTab] = useState("Explore");
@@ -3392,28 +3413,7 @@ export default function CastWiseJapan() {
 
   // Live weather from Open-Meteo — updates when location is known
   // ─── MABO BRAND HEADER ───────────────────────────────────────────────────────
-  const MABO_YELLOW = "#74c69d";
-  const MABO_BLACK = "#1a1a14";
-
-  const MaboHeader = ({ lang, onLangToggle }) => (
-    <div style={{ background: MABO_YELLOW, borderBottom: `3px solid ${MABO_BLACK}` }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px 6px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 42, height: 42, background: MABO_BLACK, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", border: `2px solid ${MABO_BLACK}` }}>🐟</div>
-          <div>
-            <div style={{ fontSize: "1.15rem", fontWeight: 900, color: MABO_BLACK, lineHeight: 1.1 }}>釣りナビ PRO</div>
-            <div style={{ fontSize: "0.68rem", color: "#555", fontWeight: 700, letterSpacing: "0.04em" }}>MABO CHANNEL FISHING</div>
-          </div>
-        </div>
-        <button onClick={onLangToggle} style={{ background: MABO_BLACK, color: MABO_YELLOW, border: "none", borderRadius: 8, padding: "5px 12px", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer" }}>
-          {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇵🇷 ES"}
-        </button>
-      </div>
-      <div style={{ background: MABO_BLACK, textAlign: "center", fontSize: "0.72rem", fontWeight: 700, color: MABO_YELLOW, padding: "4px", letterSpacing: "0.1em" }}>
-        もっと賢く釣る
-      </div>
-    </div>
-  );
+;
 
   // New feature hooks
 
@@ -3434,6 +3434,9 @@ export default function CastWiseJapan() {
   const userId = useRef(getOrCreateUserId()).current;
   const activeUsers = useActiveUsers(db, userLocation, locationSharing, userId);
 
+  const [fishIDResult, setFishIDResult] = useState(null);
+  const [fishIDLoading, setFishIDLoading] = useState(false);
+  useEffect(() => {
   const fileRef = useRef();
 
   // Request GPS on first load
@@ -3570,8 +3573,6 @@ export default function CastWiseJapan() {
     setCommentText(""); setCommentOpen(null);
   }
 
-  const [fishIDResult, setFishIDResult] = useState(null);
-  const [fishIDLoading, setFishIDLoading] = useState(false);
 
   function handlePhoto(e) {
     const file = e.target.files[0]; if (!file) return;
@@ -3738,7 +3739,6 @@ If this is NOT a fish or the image is unclear, return:
   }
 
   // Load catches from Firestore on startup
-  useEffect(() => {
     const q = query(collection(db, "catches"), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       const loaded = snap.docs.map(d => {
