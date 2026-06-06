@@ -1982,9 +1982,9 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
           <span style={{ fontWeight: 700, fontSize: "0.92rem", color: style.text }}>{(tip.badge?.[lang] || tip.badge?.en || tip.badge?.ja || "")}</span>
           <span style={{ marginLeft: "auto", fontSize: "0.78rem", color: style.text, opacity: 0.7 }}>{monthName}</span>
         </div>
-        <p style={{ margin: "0 0 8px", fontSize: "0.88rem", color: style.text, lineHeight: 1.5 }}>{tip.tip[lang]}</p>
+        <p style={{ margin: "0 0 8px", fontSize: "0.88rem", color: style.text, lineHeight: 1.5 }}>{tip.tip?.[lang] || tip.tip?.en || tip.tip?.ja || ""}</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-          {(tip.hotLures?.[lang] || tip.hotLures?.en || tip.hotLures?.ja || "").map(l => (
+          {(tip.hotLures?.[lang] || tip.hotLures?.en || tip.hotLures?.ja || []).map(l => (
             <LureTag key={l} lure={l} lang={lang} />
           ))}
         </div>
@@ -2001,11 +2001,11 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
       </div>
       <div style={{ background: "rgba(255,255,255,0.5)", borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
         <div style={{ fontWeight: 700, fontSize: "0.92rem", color: style.text, marginBottom: 4 }}>{(tip.badge?.[lang] || tip.badge?.en || tip.badge?.ja || "")}</div>
-        <p style={{ margin: 0, fontSize: "0.88rem", color: style.text, lineHeight: 1.6 }}>{tip.tip[lang]}</p>
+        <p style={{ margin: 0, fontSize: "0.88rem", color: style.text, lineHeight: 1.6 }}>{tip.tip?.[lang] || tip.tip?.en || tip.tip?.ja || ""}</p>
       </div>
       <div style={{ fontSize: "0.8rem", color: style.text, fontWeight: 700, marginBottom: 6 }}>{lang === "ja" ? "🎯 今月のホットルアー" : "🎯 Hot Lures Right Now"}</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-        {(tip.hotLures?.[lang] || tip.hotLures?.en || tip.hotLures?.ja || "").map(l => (
+        {(tip.hotLures?.[lang] || tip.hotLures?.en || tip.hotLures?.ja || []).map(l => (
           <LureTag key={l} lure={l} lang={lang} />
         ))}
       </div>
@@ -3827,7 +3827,7 @@ If this is NOT a fish or the image is unclear, return:
           </div>
           <div style={{ display: "flex", gap: 6 }}>
             <button onClick={() => setLang(l => l === "ja" ? "en" : l === "en" ? "es" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
-              {lang === "ja" ? "🇺🇸 EN" : lang === "en" ? "🇵🇷 ES" : "🇯🇵 JP"}
+              {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇯🇵 JP"}
             </button>
             {/* Location / AI nearby button */}
             <button onClick={() => setShowLocalAI(true)} style={{ background: userLocation ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${userLocation ? "#1a1a14" : "#c4bfb4"}`, borderRadius: 8, padding: "6px 10px", color: userLocation ? "#1a1a14" : "#7a7a6a", cursor: "pointer", fontSize: "0.88rem", fontWeight: 700, position: "relative" }}>
@@ -3901,7 +3901,7 @@ If this is NOT a fish or the image is unclear, return:
                         <span style={{ marginLeft: 7, fontSize: "0.85rem", opacity: 0.85 }}>{(tip.badge?.[lang] || tip.badge?.en || tip.badge?.ja || "")}</span>
                       </div>
                       <div style={{ fontSize: "0.85rem", color: sty.text, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                        {tip.tip[lang]}
+                        {tip.tip?.[lang] || tip.tip?.en || tip.tip?.ja || ""}
                       </div>
                     </div>
                     <span style={{ fontSize: "1.2rem", color: sty.text, opacity: 0.5, flexShrink: 0 }}>→</span>
