@@ -78,6 +78,8 @@ function AdsterraBanner() {
   );
 }
 
+function gl(obj, lang) { if (!obj) return ""; return obj[lang] || obj.en || obj.ja || ""; }
+
 function BannerAd({ lang, onDismiss, isPremium }) {
   // Ads paused until launch
   return null;
@@ -3820,7 +3822,7 @@ If this is NOT a fish or the image is unclear, return:
               <button onClick={() => setShowRewarded(true)} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", cursor: "pointer", fontWeight: 700 }}>🎁</button>
             )}
             <div style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 700 }}>
-              🔥 {WEATHER.fishingIndex}{bonusPoints > 0 && <span style={{ color: "#c06a10" }}> +{bonusPoints}</span>}
+              🔥 {WEATHER?.fishingIndex ?? weather?.fishingIndex ?? 75}{bonusPoints > 0 && <span style={{ color: "#c06a10" }}> +{bonusPoints}</span>}
             </div>
           </div>
         </div>
