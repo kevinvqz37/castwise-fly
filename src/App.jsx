@@ -3827,7 +3827,7 @@ If this is NOT a fish or the image is unclear, return:
           </div>
           <div style={{ display: "flex", gap: 6 }}>
             <button onClick={() => setLang(l => l === "ja" ? "en" : l === "en" ? "es" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
-              {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇯🇵 JP"}
+              {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇵🇷 ES"}
             </button>
             {/* Location / AI nearby button */}
             <button onClick={() => setShowLocalAI(true)} style={{ background: userLocation ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${userLocation ? "#1a1a14" : "#c4bfb4"}`, borderRadius: 8, padding: "6px 10px", color: userLocation ? "#1a1a14" : "#7a7a6a", cursor: "pointer", fontSize: "0.88rem", fontWeight: 700, position: "relative" }}>
