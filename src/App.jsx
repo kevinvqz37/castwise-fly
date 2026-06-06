@@ -3467,6 +3467,9 @@ export default function CastWiseJapan() {
 
 
   // Onboarding screen
+
+
+
   const TABS_DATA = [
     { key: "Explore",    ja: "探す",   en: "Explore",  es: "Explorar", icon: "🐟" },
     { key: "FishGuide",  ja: "魚図鑑", en: "Guide",    es: "Guía",     icon: "🎣" },
@@ -3532,7 +3535,6 @@ export default function CastWiseJapan() {
       </div>
     );
   }
-
 
   function switchTab(newTab) {
     if (newTab === tab) return;
