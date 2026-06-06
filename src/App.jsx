@@ -3461,6 +3461,8 @@ export default function CastWiseJapan() {
   }, []);
 
 
+
+
   // Onboarding screen
   if (showOnboarding) {
     const avatars = ["🎣","🪶","🐟","🦈","🌊","🏄","⛵","🦭","🐠","🎿","🏔️","🌴"];
