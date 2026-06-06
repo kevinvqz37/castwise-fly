@@ -1083,6 +1083,8 @@ function TournamentView({ lang, profile, myCatches }) {
   const [submitWeight, setSubmitWeight] = useState("");
   const [submitSpecies, setSubmitSpecies] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [tourneyPhoto, setTourneyPhoto] = useState(null);
+  const tourneyFileRef = useRef();
 
   if (activeTournament) {
     const t = activeTournament;
@@ -1108,6 +1110,16 @@ function TournamentView({ lang, profile, myCatches }) {
             </div>
             <input value={submitSpecies} onChange={e => setSubmitSpecies(e.target.value)} placeholder={lang === "ja" ? "魚種（例：アユ）" : "Species (e.g. Ayu)"} style={{ width: "100%", marginBottom: 8, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", fontFamily: "inherit" }} />
             <input value={submitWeight} onChange={e => setSubmitWeight(e.target.value)} placeholder={lang === "ja" ? "重量（例：0.8kg）" : "Weight (e.g. 0.8kg)"} style={{ width: "100%", marginBottom: 10, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", fontFamily: "inherit" }} />
+            <input ref={tourneyFileRef} type="file" accept="image/*" onChange={e => {
+              const file = e.target.files[0]; if (!file) return;
+              const reader = new FileReader();
+              reader.onload = ev => setTourneyPhoto(ev.target.result);
+              reader.readAsDataURL(file);
+            }} style={{ display: "none" }} />
+            {tourneyPhoto && <img src={tourneyPhoto} alt="" style={{ width: "100%", maxHeight: 120, objectFit: "cover", borderRadius: 8, marginBottom: 8 }} />}
+            <button onClick={() => tourneyFileRef.current.click()} style={{ width: "100%", padding: "10px", background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 10, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem", fontWeight: 700, marginBottom: 8 }}>
+              📸 {lang === "ja" ? "写真を追加" : lang === "es" ? "Añadir foto" : "Add Photo"}
+            </button>
             <button onClick={() => { if (submitWeight && submitSpecies) setSubmitted(true); }} style={{ width: "100%", padding: "11px", background: "#0d7377", border: "none", borderRadius: 10, color: "#74c69d", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 800 }}>
               {lang === "ja" ? "📸 写真付きで提出" : "📸 Submit with Photo"}
             </button>
