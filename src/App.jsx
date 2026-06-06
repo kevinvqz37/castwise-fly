@@ -3419,56 +3419,6 @@ export default function CastWiseJapan() {
 
 
   const WEATHER = useRealWeather(userLocation);
-  const forecast7day = use7DayForecast(userLocation);
-  const tideData = useRealTideData(userLocation);
-  const riverConditions = useRiverConditions();
-  const { isOnline } = useOfflineMode();
-  useFishingAlerts(WEATHER, userLocation, lang);
-
-  const { journal, addEntry, deleteEntry } = useFishingJournal();
-  const [journalOpen, setJournalOpen] = useState(false);
-  const [journalEntry, setJournalEntry] = useState({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 });
-
-  // Active users & location sharing
-  const [locationSharing, setLocationSharing] = useLocalStorage("mabo_sharing", false);
-  const userId = useRef(getOrCreateUserId()).current;
-  const activeUsers = useActiveUsers(db, userLocation, locationSharing, userId);
-
-  const [fishIDResult, setFishIDResult] = useState(null);
-  const [fishIDLoading, setFishIDLoading] = useState(false);
-  useEffect(() => {
-  const fileRef = useRef();
-
-  // Request GPS on first load
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    setLocationLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        // Reverse geocode to get city name
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
-          const data = await res.json();
-          const city = data.address?.city || data.address?.town || data.address?.municipality || data.address?.county || "";
-          const pref = data.address?.state || "";
-          setUserLocation({ lat, lng, city, pref, display: city ? `${city}${pref ? "・" + pref : ""}` : `${lat.toFixed(2)}, ${lng.toFixed(2)}` });
-        } catch {
-          setUserLocation({ lat, lng, city: "", pref: "", display: `${lat.toFixed(2)}, ${lng.toFixed(2)}` });
-        }
-        setLocationLoading(false);
-      },
-      (err) => { setLocationError(err.message); setLocationLoading(false); },
-      { timeout: 10000, maximumAge: 300000 }
-    );
-  }, []);
-
-
-
-
-  // Onboarding screen
-
-
 
   const TABS_DATA = [
     { key: "Explore",    ja: "探す",   en: "Explore",  es: "Explorar", icon: "🐟" },
@@ -3535,6 +3485,60 @@ export default function CastWiseJapan() {
       </div>
     );
   }
+
+
+  const forecast7day = use7DayForecast(userLocation);
+  const tideData = useRealTideData(userLocation);
+  const riverConditions = useRiverConditions();
+  const { isOnline } = useOfflineMode();
+  useFishingAlerts(WEATHER, userLocation, lang);
+
+  const { journal, addEntry, deleteEntry } = useFishingJournal();
+  const [journalOpen, setJournalOpen] = useState(false);
+  const [journalEntry, setJournalEntry] = useState({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 });
+
+  // Active users & location sharing
+  const [locationSharing, setLocationSharing] = useLocalStorage("mabo_sharing", false);
+  const userId = useRef(getOrCreateUserId()).current;
+  const activeUsers = useActiveUsers(db, userLocation, locationSharing, userId);
+
+  const [fishIDResult, setFishIDResult] = useState(null);
+  const [fishIDLoading, setFishIDLoading] = useState(false);
+  useEffect(() => {
+  const fileRef = useRef();
+
+  // Request GPS on first load
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        // Reverse geocode to get city name
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+          const data = await res.json();
+          const city = data.address?.city || data.address?.town || data.address?.municipality || data.address?.county || "";
+          const pref = data.address?.state || "";
+          setUserLocation({ lat, lng, city, pref, display: city ? `${city}${pref ? "・" + pref : ""}` : `${lat.toFixed(2)}, ${lng.toFixed(2)}` });
+        } catch {
+          setUserLocation({ lat, lng, city: "", pref: "", display: `${lat.toFixed(2)}, ${lng.toFixed(2)}` });
+        }
+        setLocationLoading(false);
+      },
+      (err) => { setLocationError(err.message); setLocationLoading(false); },
+      { timeout: 10000, maximumAge: 300000 }
+    );
+  }, []);
+
+
+
+
+  // Onboarding screen
+
+
+
+
 
   function switchTab(newTab) {
     if (newTab === tab) return;
