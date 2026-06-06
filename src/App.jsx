@@ -3420,6 +3420,19 @@ export default function CastWiseJapan() {
 
   const WEATHER = useRealWeather(userLocation);
 
+  const diffMap = { all: { ja: "すべて", en: "All" }, beginner: { ja: "初心者", en: "Beginner" }, intermediate: { ja: "中級者", en: "Intermediate" }, advanced: { ja: "上級者", en: "Advanced" } };
+
+  const catMap = { all: { ja: "すべて", en: "All", es: "Todo" }, freshwater: { ja: "淡水", en: "Freshwater", es: "Agua Dulce" }, saltwater: { ja: "海水", en: "Saltwater", es: "Mar" }, shore: { ja: "ショア", en: "Shore", es: "Costa" }, caribbean: { ja: "🌴 カリブ", en: "🌴 Caribbean", es: "🌴 Caribe" } };
+
+  const FISH_CATS = { 1:"freshwater", 2:"freshwater", 3:"freshwater", 4:"saltwater", 5:"freshwater", 6:"saltwater", 7:"saltwater", 8:"saltwater", 9:"freshwater", 10:"freshwater", 11:"freshwater", 12:"saltwater", 13:"saltwater", 14:"saltwater", 15:"shore", 16:"saltwater", 17:"caribbean", 18:"caribbean", 19:"caribbean", 20:"caribbean", 21:"caribbean", 22:"caribbean", 23:"caribbean", 24:"caribbean" };
+
+  const filteredFish = FISH_DATA.filter(f =>
+    (f.name.includes(search) || f.nameEn.toLowerCase().includes(search.toLowerCase())) &&
+    (filterDiff === "all" || f.difficulty === filterDiff) &&
+    (!filterFly || f.flyFriendly) &&
+    (filterCat === "all" || FISH_CATS[f.id] === filterCat)
+  );
+
   const TABS_DATA = [
     { key: "Explore",    ja: "探す",   en: "Explore",  es: "Explorar", icon: "🐟" },
     { key: "FishGuide",  ja: "魚図鑑", en: "Guide",    es: "Guía",     icon: "🎣" },
@@ -3430,6 +3443,7 @@ export default function CastWiseJapan() {
     { key: "Community",  ja: "みんな", en: "Feed",     es: "Feed",     icon: "🌊" },
     { key: "Profile",    ja: "マイ",   en: "Profile",  es: "Perfil",   icon: "👤" },
   ];
+
 
   if (showOnboarding) {
     const avatars = ["🎣","🪶","🐟","🦈","🌊","🏄","⛵","🦭","🐠","🎿","🏔️","🌴"];
@@ -3555,18 +3569,9 @@ export default function CastWiseJapan() {
     if (pendingTab) { setTab(pendingTab); setPendingTab(null); }
   }
 
-  const diffMap = { all: { ja: "すべて", en: "All" }, beginner: { ja: "初心者", en: "Beginner" }, intermediate: { ja: "中級者", en: "Intermediate" }, advanced: { ja: "上級者", en: "Advanced" } };
-  const catMap = { all: { ja: "すべて", en: "All", es: "Todo" }, freshwater: { ja: "淡水", en: "Freshwater", es: "Agua Dulce" }, saltwater: { ja: "海水", en: "Saltwater", es: "Mar" }, shore: { ja: "ショア", en: "Shore", es: "Costa" }, caribbean: { ja: "🌴 カリブ", en: "🌴 Caribbean", es: "🌴 Caribe" } };
 
 
-  const FISH_CATS = { 1:"freshwater", 2:"freshwater", 3:"freshwater", 4:"saltwater", 5:"freshwater", 6:"saltwater", 7:"saltwater", 8:"saltwater", 9:"freshwater", 10:"freshwater", 11:"freshwater", 12:"saltwater", 13:"saltwater", 14:"saltwater", 15:"shore", 16:"saltwater", 17:"caribbean", 18:"caribbean", 19:"caribbean", 20:"caribbean", 21:"caribbean", 22:"caribbean", 23:"caribbean", 24:"caribbean" };
 
-  const filteredFish = FISH_DATA.filter(f =>
-    (f.name.includes(search) || f.nameEn.toLowerCase().includes(search.toLowerCase())) &&
-    (filterDiff === "all" || f.difficulty === filterDiff) &&
-    (!filterFly || f.flyFriendly) &&
-    (filterCat === "all" || FISH_CATS[f.id] === filterCat)
-  );
 
   function toggleLike(id) {
     const was = liked[id];
