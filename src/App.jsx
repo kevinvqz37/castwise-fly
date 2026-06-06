@@ -3467,6 +3467,17 @@ export default function CastWiseJapan() {
 
 
   // Onboarding screen
+  const TABS_DATA = [
+    { key: "Explore",    ja: "探す",   en: "Explore",  es: "Explorar", icon: "🐟" },
+    { key: "FishGuide",  ja: "魚図鑑", en: "Guide",    es: "Guía",     icon: "🎣" },
+    { key: "FlyFishing", ja: "フライ", en: "Fly",      es: "Mosca",    icon: "🪶" },
+    { key: "Map",        ja: "釣り場", en: "Map",      es: "Mapa",     icon: "🗺️" },
+    { key: "Tournament", ja: "大会",   en: "Tourney",  es: "Torneo",   icon: "🏆" },
+    { key: "Weather",    ja: "天気",   en: "Weather",  es: "Clima",    icon: "🌤️" },
+    { key: "Community",  ja: "みんな", en: "Feed",     es: "Feed",     icon: "🌊" },
+    { key: "Profile",    ja: "マイ",   en: "Profile",  es: "Perfil",   icon: "👤" },
+  ];
+
   if (showOnboarding) {
     const avatars = ["🎣","🪶","🐟","🦈","🌊","🏄","⛵","🦭","🐠","🎿","🏔️","🌴"];
     return (
@@ -3522,16 +3533,6 @@ export default function CastWiseJapan() {
     );
   }
 
-  const TABS_DATA = [
-    { key: "Explore",    ja: "探す",   en: "Explore",  es: "Explorar", icon: "🐟" },
-    { key: "FishGuide",  ja: "魚図鑑", en: "Guide",    es: "Guía",     icon: "🎣" },
-    { key: "FlyFishing", ja: "フライ", en: "Fly",      es: "Mosca",    icon: "🪶" },
-    { key: "Map",        ja: "釣り場", en: "Map",      es: "Mapa",     icon: "🗺️" },
-    { key: "Tournament", ja: "大会",   en: "Tourney",  es: "Torneo",   icon: "🏆" },
-    { key: "Weather",    ja: "天気",   en: "Weather",  es: "Clima",    icon: "🌤️" },
-    { key: "Community",  ja: "みんな", en: "Feed",     es: "Feed",     icon: "🌊" },
-    { key: "Profile",    ja: "マイ",   en: "Profile",  es: "Perfil",   icon: "👤" },
-  ];
 
   function switchTab(newTab) {
     if (newTab === tab) return;
