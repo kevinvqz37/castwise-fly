@@ -201,7 +201,7 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
               {[{ icon: "⭐", text: { ja: "+100 釣りポイント", en: "+100 Fishing Points" } }, { icon: "🤖", text: { ja: "AIアドバイス 3回分", en: "3 free AI advice uses" } }, { icon: "🪶", text: { ja: "プレミアムフライパターン解放", en: "Premium fly pattern unlocked" } }].map((r, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: i < 2 ? 8 : 0 }}>
                   <span style={{ fontSize: "1.2rem" }}>{r.icon}</span>
-                  <span style={{ fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 600 }}>{r.text[lang] || r.text.en}</span>
+                  <span style={{ fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 600 }}>{r.text[lang]}</span>
                 </div>
               ))}
             </div>
@@ -645,7 +645,6 @@ function getSeasonalTip(fishId) {
 const MONTH_NAMES = {
   ja: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
   en: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-  es: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
 };
 
 const URGENCY_STYLES = {
@@ -1083,8 +1082,6 @@ function TournamentView({ lang, profile, myCatches }) {
   const [submitWeight, setSubmitWeight] = useState("");
   const [submitSpecies, setSubmitSpecies] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [tourneyPhoto, setTourneyPhoto] = useState(null);
-  const tourneyFileRef = useRef();
 
   if (activeTournament) {
     const t = activeTournament;
@@ -1110,16 +1107,6 @@ function TournamentView({ lang, profile, myCatches }) {
             </div>
             <input value={submitSpecies} onChange={e => setSubmitSpecies(e.target.value)} placeholder={lang === "ja" ? "魚種（例：アユ）" : "Species (e.g. Ayu)"} style={{ width: "100%", marginBottom: 8, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", fontFamily: "inherit" }} />
             <input value={submitWeight} onChange={e => setSubmitWeight(e.target.value)} placeholder={lang === "ja" ? "重量（例：0.8kg）" : "Weight (e.g. 0.8kg)"} style={{ width: "100%", marginBottom: 10, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", fontFamily: "inherit" }} />
-            <input ref={tourneyFileRef} type="file" accept="image/*" onChange={e => {
-              const file = e.target.files[0]; if (!file) return;
-              const reader = new FileReader();
-              reader.onload = ev => setTourneyPhoto(ev.target.result);
-              reader.readAsDataURL(file);
-            }} style={{ display: "none" }} />
-            {tourneyPhoto && <img src={tourneyPhoto} alt="" style={{ width: "100%", maxHeight: 120, objectFit: "cover", borderRadius: 8, marginBottom: 8 }} />}
-            <button onClick={() => tourneyFileRef.current.click()} style={{ width: "100%", padding: "10px", background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 10, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem", fontWeight: 700, marginBottom: 8 }}>
-              📸 {lang === "ja" ? "写真を追加" : lang === "es" ? "Añadir foto" : "Add Photo"}
-            </button>
             <button onClick={() => { if (submitWeight && submitSpecies) setSubmitted(true); }} style={{ width: "100%", padding: "11px", background: "#0d7377", border: "none", borderRadius: 10, color: "#74c69d", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 800 }}>
               {lang === "ja" ? "📸 写真付きで提出" : "📸 Submit with Photo"}
             </button>
@@ -1265,7 +1252,7 @@ function TrophyRoom({ catches, lang, onSelectFish, FISH_DATA }) {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, fontSize: "1rem" }}>{r.fish}</div>
-                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>📅 {r.date?.[lang] || r.date?.en || r.date?.ja || ""}</div>
+                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>📅 {r.date?.[lang] || r.date}</div>
                 {r.location && <div style={{ fontSize: "0.78rem", color: "#7a7a6a" }}>📍 {r.location}</div>}
               </div>
               <div style={{ textAlign: "right" }}>
@@ -1322,13 +1309,13 @@ function TidalCalendar({ lang, userLocation }) {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <h3 style={{ margin: 0, fontSize: "1.05rem" }}>🗓️ {monthNames[lang] || monthNames.en} {year}</h3>
+        <h3 style={{ margin: 0, fontSize: "1.05rem" }}>🗓️ {monthNames[lang][month]} {year}</h3>
         <div style={{ fontSize: "0.82rem", color: "#0d7377" }}>{lang === "ja" ? lang === "ja" ? "月齢ベース釣り指数" : "Lunar fishing index" : "Lunar-based fishing index"}</div>
       </div>
 
       {/* Day headers */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3, marginBottom: 3 }}>
-        {(dayNames[lang] || dayNames.en).map((d, i) => (
+        {dayNames[lang].map((d, i) => (
           <div key={i} style={{ textAlign: "center", fontSize: "0.75rem", color: i === 0 ? "#b82030" : i === 6 ? "#1565a0" : "#7a7a6a", fontWeight: 700, padding: "4px 0" }}>{d}</div>
         ))}
       </div>
@@ -1359,7 +1346,7 @@ function TidalCalendar({ lang, userLocation }) {
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {bestDays.sort((a,b)=>a-b).map(d => (
             <span key={d} style={{ background: "#2d7a3a", color: "white", borderRadius: 99, padding: "3px 10px", fontSize: "0.82rem", fontWeight: 700 }}>
-              {monthNames[lang] || monthNames.en}{d}日 ({getDayScore(d)})
+              {monthNames[lang][month]}{d}日 ({getDayScore(d)})
             </span>
           ))}
         </div>
@@ -1995,7 +1982,7 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
           <span style={{ fontWeight: 700, fontSize: "0.92rem", color: style.text }}>{(tip.badge?.[lang] || tip.badge?.en || tip.badge?.ja || "")}</span>
           <span style={{ marginLeft: "auto", fontSize: "0.78rem", color: style.text, opacity: 0.7 }}>{monthName}</span>
         </div>
-        <p style={{ margin: "0 0 8px", fontSize: "0.88rem", color: style.text, lineHeight: 1.5 }}>{tip.tip?.[lang] || tip.tip?.en || tip.tip?.ja || ""}</p>
+        <p style={{ margin: "0 0 8px", fontSize: "0.88rem", color: style.text, lineHeight: 1.5 }}>{tip.tip[lang]}</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
           {(tip.hotLures?.[lang] || tip.hotLures?.en || tip.hotLures?.ja || []).map(l => (
             <LureTag key={l} lure={l} lang={lang} />
@@ -2014,7 +2001,7 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
       </div>
       <div style={{ background: "rgba(255,255,255,0.5)", borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
         <div style={{ fontWeight: 700, fontSize: "0.92rem", color: style.text, marginBottom: 4 }}>{(tip.badge?.[lang] || tip.badge?.en || tip.badge?.ja || "")}</div>
-        <p style={{ margin: 0, fontSize: "0.88rem", color: style.text, lineHeight: 1.6 }}>{tip.tip?.[lang] || tip.tip?.en || tip.tip?.ja || ""}</p>
+        <p style={{ margin: 0, fontSize: "0.88rem", color: style.text, lineHeight: 1.6 }}>{tip.tip[lang]}</p>
       </div>
       <div style={{ fontSize: "0.8rem", color: style.text, fontWeight: 700, marginBottom: 6 }}>{lang === "ja" ? "🎯 今月のホットルアー" : "🎯 Hot Lures Right Now"}</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -2030,13 +2017,13 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
 function DiffBadge({ level, lang }) {
   const m = { beginner: { ja: "初心者", en: "Beginner", c: "#2d7a3a", bg: "#e0f2f2" }, intermediate: { ja: "中級者", en: "Intermediate", c: "#c06a10", bg: "#f8e8d0" }, advanced: { ja: "上級者", en: "Advanced", c: "#b82030", bg: "#f8d8d8" } };
   const d = m[level] || m.beginner;
-  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{d[lang] || d.en || ""}</span>;
+  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{d[lang]}</span>;
 }
 
 function FlyTypeBadge({ type, lang }) {
   const m = { dry: { ja: "ドライ", en: "Dry Fly", c: "#c06a10", bg: "#f8e8d0" }, nymph: { ja: "ニンフ", en: "Nymph", c: "#1565a0", bg: "#d0e4f8" }, streamer: { ja: "ストリーマー", en: "Streamer", c: "#b82030", bg: "#f8d8d8" }, tenkara: { ja: "テンカラ", en: "Tenkara", c: "#2d7a3a", bg: "#e0f2f2" } };
   const d = m[type] || m.dry;
-  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{d[lang] || d.en || ""}</span>;
+  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{d[lang]}</span>;
 }
 
 function ScoreRing({ score, lang = "ja" }) {
@@ -2214,7 +2201,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
       {/* Sub-tabs */}
       <div style={{ display: "flex", gap: 4, marginBottom: 14, overflowX: "auto" }}>
         {flyTabs.map(ft => (
-          <button key={ft.k} onClick={() => setFlyTab(ft.k)} style={{ flex: "0 0 auto", padding: "7px 11px", borderRadius: 10, border: `1px solid ${flyTab === ft.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: flyTab === ft.k ? "rgba(116,198,157,0.15)" : "transparent", color: flyTab === ft.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap", fontWeight: flyTab === ft.k ? 700 : 400 }}>{ft[lang] || ft.en || ""}</button>
+          <button key={ft.k} onClick={() => setFlyTab(ft.k)} style={{ flex: "0 0 auto", padding: "7px 11px", borderRadius: 10, border: `1px solid ${flyTab === ft.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: flyTab === ft.k ? "rgba(116,198,157,0.15)" : "transparent", color: flyTab === ft.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap", fontWeight: flyTab === ft.k ? 700 : 400 }}>{ft[lang]}</button>
         ))}
       </div>
 
@@ -2242,7 +2229,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                     { la: { ja: "ターゲット", en: "Target" }, v: (selPattern.target?.[lang] || selPattern.target?.en || selPattern.target?.ja || "") },
                   ].map(row => (
                     <div key={row.la.ja} style={{ display: "flex", gap: 12, alignItems: "center", background: "#fffdf8", borderRadius: 10, padding: "9px 12px" }}>
-                      <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 64 }}>{row.la[lang] || row.la.en}</span>
+                      <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 64 }}>{row.la[lang]}</span>
                       <span style={{ fontSize: "0.95rem", fontWeight: 600 }}>{row.v}</span>
                     </div>
                   ))}
@@ -2254,14 +2241,14 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               </div>
               <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.12), transparent)", border: "2px solid #FFE500", borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 7 }}>💡 {s("proTip", lang)}</div>
-                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selPattern.tip[lang] || selPattern.tip.en}</p>
+                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selPattern.tip[lang]}</p>
               </div>
             </div>
           ) : (
             <>
               <div style={{ display: "flex", gap: 5, marginBottom: 12, overflowX: "auto", paddingBottom: 2 }}>
                 {typeFilters.map(tf => (
-                  <button key={tf.k} onClick={() => setTypeFilter(tf.k)} style={{ flex: "0 0 auto", padding: "5px 12px", borderRadius: 99, border: `1px solid ${typeFilter === tf.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: typeFilter === tf.k ? "rgba(116,198,157,0.14)" : "transparent", color: typeFilter === tf.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap" }}>{tf[lang] || tf.en || ""}</button>
+                  <button key={tf.k} onClick={() => setTypeFilter(tf.k)} style={{ flex: "0 0 auto", padding: "5px 12px", borderRadius: 99, border: `1px solid ${typeFilter === tf.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: typeFilter === tf.k ? "rgba(116,198,157,0.14)" : "transparent", color: typeFilter === tf.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap" }}>{tf[lang]}</button>
                 ))}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -2344,7 +2331,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               </div>
               <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.1), transparent)", border: "2px solid #FFE500", borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 7 }}>💡 {s("proTip", lang)}</div>
-                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selTechnique.tip[lang] || selTechnique.tip.en}</p>
+                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selTechnique.tip[lang]}</p>
               </div>
             </div>
           ) : (
@@ -2387,7 +2374,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                   <span style={{ fontSize: "0.82rem", color: "#0d7377", background: "#e0f2f2", borderRadius: 99, padding: "2px 8px" }}>{lang === "ja" ? `ライン: ${rod.line}` : `Line: ${rod.line}`}</span>
                 </div>
                 <div style={{ fontSize: "0.88rem", color: "#2d7a3a", fontWeight: 600, marginBottom: 2 }}>📍 {(rod.target?.[lang] || rod.target?.en || rod.target?.ja || "")}</div>
-                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>💡 {rod.tip[lang] || rod.tip.en}</div>
+                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>💡 {rod.tip[lang]}</div>
               </div>
             ))}
           </div>
@@ -2395,7 +2382,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
           {/* Line formula */}
           <div style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 12 }}>
             <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 8, color: "#2d7a3a" }}>📏 {lang === "ja" ? "ライン長さの公式" : "Line Length Formula"}</div>
-            <div style={{ fontSize: "0.88rem", color: "#1a4a22", lineHeight: 1.7, fontWeight: 600 }}>{LINE_FORMULA[lang] || LINE_FORMULA.en || ""}</div>
+            <div style={{ fontSize: "0.88rem", color: "#1a4a22", lineHeight: 1.7, fontWeight: 600 }}>{LINE_FORMULA[lang]}</div>
             <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[3.0, 3.3, 3.6, 3.9, 4.5].map(len => (
                 <div key={len} style={{ background: "#fffdf8", border: "1px solid #FFE500", borderRadius: 8, padding: "6px 10px", textAlign: "center" }}>
@@ -2438,7 +2425,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                 { ja: "📏 固定ライン", en: "📏 Fixed line" },
                 { ja: "🪶 毛鉤のみ", en: "🪶 Single fly" },
                 { ja: "⛰️ 渓流特化", en: "⛰️ Stream-focused" },
-              ].map(b => <span key={b.ja} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "4px 10px", fontSize: "0.95rem", color: "#2d7a3a" }}>{b[lang] || b.en || ""}</span>)}
+              ].map(b => <span key={b.ja} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "4px 10px", fontSize: "0.95rem", color: "#2d7a3a" }}>{b[lang]}</span>)}
             </div>
           </div>
 
@@ -2471,8 +2458,8 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               { la: { ja: "毛鉤", en: "Fly" }, v: { ja: "逆さ毛鉤 #10〜14（3〜5本あれば十分）", en: "Sakasa kebari #10–14 (3–5 flies is all you need)" } },
             ].map(row => (
               <div key={row.la.ja} style={{ display: "flex", gap: 10, marginBottom: 6, fontSize: "0.92rem" }}>
-                <span style={{ color: "#5a5a4a", minWidth: 50 }}>{row.la[lang] || row.la.en}</span>
-                <span style={{ color: "#0d7377" }}>{row.v[lang] || row.v.en}</span>
+                <span style={{ color: "#5a5a4a", minWidth: 50 }}>{row.la[lang]}</span>
+                <span style={{ color: "#0d7377" }}>{row.v[lang]}</span>
               </div>
             ))}
           </div>
@@ -2869,13 +2856,15 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
   const [predictionScore, setPredictionScore] = useState(null);
 
   const REGIONS = [
-    { key: "kyushu",   ja: "九州",     en: "Kyushu",    es: "Kyushu",      emoji: "🌋" },
-    { key: "hokkaido", ja: "北海道",   en: "Hokkaido",  es: "Hokkaido",    emoji: "🏔️" },
-    { key: "kanto",    ja: "関東",     en: "Kanto",     es: "Kanto",       emoji: "🗼" },
-    { key: "kansai",   ja: "関西",     en: "Kansai",    es: "Kansai",      emoji: "⛩️" },
-    { key: "chubu",    ja: "中部",     en: "Chubu",     es: "Chubu",       emoji: "🏯" },
+    { key: "kyushu",   ja: "九州",     en: "Kyushu",    emoji: "🌋" },
+    { key: "hokkaido", ja: "北海道",   en: "Hokkaido",  emoji: "🏔️" },
+    { key: "kanto",    ja: "関東",     en: "Kanto",     emoji: "🗼" },
+    { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
+    { key: "chubu",    ja: "中部",     en: "Chubu",     emoji: "🏯" },
     { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", es: "Puerto Rico", emoji: "🌴" },
-    { key: "all",      ja: "全国",     en: "All Japan", es: "Todo Japón",  emoji: "🗾" },
+    { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
+    { key: "chubu",    ja: "中部",   en: "Chubu",     emoji: "🗻" },
+    { key: "all",      ja: "全国",   en: "All Japan", emoji: "🗾" },
   ];
 
   const rawSpots = selectedFish
@@ -2911,7 +2900,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       {/* Mode toggle */}
       <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
         {[{ k: "spots", ja: "📍 釣り場", en: "📍 Spots" }, { k: "prediction", ja: "🔮 AI予測", en: "🔮 AI Predict" }].map(m => (
-          <button key={m.k} onClick={() => setMapMode(m.k)} style={{ flex: 1, padding: "8px", background: mapMode === m.k ? "#e0f2f2" : "#fffdf8", border: `2px solid ${mapMode === m.k ? "#1a1a14" : "#d4cfc4"}`, borderRadius: 10, color: mapMode === m.k ? "#1a1a14" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: mapMode === m.k ? 700 : 400 }}>{m[lang] || m.en || ""}</button>
+          <button key={m.k} onClick={() => setMapMode(m.k)} style={{ flex: 1, padding: "8px", background: mapMode === m.k ? "#e0f2f2" : "#fffdf8", border: `2px solid ${mapMode === m.k ? "#1a1a14" : "#d4cfc4"}`, borderRadius: 10, color: mapMode === m.k ? "#1a1a14" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: mapMode === m.k ? 700 : 400 }}>{m[lang]}</button>
         ))}
       </div>
 
@@ -2946,7 +2935,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
         <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 10, paddingBottom: 2 }}>
           {REGIONS.map(r => (
             <button key={r.key} onClick={() => setRegionFilter(r.key)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 99, border: `2px solid ${regionFilter === r.key ? "#1a1a14" : "#d4cfc4"}`, background: regionFilter === r.key ? "#e0f2f2" : "#f5f0e8", color: regionFilter === r.key ? "#1a1a14" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: regionFilter === r.key ? 700 : 400 }}>
-              {r.emoji} {r[lang] || r.en}
+              {r.emoji} {r[lang]}
             </button>
           ))}
         </div>
@@ -3026,13 +3015,13 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{ color: "#c06a10", fontSize: "1rem", fontWeight: 700 }}>⭐ {spot.rating}</div>
                 {spot.distKm != null && <div style={{ color: "#0d7377", fontSize: "0.85rem", fontWeight: 700 }}>📏 {spot.distKm} km</div>}
-                {spot.bestSeason && <div style={{ fontSize: "0.72rem", color: "#7a7a6a" }}>{spot.bestSeason[lang] || spot.bestSeason.en}</div>}
+                {spot.bestSeason && <div style={{ fontSize: "0.72rem", color: "#7a7a6a" }}>{spot.bestSeason[lang]}</div>}
               </div>
             </div>
             {spot.tip && activeSpot?.id === spot.id && (
               <div style={{ background: "#f5f0e8", borderRadius: 10, padding: "8px 12px", fontSize: "0.85rem", color: "#3a3a2a", lineHeight: 1.6 }}>
-                💡 {spot.tip[lang] || spot.tip.en}
-                {spot.access && <div style={{ marginTop: 4, fontSize: "0.78rem", color: "#0d7377" }}>🚗 {spot.access[lang] || spot.access.en}</div>}
+                💡 {spot.tip[lang]}
+                {spot.access && <div style={{ marginTop: 4, fontSize: "0.78rem", color: "#0d7377" }}>🚗 {spot.access[lang]}</div>}
               </div>
             )}
           </div>
@@ -3118,7 +3107,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
         ].map(c => (
           <div key={c.la.ja} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: "12px 14px" }}>
             <div style={{ fontSize: "1.1rem", marginBottom: 4 }}>{c.icon}</div>
-            <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{c.la[lang] || c.la.en}</div>
+            <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{c.la[lang]}</div>
             <div style={{ fontWeight: 700, fontSize: "1.05rem", margin: "2px 0" }}>{c.v}</div>
             <div style={{ fontSize: "0.95rem", color: "#0d7377" }}>{(c.sub?.[lang] || c.sub?.en || c.sub?.ja || "")}</div>
           </div>
@@ -3213,7 +3202,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                   <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "水位" : "Level"}</span><br/><span style={{ fontWeight: 700 }}>{r.level}m <span style={{ color: trendColor }}>{trendIcon}</span></span></div>
                   <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "水温" : "Temp"}</span><br/><span style={{ fontWeight: 700 }}>{r.temp}℃</span></div>
-                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "透明度" : "Clarity"}</span><br/><span style={{ fontWeight: 700, fontSize: "0.88rem" }}>{clarityLabel[r.clarity]?.[lang] || r.clarity?.en || r.clarity?.ja || ""}</span></div>
+                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "透明度" : "Clarity"}</span><br/><span style={{ fontWeight: 700, fontSize: "0.88rem" }}>{clarityLabel[r.clarity]?.[lang] || r.clarity}</span></div>
                   <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "適正水位" : "Ideal"}</span><br/><span style={{ fontSize: "0.82rem", color: "#0d7377" }}>{r.idealLevel}</span></div>
                 </div>
                 <div style={{ fontSize: "0.72rem", color: "#9a9a8a", marginTop: 6 }}>🕐 {lang === "ja" ? `${r.updatedAt}更新` : `Updated ${r.updatedAt}`}</div>
@@ -3364,7 +3353,7 @@ const MaboHeader = ({ lang, onLangToggle }) => (
           </div>
         </div>
         <button onClick={onLangToggle} style={{ background: MABO_BLACK, color: MABO_YELLOW, border: "none", borderRadius: 8, padding: "5px 12px", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer" }}>
-          {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇯🇵 JP"}
+          {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇵🇷 ES"}
         </button>
       </div>
       <div style={{ background: MABO_BLACK, textAlign: "center", fontSize: "0.72rem", fontWeight: 700, color: MABO_YELLOW, padding: "4px", letterSpacing: "0.1em" }}>
@@ -3837,8 +3826,8 @@ If this is NOT a fish or the image is unclear, return:
             </div>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => setLang(l => l === "ja" ? "en" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
-              {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇵🇷 ES"}
+            <button onClick={() => setLang(l => l === "ja" ? "en" : l === "en" ? "es" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
+              {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇯🇵 JP"}
             </button>
             {/* Location / AI nearby button */}
             <button onClick={() => setShowLocalAI(true)} style={{ background: userLocation ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${userLocation ? "#1a1a14" : "#c4bfb4"}`, borderRadius: 8, padding: "6px 10px", color: userLocation ? "#1a1a14" : "#7a7a6a", cursor: "pointer", fontSize: "0.88rem", fontWeight: 700, position: "relative" }}>
@@ -3859,7 +3848,7 @@ If this is NOT a fish or the image is unclear, return:
           {TABS_DATA.map(td => (
             <button key={td.key} onClick={() => switchTab(td.key)} style={{ flex: "0 0 auto", padding: "10px 12px 12px", border: "none", background: tab === td.key ? "#fffdf8" : "transparent", color: tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#1a1a14") : "#7a7a6a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: tab === td.key ? 700 : 500, whiteSpace: "nowrap", borderBottom: `3px solid ${tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#1a1a14") : "transparent"}`, minHeight: 48 }}>
               <div style={{ fontSize: "1.1rem", marginBottom: 3 }}>{td.icon}</div>
-              {td[lang] || td.en || ""}
+              {td[lang]}
             </button>
           ))}
         </div>
@@ -3904,7 +3893,7 @@ If this is NOT a fish or the image is unclear, return:
                           {lang === "ja" ? "🗓️ 今が旬！" : "🗓️ In Season Now!"}
                         </span>
                         <span style={{ marginLeft: "auto", background: sty.border, color: "#fff", borderRadius: 99, padding: "2px 9px", fontSize: "0.75rem", fontWeight: 700, flexShrink: 0 }}>
-                          {MONTH_NAMES[lang] || MONTH_NAMES.en}
+                          {MONTH_NAMES[lang][CURRENT_MONTH]}
                         </span>
                       </div>
                       <div style={{ fontWeight: 700, fontSize: "1.05rem", color: sty.text, marginBottom: 3 }}>
@@ -3912,7 +3901,7 @@ If this is NOT a fish or the image is unclear, return:
                         <span style={{ marginLeft: 7, fontSize: "0.85rem", opacity: 0.85 }}>{(tip.badge?.[lang] || tip.badge?.en || tip.badge?.ja || "")}</span>
                       </div>
                       <div style={{ fontSize: "0.85rem", color: sty.text, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                        {tip.tip?.[lang] || tip.tip?.en || tip.tip?.ja || ""}
+                        {tip.tip[lang]}
                       </div>
                     </div>
                     <span style={{ fontSize: "1.2rem", color: sty.text, opacity: 0.5, flexShrink: 0 }}>→</span>
@@ -3940,14 +3929,14 @@ If this is NOT a fish or the image is unclear, return:
             <div style={{ display: "flex", gap: 7, marginBottom: 10 }}>
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder={s("search", lang)} style={{ flex: 1, background: "#f8f4ec", border: "2px solid #FFE500", borderRadius: 9, padding: "9px 12px", color: "#0d7377", fontSize: "0.95rem" }} />
               <select value={filterDiff} onChange={e => setFilterDiff(e.target.value)} style={{ background: "#f8f4ec", border: "2px solid #FFE500", borderRadius: 9, padding: "9px", color: "#0d7377", fontSize: "1rem", cursor: "pointer" }}>
-                {Object.entries(diffMap).map(([k, v]) => <option key={k} value={k} style={{ background: "#f5f0e8" }}>{v[lang] || v.en || ""}</option>)}
+                {Object.entries(diffMap).map(([k, v]) => <option key={k} value={k} style={{ background: "#f5f0e8" }}>{v[lang]}</option>)}
               </select>
             </div>
             {/* Category filter chips */}
             <div style={{ display: "flex", gap: 5, marginBottom: 10, overflowX: "auto", paddingBottom: 2 }}>
               {Object.entries(catMap).map(([k, v]) => (
                 <button key={k} onClick={() => setFilterCat(k)} style={{ flex: "0 0 auto", padding: "5px 12px", borderRadius: 99, border: `1px solid ${filterCat === k ? "rgba(72,202,228,0.6)" : "#d4cfc4"}`, background: filterCat === k ? "rgba(72,202,228,0.14)" : "transparent", color: filterCat === k ? "#1a1a14" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap" }}>
-                  {k === "freshwater" ? "🏞️" : k === "saltwater" ? "🌊" : k === "shore" ? "🪨" : "🐟"} {v[lang] || v.en || ""}
+                  {k === "freshwater" ? "🏞️" : k === "saltwater" ? "🌊" : k === "shore" ? "🪨" : "🐟"} {v[lang]}
                 </button>
               ))}
             </div>
@@ -4044,7 +4033,7 @@ If this is NOT a fish or the image is unclear, return:
 
                 <div style={{ display: "flex", gap: 5, marginBottom: 12 }}>
                   {[{ k: "gear", ja: "🎣 タックル", en: "🎣 Gear" }, { k: "spots", ja: "📍 釣り場", en: "📍 Spots" }, { k: "map", ja: "🗺️ マップ", en: "🗺️ Map" }].map(tt => (
-                    <button key={tt.k} onClick={() => setGearTab(tt.k)} style={{ flex: 1, padding: "8px 4px", borderRadius: 9, border: `1px solid ${gearTab === tt.k ? selectedFish.accent + "88" : "#d4cfc4"}`, background: gearTab === tt.k ? selectedFish.color + "44" : "transparent", color: gearTab === tt.k ? selectedFish.accent : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: gearTab === tt.k ? 700 : 400 }}>{tt[lang] || tt.en || ""}</button>
+                    <button key={tt.k} onClick={() => setGearTab(tt.k)} style={{ flex: 1, padding: "8px 4px", borderRadius: 9, border: `1px solid ${gearTab === tt.k ? selectedFish.accent + "88" : "#d4cfc4"}`, background: gearTab === tt.k ? selectedFish.color + "44" : "transparent", color: gearTab === tt.k ? selectedFish.accent : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: gearTab === tt.k ? 700 : 400 }}>{tt[lang]}</button>
                   ))}
                 </div>
 
@@ -4052,8 +4041,8 @@ If this is NOT a fish or the image is unclear, return:
                   <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                     {[{ la: { ja: "🎋 ロッド", en: "🎋 Rod" }, v: selectedFish.gear.rod }, { la: { ja: "🔧 リール", en: "🔧 Reel" }, v: selectedFish.gear.reel }, { la: { ja: "🧵 ライン", en: "🧵 Line" }, v: selectedFish.gear.line }, { la: { ja: "🪝 フック", en: "🪝 Hook" }, v: selectedFish.gear.hooks }].map(row => (
                       <div key={row.la.ja} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 11, padding: "10px 13px", display: "flex", gap: 11, alignItems: "center" }}>
-                        <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 68 }}>{row.la[lang] || row.la.en}</span>
-                        <span style={{ fontSize: "0.83rem", fontWeight: 600 }}>{row.v?.[lang] || row.v?.en || row.v?.ja || row.v || ""}</span>
+                        <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 68 }}>{row.la[lang]}</span>
+                        <span style={{ fontSize: "0.83rem", fontWeight: 600 }}>{row.v?.[lang] || row.v}</span>
                       </div>
                     ))}
                     <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 11, padding: 13 }}>
@@ -4090,7 +4079,7 @@ If this is NOT a fish or the image is unclear, return:
                         <div style={{ width: 28, height: 28, borderRadius: "50%", background: selectedFish.color + "66", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.05rem", fontWeight: 700, color: selectedFish.accent }}>#{i + 1}</div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 600, fontSize: "1rem" }}>📍 {spot.name}</div>
-                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginTop: 2 }}>🗺️ {spot.type[lang] || spot.type.en} · ⭐ {spot.rating}</div>
+                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginTop: 2 }}>🗺️ {spot.type[lang]} · ⭐ {spot.rating}</div>
                         </div>
                       </div>
                     ))}
@@ -4158,7 +4147,7 @@ If this is NOT a fish or the image is unclear, return:
                       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2 }}>
                         <span style={{ fontSize: "1.05rem" }}>{c.avatar}</span>
                         <span style={{ fontWeight: 700, fontSize: "0.83rem" }}>{c.user}</span>
-                        <span style={{ color: "#5a5a4a", fontSize: "0.95rem" }}>· {c.date?.[lang] || c.date?.en || c.date?.ja || ""}</span>
+                        <span style={{ color: "#5a5a4a", fontSize: "0.95rem" }}>· {c.date?.[lang] || c.date}</span>
                       </div>
                       <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "#0d7377" }}>{c.fish}</div>
                       <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>📍 {c.location}</div>
@@ -4214,7 +4203,7 @@ If this is NOT a fish or the image is unclear, return:
                 ].map((st, i) => (
                   <div key={st.la.ja} style={{ flex: 1, textAlign: "center", borderLeft: i > 0 ? "1px solid #e0dbd0" : "none" }}>
                     <div style={{ fontWeight: 700, fontSize: "1rem", color: "#0d7377" }}>{st.v}</div>
-                    <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{st.la[lang] || st.la.en}</div>
+                    <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{st.la[lang]}</div>
                   </div>
                 ))}
               </div>
@@ -4236,7 +4225,7 @@ If this is NOT a fish or the image is unclear, return:
 
             <div style={{ display: "flex", gap: 5, marginBottom: 13 }}>
               {[{ k: "catches", ja: "🎣 釣果記録", en: "🎣 My Catches" }, { k: "trophy", ja: "🏆 記録", en: "🏆 Records" }, { k: "calendar", ja: "🗓️ 釣り暦", en: "🗓️ Calendar" }, { k: "journal", ja: "📓 日誌", en: "📓 Journal" }, { k: "leaderboard", ja: "👑 ランク", en: "👑 Rank" }, { k: "pro", ja: "💎 PRO", en: "💎 PRO" }].map(pt => (
-                <button key={pt.k} onClick={() => setProfileTab(pt.k)} style={{ flex: 1, padding: "8px", borderRadius: 9, border: `1px solid ${profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.6)" : "#1a1a14") : "#d4cfc4"}`, background: profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.15)" : "rgba(72,202,228,0.1)") : "transparent", color: profileTab === pt.k ? (pt.k === "pro" ? "#9060e0" : "#1a1a14") : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: profileTab === pt.k ? 700 : 400 }}>{pt[lang] || pt.en || ""}</button>
+                <button key={pt.k} onClick={() => setProfileTab(pt.k)} style={{ flex: 1, padding: "8px", borderRadius: 9, border: `1px solid ${profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.6)" : "#1a1a14") : "#d4cfc4"}`, background: profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.15)" : "rgba(72,202,228,0.1)") : "transparent", color: profileTab === pt.k ? (pt.k === "pro" ? "#9060e0" : "#1a1a14") : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: profileTab === pt.k ? 700 : 400 }}>{pt[lang]}</button>
               ))}
             </div>
 
@@ -4331,7 +4320,7 @@ If this is NOT a fish or the image is unclear, return:
                     {/* Method toggle */}
                     <div style={{ display: "flex", gap: 6, marginBottom: 9 }}>
                       {[{ k: "lure", ja: "🎣 ルアー", en: "🎣 Lure" }, { k: "fly", ja: "🪶 フライ", en: "🪶 Fly" }, { k: "bait", ja: "🪱 エサ", en: "🪱 Bait" }].map(m => (
-                        <button key={m.k} onClick={() => setNewCatch(p => ({ ...p, method: m.k }))} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${newCatch.method === m.k ? "rgba(72,202,228,0.5)" : "#d4cfc4"}`, background: newCatch.method === m.k ? "rgba(72,202,228,0.12)" : "transparent", color: newCatch.method === m.k ? "#1a1a14" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{m[lang] || m.en || ""}</button>
+                        <button key={m.k} onClick={() => setNewCatch(p => ({ ...p, method: m.k }))} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${newCatch.method === m.k ? "rgba(72,202,228,0.5)" : "#d4cfc4"}`, background: newCatch.method === m.k ? "rgba(72,202,228,0.12)" : "transparent", color: newCatch.method === m.k ? "#1a1a14" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{m[lang]}</button>
                       ))}
                     </div>
                     {/* Location sharing opt-in */}
@@ -4350,7 +4339,7 @@ If this is NOT a fish or the image is unclear, return:
                       </button>
                     </div>
                     {[{ k: "fish", ph: { ja: "魚種（例：ヤマメ）", en: "Species (e.g. Yamame)" } }, { k: "weight", ph: { ja: "重さ（例：0.4 kg）", en: "Weight (e.g. 0.4 kg)" } }, { k: "location", ph: { ja: "釣り場所", en: "Location" } }].map(f => (
-                      <input key={f.k} value={newCatch[f.k]} onChange={e => setNewCatch(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.ph[lang] || f.ph.en} style={{ width: "100%", marginBottom: 8, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem" }} />
+                      <input key={f.k} value={newCatch[f.k]} onChange={e => setNewCatch(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.ph[lang]} style={{ width: "100%", marginBottom: 8, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem" }} />
                     ))}
                     <textarea value={newCatch.notes} onChange={e => setNewCatch(p => ({ ...p, notes: e.target.value }))} placeholder={lang === "ja" ? "メモ（フライパターン・状況・テクニック）" : "Notes (fly pattern, conditions, technique)"} rows={3} style={{ width: "100%", marginBottom: 10, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem", resize: "vertical" }} />
                     <div style={{ display: "flex", gap: 6 }}>
@@ -4373,7 +4362,7 @@ If this is NOT a fish or the image is unclear, return:
                             <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>⚖️ {c.weight} · 📍 {c.location}</div>
                             {c.notes && <div style={{ fontSize: "0.95rem", color: "#5a5a4a", fontStyle: "italic", marginTop: 2 }}>{c.notes}</div>}
                           </div>
-                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{ c.date?.[lang] || c.date?.en || c.date?.ja || ""}</div>
+                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{ c.date?.[lang] || c.date}</div>
                         </div>
                       </div>
                     ))}
@@ -4458,7 +4447,7 @@ If this is NOT a fish or the image is unclear, return:
               <div>
                 <div style={{ display: "flex", gap: 5, marginBottom: 11 }}>
                   {[{ k: "points", ja: "ポイント", en: "Points" }, { k: "catches", ja: "釣果数", en: "Catches" }, { k: "streak", ja: "連続日数", en: "Streak" }].map(f => (
-                    <button key={f.k} onClick={() => setLeaderFilter(f.k)} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${leaderFilter === f.k ? "#c06a10" : "#d4cfc4"}`, background: leaderFilter === f.k ? "rgba(244,162,97,0.1)" : "transparent", color: leaderFilter === f.k ? "#f4a261" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{f[lang] || f.en || ""}</button>
+                    <button key={f.k} onClick={() => setLeaderFilter(f.k)} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${leaderFilter === f.k ? "#c06a10" : "#d4cfc4"}`, background: leaderFilter === f.k ? "rgba(244,162,97,0.1)" : "transparent", color: leaderFilter === f.k ? "#f4a261" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{f[lang]}</button>
                   ))}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
@@ -4504,7 +4493,7 @@ If this is NOT a fish or the image is unclear, return:
                 {[{ icon: "🚫", text: { ja: "全広告非表示", en: "All ads removed" } }, { icon: "🤖", text: { ja: "AI診断 無制限", en: "Unlimited AI advice" } }, { icon: "🪶", text: { ja: "プレミアムフライパターン", en: "Premium fly patterns" } }, { icon: "📊", text: { ja: "詳細釣果分析", en: "Detailed catch analytics" } }, { icon: "🗺️", text: { ja: "オフラインマップ", en: "Offline maps" } }].map((f, i) => (
                   <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", padding: "10px 14px", background: "#f4f0f8", border: "2px solid #d0b8e8", borderRadius: 12, marginBottom: 8 }}>
                     <span style={{ fontSize: "1.3rem" }}>{f.icon}</span>
-                    <span style={{ fontSize: "0.95rem", color: "#6040a0" }}>{f.text[lang] || f.text.en}</span>
+                    <span style={{ fontSize: "0.95rem", color: "#6040a0" }}>{f.text[lang]}</span>
                     <span style={{ marginLeft: "auto", color: "#6040a0", fontSize: "1.05rem" }}>✓</span>
                   </div>
                 ))}
