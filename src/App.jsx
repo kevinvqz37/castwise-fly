@@ -2472,7 +2472,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
 // ─── MAP VIEW ────────────────────────────────────────────────────────────────
 // ─── LEAFLET MAP COMPONENT ───────────────────────────────────────────────────
 // Uses Leaflet + OpenStreetMap — real terrain, real tiles, no API key needed
-function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, activeUsers = [] }) {
+function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, activeUsers = [], showHeatmap = false, weather = {} }) {
   const mapRef = useRef(null);
   const leafletRef = useRef(null);
   const markersRef = useRef([]);
@@ -2577,6 +2577,20 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
       markersRef.current.push(marker);
     });
 
+    // Heatmap circles
+    if (showHeatmap) {
+      spots.forEach(spot => {
+        const coords = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
+        if (!coords) return;
+        const score = calcSpotScore(spot, weather, [], activeUsers);
+        const color = score >= 80 ? "#00ff88" : score >= 60 ? "#FFE500" : score >= 40 ? "#ff8800" : "#ff4444";
+        const radius = 1000 + (score * 20);
+        const c1 = L.circle([coords.lat, coords.lng], { radius: radius * 1.6, color: color, fillColor: color, fillOpacity: 0.1, weight: 0 }).addTo(map);
+        const c2 = L.circle([coords.lat, coords.lng], { radius: radius, color: color, fillColor: color, fillOpacity: 0.22, weight: 1, opacity: 0.5 }).addTo(map);
+        markersRef.current.push(c1, c2);
+      });
+    }
+
     // User location marker
     if (userLocation) {
       if (userMarkerRef.current) map.removeLayer(userMarkerRef.current);
@@ -2597,7 +2611,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     if (window.L && leafletRef.current) {
       renderMarkers();
     }
-  }, [spots, userLocation, lang, activeUsers]);
+  }, [spots, userLocation, lang, activeUsers, showHeatmap]);
 
   // Init map if Leaflet was already loaded
   useEffect(() => {
@@ -2948,7 +2962,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       )}
       <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "ピンをタップして詳細を見る" : "Tap a pin for details"}</p>
       {/* ── REAL LEAFLET MAP via OSM ── */}
-      <LeafletMap spots={spots} userLocation={userLocation} activeSpot={activeSpot} setActiveSpot={setActiveSpot} lang={lang} activeUsers={activeUsers} />
+      <LeafletMap spots={spots} userLocation={userLocation} activeSpot={activeSpot} setActiveSpot={setActiveSpot} lang={lang} activeUsers={activeUsers} showHeatmap={showHeatmap} weather={weather} />
       {/* Heatmap overlay */}
       {showHeatmap && (
         <div style={{ marginBottom: 10 }}>
