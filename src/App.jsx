@@ -172,6 +172,8 @@ function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
     </div>
   );
 }
+const AD_CAMPAIGNS = [];
+
 function RewardedAdModal({ lang, onComplete, onClose }) {
   const [phase, setPhase] = useState("intro"); // intro | watching | complete
   const [progress, setProgress] = useState(0);
