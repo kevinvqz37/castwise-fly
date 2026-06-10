@@ -2851,7 +2851,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
   const [regionFilter, setRegionFilter] = useState("kyushu");
   const [showCommunityPins, setShowCommunityPins] = useState(true);
   const [mapMode, setMapMode] = useState("spots"); // "spots" | "prediction"
-  const [showAR, setShowAR] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
   const [predictionSpot, setPredictionSpot] = useState(null);
   const [predictionScore, setPredictionScore] = useState(null);
 
@@ -2882,20 +2882,11 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       <h2 style={{ margin: "0 0 4px", fontSize: "1.2rem" }}>{selectedFish ? `${selectedFish.name}の釣り場` : (lang === "ja" ? "近くの釣り場" : lang === "es" ? "Spots Cerca" : "Spots Near You")}</h2>
 
       {/* AR Camera button */}
-      <button onClick={() => setShowAR(true)} style={{ width: "100%", marginBottom: 10, padding: "10px", background: "#1a1a14", border: "none", borderRadius: 12, color: "#FFE500", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-        📷 {lang === "ja" ? "ARカメラで釣り場を探す" : lang === "es" ? "Buscar con Cámara AR" : "Find Spots with AR Camera"}
+      <button onClick={() => setShowHeatmap(h => !h)} style={{ width: "100%", marginBottom: 10, padding: "10px", background: showHeatmap ? "#0d7377" : "#1a1a14", border: "none", borderRadius: 12, color: "#FFE500", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        🔥 {lang === "ja" ? (showHeatmap ? "ヒートマップ非表示" : "魚活性ヒートマップ") : (showHeatmap ? "Hide Heatmap" : "Fish Activity Heatmap")}
       </button>
 
-      {/* AR Camera View */}
-      {showAR && (
-        <ARCameraView
-          userLocation={userLocation}
-          spots={MAP_SPOTS}
-          lang={lang}
-          weather={weather}
-          onClose={() => setShowAR(false)}
-        />
-      )}
+
 
       {/* Mode toggle */}
       <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
@@ -2958,6 +2949,23 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "ピンをタップして詳細を見る" : "Tap a pin for details"}</p>
       {/* ── REAL LEAFLET MAP via OSM ── */}
       <LeafletMap spots={spots} userLocation={userLocation} activeSpot={activeSpot} setActiveSpot={setActiveSpot} lang={lang} activeUsers={activeUsers} />
+      {/* Heatmap overlay */}
+      {showHeatmap && (
+        <div style={{ marginBottom: 10 }}>
+          {spots.slice(0,10).map((spot, i) => {
+            const score = calcSpotScore(spot, weather, [], activeUsers);
+            const color = score >= 80 ? "#00ff88" : score >= 60 ? "#FFE500" : "#ff8800";
+            return (
+              <div key={spot.id || i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 8px", background: "rgba(0,0,0,0.05)", borderRadius: 8, marginBottom: 4 }}>
+                <div style={{ width: 12, height: 12, borderRadius: "50%", background: color, boxShadow: `0 0 8px ${color}`, flexShrink: 0 }} />
+                <span style={{ fontSize: "0.82rem", flex: 1 }}>{spot.icon} {spot.name}</span>
+                <span style={{ fontSize: "0.82rem", fontWeight: 700, color }}>{score}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {activeSpot && (
         <div style={{ background: "#e0f2f2", border: "2px solid #1a1a14", borderRadius: 14, padding: "12px 16px", marginBottom: 14, animation: "fadeUp 0.2s ease" }}>
           <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 4 }}>{activeSpot.icon || "📍"} {activeSpot.name}</div>
