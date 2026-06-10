@@ -1265,7 +1265,7 @@ function TrophyRoom({ catches, lang, onSelectFish, FISH_DATA }) {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, fontSize: "1rem" }}>{r.fish}</div>
-                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>📅 {r.date?.[lang] || r.date}</div>
+                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>📅 {r.date?.[lang] || r.date?.en || r.date?.ja || ""}</div>
                 {r.location && <div style={{ fontSize: "0.78rem", color: "#7a7a6a" }}>📍 {r.location}</div>}
               </div>
               <div style={{ textAlign: "right" }}>
@@ -3213,7 +3213,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                   <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "水位" : "Level"}</span><br/><span style={{ fontWeight: 700 }}>{r.level}m <span style={{ color: trendColor }}>{trendIcon}</span></span></div>
                   <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "水温" : "Temp"}</span><br/><span style={{ fontWeight: 700 }}>{r.temp}℃</span></div>
-                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "透明度" : "Clarity"}</span><br/><span style={{ fontWeight: 700, fontSize: "0.88rem" }}>{clarityLabel[r.clarity]?.[lang] || r.clarity}</span></div>
+                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "透明度" : "Clarity"}</span><br/><span style={{ fontWeight: 700, fontSize: "0.88rem" }}>{clarityLabel[r.clarity]?.[lang] || r.clarity?.en || r.clarity?.ja || ""}</span></div>
                   <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "適正水位" : "Ideal"}</span><br/><span style={{ fontSize: "0.82rem", color: "#0d7377" }}>{r.idealLevel}</span></div>
                 </div>
                 <div style={{ fontSize: "0.72rem", color: "#9a9a8a", marginTop: 6 }}>🕐 {lang === "ja" ? `${r.updatedAt}更新` : `Updated ${r.updatedAt}`}</div>
@@ -4158,7 +4158,7 @@ If this is NOT a fish or the image is unclear, return:
                       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2 }}>
                         <span style={{ fontSize: "1.05rem" }}>{c.avatar}</span>
                         <span style={{ fontWeight: 700, fontSize: "0.83rem" }}>{c.user}</span>
-                        <span style={{ color: "#5a5a4a", fontSize: "0.95rem" }}>· {c.date?.[lang] || c.date}</span>
+                        <span style={{ color: "#5a5a4a", fontSize: "0.95rem" }}>· {c.date?.[lang] || c.date?.en || c.date?.ja || ""}</span>
                       </div>
                       <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "#0d7377" }}>{c.fish}</div>
                       <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>📍 {c.location}</div>
@@ -4373,7 +4373,7 @@ If this is NOT a fish or the image is unclear, return:
                             <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>⚖️ {c.weight} · 📍 {c.location}</div>
                             {c.notes && <div style={{ fontSize: "0.95rem", color: "#5a5a4a", fontStyle: "italic", marginTop: 2 }}>{c.notes}</div>}
                           </div>
-                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{ c.date?.[lang] || c.date}</div>
+                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{ c.date?.[lang] || c.date?.en || c.date?.ja || ""}</div>
                         </div>
                       </div>
                     ))}
