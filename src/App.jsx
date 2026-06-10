@@ -4053,7 +4053,7 @@ If this is NOT a fish or the image is unclear, return:
                     {[{ la: { ja: "🎋 ロッド", en: "🎋 Rod" }, v: selectedFish.gear.rod }, { la: { ja: "🔧 リール", en: "🔧 Reel" }, v: selectedFish.gear.reel }, { la: { ja: "🧵 ライン", en: "🧵 Line" }, v: selectedFish.gear.line }, { la: { ja: "🪝 フック", en: "🪝 Hook" }, v: selectedFish.gear.hooks }].map(row => (
                       <div key={row.la.ja} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 11, padding: "10px 13px", display: "flex", gap: 11, alignItems: "center" }}>
                         <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 68 }}>{row.la[lang] || row.la.en}</span>
-                        <span style={{ fontSize: "0.83rem", fontWeight: 600 }}>{row.v?.[lang] || row.v}</span>
+                        <span style={{ fontSize: "0.83rem", fontWeight: 600 }}>{row.v?.[lang] || row.v?.en || row.v?.ja || row.v || ""}</span>
                       </div>
                     ))}
                     <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 11, padding: 13 }}>
