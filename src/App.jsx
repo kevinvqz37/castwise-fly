@@ -2869,15 +2869,13 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
   const [predictionScore, setPredictionScore] = useState(null);
 
   const REGIONS = [
-    { key: "kyushu",   ja: "九州",     en: "Kyushu",    emoji: "🌋" },
-    { key: "hokkaido", ja: "北海道",   en: "Hokkaido",  emoji: "🏔️" },
-    { key: "kanto",    ja: "関東",     en: "Kanto",     emoji: "🗼" },
-    { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
-    { key: "chubu",    ja: "中部",     en: "Chubu",     emoji: "🏯" },
+    { key: "kyushu",   ja: "九州",     en: "Kyushu",    es: "Kyushu",      emoji: "🌋" },
+    { key: "hokkaido", ja: "北海道",   en: "Hokkaido",  es: "Hokkaido",    emoji: "🏔️" },
+    { key: "kanto",    ja: "関東",     en: "Kanto",     es: "Kanto",       emoji: "🗼" },
+    { key: "kansai",   ja: "関西",     en: "Kansai",    es: "Kansai",      emoji: "⛩️" },
+    { key: "chubu",    ja: "中部",     en: "Chubu",     es: "Chubu",       emoji: "🏯" },
     { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", es: "Puerto Rico", emoji: "🌴" },
-    { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
-    { key: "chubu",    ja: "中部",   en: "Chubu",     emoji: "🗻" },
-    { key: "all",      ja: "全国",   en: "All Japan", emoji: "🗾" },
+    { key: "all",      ja: "全国",     en: "All Japan", es: "Todo Japón",  emoji: "🗾" },
   ];
 
   const rawSpots = selectedFish
@@ -2948,7 +2946,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
         <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 10, paddingBottom: 2 }}>
           {REGIONS.map(r => (
             <button key={r.key} onClick={() => setRegionFilter(r.key)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 99, border: `2px solid ${regionFilter === r.key ? "#1a1a14" : "#d4cfc4"}`, background: regionFilter === r.key ? "#e0f2f2" : "#f5f0e8", color: regionFilter === r.key ? "#1a1a14" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: regionFilter === r.key ? 700 : 400 }}>
-              {r.emoji} {r[lang]}
+              {r.emoji} {r[lang] || r.en}
             </button>
           ))}
         </div>
