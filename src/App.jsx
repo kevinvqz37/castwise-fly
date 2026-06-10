@@ -1328,7 +1328,8 @@ function TidalCalendar({ lang, userLocation }) {
 
       {/* Day headers */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3, marginBottom: 3 }}>
-        {dayNames[lang] || dayNames.en} style={{ textAlign: "center", fontSize: "0.75rem", color: i === 0 ? "#b82030" : i === 6 ? "#1565a0" : "#7a7a6a", fontWeight: 700, padding: "4px 0" }}>{d}</div>
+        {(dayNames[lang] || dayNames.en).map((d, i) => (
+          <div key={i} style={{ textAlign: "center", fontSize: "0.75rem", color: i === 0 ? "#b82030" : i === 6 ? "#1565a0" : "#7a7a6a", fontWeight: 700, padding: "4px 0" }}>{d}</div>
         ))}
       </div>
 
