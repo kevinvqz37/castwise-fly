@@ -3364,7 +3364,7 @@ const MaboHeader = ({ lang, onLangToggle }) => (
           </div>
         </div>
         <button onClick={onLangToggle} style={{ background: MABO_BLACK, color: MABO_YELLOW, border: "none", borderRadius: 8, padding: "5px 12px", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer" }}>
-          {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇵🇷 ES"}
+          {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇯🇵 JP"}
         </button>
       </div>
       <div style={{ background: MABO_BLACK, textAlign: "center", fontSize: "0.72rem", fontWeight: 700, color: MABO_YELLOW, padding: "4px", letterSpacing: "0.1em" }}>
@@ -3837,7 +3837,7 @@ If this is NOT a fish or the image is unclear, return:
             </div>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => setLang(l => l === "ja" ? "en" : l === "en" ? "es" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
+            <button onClick={() => setLang(l => l === "ja" ? "en" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
               {lang === "ja" ? "🇯🇵 JP" : lang === "en" ? "🇺🇸 EN" : "🇵🇷 ES"}
             </button>
             {/* Location / AI nearby button */}
