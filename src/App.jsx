@@ -3574,10 +3574,9 @@ export default function CastWiseJapan() {
   };
 
   const incrementAiUsage = async () => {
-  try {
-    if (!auth?.currentUser?.uid) { console.warn("Auth not ready"); return true; }
     if (isPro) return true;
-    if (!user) {
+    // Safety: check explicit auth instance if local state hasn't updated yet
+    if (!user && !require("firebase/auth").getAuth()?.currentUser) {
       setShowAuth(true);
       return false;
     }
