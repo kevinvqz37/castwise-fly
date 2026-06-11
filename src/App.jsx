@@ -2865,7 +2865,7 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
   );
 }
 
-function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData }) {
+function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData, incrementAiUsage = async () => true }) {
   const [activeSpot, setActiveSpot] = useState(null);
   const [regionFilter, setRegionFilter] = useState("kyushu");
   const [showCommunityPins, setShowCommunityPins] = useState(true);
@@ -3961,7 +3961,7 @@ If this is NOT a fish or the image is unclear, return:
             </div>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => setShowAuth(true)} style={{ background: user ? "#e0f2f2" : "#fef3c7", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", marginRight: 6, color: user ? "#0d7377" : "#b45309" }}>{user ? (isPro ? "PRO ⭐" : `AI ${5 - aiUsage.count}/5`) : (lang === "ja" ? "ログイン" : "Login")}</button>
+            <button onClick={() => { if (user) { if (confirm(lang === "ja" ? "ログアウトしますか？" : "Log out?")) handleLogout(); } else { setShowAuth(true); } }} style={{ background: user ? "#e0f2f2" : "#fef3c7", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", marginRight: 6, color: user ? "#0d7377" : "#b45309" }}>{user ? (isPro ? "PRO ⭐" : `AI ${5 - aiUsage.count}/5`) : (lang === "ja" ? "ログイン" : "Login")}</button>
             <button onClick={() => setLang(l => l === "ja" ? "en" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
               {lang === "ja" ? "🇯🇵 JP" : "🇺🇸 EN"}
             </button>
@@ -4233,7 +4233,7 @@ If this is NOT a fish or the image is unclear, return:
         )}
 
         {/* ── MAP ── */}
-        {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} activeUsers={activeUsers} locationSharing={locationSharing} setLocationSharing={setLocationSharing} weather={WEATHER} tideData={tideData} />}
+        {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} activeUsers={activeUsers} locationSharing={locationSharing} setLocationSharing={setLocationSharing} weather={WEATHER} tideData={tideData} incrementAiUsage={incrementAiUsage} />}
 
         {/* ── WEATHER ── */}
         {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} />}
