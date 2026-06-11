@@ -3574,6 +3574,8 @@ export default function CastWiseJapan() {
   };
 
   const incrementAiUsage = async () => {
+  try {
+    if (!auth?.currentUser?.uid) { console.warn("Auth not ready"); return true; }
     if (isPro) return true;
     if (!user) {
       setShowAuth(true);
