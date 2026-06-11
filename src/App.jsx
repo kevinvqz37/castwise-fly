@@ -3,6 +3,7 @@ import React from "react";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, where, getDocs, serverTimestamp, Timestamp } from "firebase/firestore";
 import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 
 // ─── FIREBASE ────────────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -15,6 +16,7 @@ const firebaseConfig = {
 };
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+const auth = getAuth(firebaseApp);
 const storage = getStorage(firebaseApp);
 
 // ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
@@ -2879,8 +2881,6 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
     { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
     { key: "chubu",    ja: "中部",     en: "Chubu",     emoji: "🏯" },
     { key: "puertorico", ja: "プエルトリコ", en: "Puerto Rico", es: "Puerto Rico", emoji: "🌴" },
-    { key: "kansai",   ja: "関西",     en: "Kansai",    emoji: "⛩️" },
-    { key: "chubu",    ja: "中部",   en: "Chubu",     emoji: "🗻" },
     { key: "all",      ja: "全国",   en: "All Japan", emoji: "🗾" },
   ];
 
@@ -2950,7 +2950,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       )}
       {/* Location status bar */}
       {userLocation ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 10, marginBottom: 10, cursor: "pointer" }} onClick={onOpenLocalAI}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 10, marginBottom: 10, cursor: "pointer" }} onClick={async () => { if (await incrementAiUsage()) onOpenLocalAI(); }}>
           <span style={{ fontSize: "1rem" }}>📍</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0d7377" }}>{userLocation.display}</div>
@@ -3416,6 +3416,15 @@ export default function CastWiseJapan() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [obName, setObName] = useState("");
   const [obAvatar, setObAvatar] = useState("🎣");
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState("login");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPass, setAuthPass] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [aiUsage, setAiUsage] = useState({ count: 0, date: "" });
+  const [isPro, setIsPro] = useState(false);
 
   // Show onboarding if name not set
   useEffect(() => {
@@ -3529,6 +3538,103 @@ export default function CastWiseJapan() {
     return () => unsub();
   }, []);
 
+
+  const handleSignup = async () => {
+    setAuthError("");
+    try {
+      await createUserWithEmailAndPassword(auth, authEmail, authPass);
+      setShowAuth(false);
+      setAuthEmail("");
+      setAuthPass("");
+    } catch (e) {
+      setAuthError(e.code === "auth/email-already-in-use" 
+        ? (lang === "ja" ? "メールアドレスは既に登録されています" : "Email already registered")
+        : e.code === "auth/weak-password"
+        ? (lang === "ja" ? "パスワードは6文字以上必要です" : "Password must be 6+ characters")
+        : (lang === "ja" ? "エラーが発生しました" : "Error: " + e.message));
+    }
+  };
+
+  const handleLogin = async () => {
+    setAuthError("");
+    try {
+      await signInWithEmailAndPassword(auth, authEmail, authPass);
+      setShowAuth(false);
+      setAuthEmail("");
+      setAuthPass("");
+    } catch (e) {
+      setAuthError(lang === "ja" ? "メールアドレスまたはパスワードが間違っています" : "Invalid email or password");
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setIsPro(false);
+    setAiUsage({ count: 0, date: "" });
+  };
+
+  const incrementAiUsage = async () => {
+    if (isPro) return true;
+    if (!user) {
+      setShowAuth(true);
+      return false;
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    const currentCount = aiUsage.date === today ? aiUsage.count : 0;
+    if (currentCount >= 5) {
+      alert(lang === "ja" 
+        ? "本日のAI利用回数（5回）を使い切りました。PROにアップグレードで無制限になります。" 
+        : "Daily AI limit (5) reached. Upgrade to PRO for unlimited.");
+      return false;
+    }
+    const newUsage = { count: currentCount + 1, date: today };
+    setAiUsage(newUsage);
+    const userDocs = await getDocs(query(collection(db, "users"), where("uid", "==", user.uid)));
+    if (!userDocs.empty) {
+      await setDoc(userDocs.docs[0].ref, { aiUsage: newUsage }, { merge: true });
+    }
+    return true;
+  };
+
+
+  if (showAuth) {
+    return (
+      <div style={{ fontFamily: "'Noto Sans JP',sans-serif", background: "#f5f0e8", minHeight: "100vh", padding: 24, maxWidth: 430, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontSize: "2rem", fontWeight: 900, color: "#0d7377" }}>🎣 釣りナビPRO</div>
+          <div style={{ fontSize: "0.9rem", color: "#7a7a6a", marginTop: 8 }}>
+            {authMode === "login" 
+              ? (lang === "ja" ? "ログイン" : "Login")
+              : (lang === "ja" ? "新規登録" : "Sign Up")}
+          </div>
+        </div>
+        <div style={{ background: "white", padding: 20, borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+          <input type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="email@example.com"
+            style={{ width: "100%", padding: 12, border: "2px solid #e0d8c8", borderRadius: 8, marginBottom: 12, fontSize: "1rem", fontFamily: "inherit", boxSizing: "border-box" }} />
+          <input type="password" value={authPass} onChange={e => setAuthPass(e.target.value)} placeholder={lang === "ja" ? "パスワード（6文字以上）" : "Password (6+ chars)"}
+            style={{ width: "100%", padding: 12, border: "2px solid #e0d8c8", borderRadius: 8, marginBottom: 12, fontSize: "1rem", fontFamily: "inherit", boxSizing: "border-box" }} />
+          {authError && <div style={{ color: "#b82030", fontSize: "0.85rem", marginBottom: 12, padding: 8, background: "#ffeeee", borderRadius: 6 }}>{authError}</div>}
+          <button onClick={authMode === "login" ? handleLogin : handleSignup}
+            style={{ width: "100%", padding: 14, background: "#0d7377", color: "white", border: "none", borderRadius: 8, fontSize: "1rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: 12 }}>
+            {authMode === "login" 
+              ? (lang === "ja" ? "ログイン" : "Login")
+              : (lang === "ja" ? "登録" : "Sign Up")}
+          </button>
+          <button onClick={() => { setAuthMode(authMode === "login" ? "signup" : "login"); setAuthError(""); }}
+            style={{ width: "100%", padding: 8, background: "transparent", color: "#0d7377", border: "none", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>
+            {authMode === "login"
+              ? (lang === "ja" ? "アカウントをお持ちでない方はこちら" : "Don't have an account? Sign up")
+              : (lang === "ja" ? "既にアカウントをお持ちの方はこちら" : "Already have an account? Login")}
+          </button>
+          <button onClick={() => setShowAuth(false)}
+            style={{ width: "100%", padding: 8, background: "transparent", color: "#7a7a6a", border: "none", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}>
+            {lang === "ja" ? "後で" : "Maybe later"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (showOnboarding) {
     const avatars = ["🎣","🪶","🐟","🦈","🌊","🏄","⛵","🦭","🐠","🎿","🏔️","🌴"];
     return (
@@ -3633,7 +3739,7 @@ export default function CastWiseJapan() {
   }
 
 
-  function handlePhoto(e) {
+  async function handlePhoto(e) {
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = async (ev) => {
@@ -3641,6 +3747,10 @@ export default function CastWiseJapan() {
       setPhotoPreview(dataUrl);
       setNewCatch(p => ({ ...p, photo: dataUrl }));
       setFishIDResult(null);
+      
+      // Photo saved - now try AI ID if user has quota
+      if (!(await incrementAiUsage())) return;
+      
       setFishIDLoading(true);
 
       // Strip the data:image/...;base64, prefix to get raw base64
@@ -3851,11 +3961,12 @@ If this is NOT a fish or the image is unclear, return:
             </div>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
+            <button onClick={() => setShowAuth(true)} style={{ background: user ? "#e0f2f2" : "#fef3c7", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", marginRight: 6, color: user ? "#0d7377" : "#b45309" }}>{user ? (isPro ? "PRO ⭐" : `AI ${5 - aiUsage.count}/5`) : (lang === "ja" ? "ログイン" : "Login")}</button>
             <button onClick={() => setLang(l => l === "ja" ? "en" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
               {lang === "ja" ? "🇯🇵 JP" : "🇺🇸 EN"}
             </button>
             {/* Location / AI nearby button */}
-            <button onClick={() => setShowLocalAI(true)} style={{ background: userLocation ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${userLocation ? "#1a1a14" : "#c4bfb4"}`, borderRadius: 8, padding: "6px 10px", color: userLocation ? "#1a1a14" : "#7a7a6a", cursor: "pointer", fontSize: "0.88rem", fontWeight: 700, position: "relative" }}>
+            <button onClick={async () => { if (await incrementAiUsage()) setShowLocalAI(true); }} style={{ background: userLocation ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${userLocation ? "#1a1a14" : "#c4bfb4"}`, borderRadius: 8, padding: "6px 10px", color: userLocation ? "#1a1a14" : "#7a7a6a", cursor: "pointer", fontSize: "0.88rem", fontWeight: 700, position: "relative" }}>
               {locationLoading ? "⏳" : "📍"}
               {userLocation && <span style={{ position: "absolute", top: -4, right: -4, width: 8, height: 8, borderRadius: "50%", background: "#2d7a3a", border: "2px solid #f5f0e8" }} />}
             </button>
@@ -4051,8 +4162,8 @@ If this is NOT a fish or the image is unclear, return:
 
                 {/* AI buttons */}
                 <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                  <button onClick={() => setShowAI(true)} style={{ flex: 1, padding: "11px", background: "#e0f2f2", border: "2px solid #70a8b8", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🤖 AI {lang === "ja" ? "ルアー診断" : "Lure AI"}</button>
-                  {selectedFish.flyFriendly && <button onClick={() => { setFlyAIFish(selectedFish); setShowFlyAI(true); }} style={{ flex: 1, padding: "11px", background: "#e0f0e8", border: "2px solid #c8b800", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🪶 AI {lang === "ja" ? "フライ診断" : "Fly AI"}</button>}
+                  <button onClick={async () => { if (await incrementAiUsage()) setShowAI(true); }} style={{ flex: 1, padding: "11px", background: "#e0f2f2", border: "2px solid #70a8b8", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🤖 AI {lang === "ja" ? "ルアー診断" : "Lure AI"}</button>
+                  {selectedFish.flyFriendly && <button onClick={async () => { if (await incrementAiUsage()) { setFlyAIFish(selectedFish); setShowFlyAI(true); } }} style={{ flex: 1, padding: "11px", background: "#e0f0e8", border: "2px solid #c8b800", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🪶 AI {lang === "ja" ? "フライ診断" : "Fly AI"}</button>}
                 </div>
                 {!isPremium && <BannerAd lang={lang} isPremium={isPremium} />}
 
