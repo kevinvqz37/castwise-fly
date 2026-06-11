@@ -8,7 +8,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 // ─── FIREBASE ────────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyCy0qh48dgp31-2xcI1YV3R73qTJGs4tFM",
-  authDomain: "castwise-fly.firebaseapp.com" ,
+  authDomain: "castwise-fly.firebaseapp.com",
   projectId: "castwise-fly",
   storageBucket: "castwise-fly.firebasestorage.app",
   messagingSenderId: "468608071051",
@@ -3492,29 +3492,6 @@ export default function CastWiseJapan() {
     { key: "Profile",    ja: "マイ",   en: "Profile",  es: "Perfil",   icon: "👤" },
   ];
 
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      setAuthLoading(false);
-      if (u) {
-        try {
-          const userDocs = await getDocs(query(collection(db, "users"), where("uid", "==", u.uid)));
-          if (!userDocs.empty) {
-            const data = userDocs.docs[0].data();
-            setIsPro(data.isPro || false);
-            setAiUsage(data.aiUsage || { count: 0, date: "" });
-          } else {
-            await addDoc(collection(db, "users"), {
-              uid: u.uid, email: u.email, isPro: false,
-              aiUsage: { count: 0, date: "" }, createdAt: Date.now()
-            });
-          }
-        } catch (e) { console.warn("user doc fetch failed:", e); }
-      }
-    });
-    return () => unsub();
-  }, []);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
