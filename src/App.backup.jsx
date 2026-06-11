@@ -3575,7 +3575,6 @@ export default function CastWiseJapan() {
 
   const incrementAiUsage = async () => {
     if (isPro) return true;
-    // Safety: Only check auth if global user state is definitively null, without crashing
     if (!user) {
       setShowAuth(true);
       return false;
