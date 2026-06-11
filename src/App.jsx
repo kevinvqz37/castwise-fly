@@ -647,6 +647,7 @@ function getSeasonalTip(fishId) {
 const MONTH_NAMES = {
   ja: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
   en: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+  es: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
 };
 
 const URGENCY_STYLES = {
@@ -1974,7 +1975,7 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
   const tip = getSeasonalTip(fishId);
   if (!tip) return null;
   const style = URGENCY_STYLES[tip.urgency];
-  const monthName = MONTH_NAMES[lang][CURRENT_MONTH];
+  const monthName = (MONTH_NAMES[lang] || MONTH_NAMES.en)[CURRENT_MONTH];
 
   if (compact) {
     return (
@@ -3273,7 +3274,7 @@ function LocalAIAdvisor({ userLocation, lang, weather, onClose }) {
       const locationStr = userLocation?.display || (lang === "ja" ? "現在地不明" : "unknown location");
       const spotsStr = nearestSpots.map(s => `${s.name}（${s.distKm}km）`).join("、");
       const spotsStrEn = nearestSpots.map(s => `${s.name} (${s.distKm}km)`).join(", ");
-      const monthName = MONTH_NAMES[lang][CURRENT_MONTH];
+      const monthName = (MONTH_NAMES[lang] || MONTH_NAMES.en)[CURRENT_MONTH];
 
       const jaPrompt = `あなたは日本の地元釣りガイドです。以下の情報をもとに、釣りアドバイスをしてください。
 
@@ -3917,7 +3918,7 @@ If this is NOT a fish or the image is unclear, return:
                           {lang === "ja" ? "🗓️ 今が旬！" : "🗓️ In Season Now!"}
                         </span>
                         <span style={{ marginLeft: "auto", background: sty.border, color: "#fff", borderRadius: 99, padding: "2px 9px", fontSize: "0.75rem", fontWeight: 700, flexShrink: 0 }}>
-                          {MONTH_NAMES[lang][CURRENT_MONTH]}
+                          {(MONTH_NAMES[lang] || MONTH_NAMES.en)[CURRENT_MONTH]}
                         </span>
                       </div>
                       <div style={{ fontWeight: 700, fontSize: "1.05rem", color: sty.text, marginBottom: 3 }}>
