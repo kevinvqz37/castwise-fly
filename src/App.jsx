@@ -4,6 +4,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, where, getDocs, serverTimestamp, Timestamp } from "firebase/firestore";
 import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { Analytics } from "@vercel/analytics/react";
 
 // ─── FIREBASE ────────────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -4835,6 +4836,7 @@ If this is NOT a fish or the image is unclear, return:
         <span>·</span>
         <a href="/legal.html#affiliate" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "広告について" : lang === "es" ? "Publicidad" : "Advertising"}</a>
       </div>
+      <Analytics />
     </div>
   );
 }
