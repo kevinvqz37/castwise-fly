@@ -1081,14 +1081,31 @@ const MABO_TOURNAMENTS = [
   },
 ];
 
-function TournamentView({ lang, profile, myCatches }) {
+function TournamentView({ lang, profile, myCatches, user, db, storage }) {
   const [activeTournament, setActiveTournament] = useState(null);
   const [showJoin, setShowJoin] = useState(false);
   const [submitWeight, setSubmitWeight] = useState("");
   const [submitSpecies, setSubmitSpecies] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submissions, setSubmissions] = useState([]);
   const [tourneyPhoto, setTourneyPhoto] = useState(null);
   const tourneyFileRef = useRef(null);
+
+  // Live-sync submissions for active tournament
+  useEffect(() => {
+    if (!activeTournament || !db) { setSubmissions([]); return; }
+    const q = query(
+      collection(db, "tournamentSubmissions"),
+      where("tournamentId", "==", activeTournament.id)
+    );
+    const unsub = onSnapshot(q, snap => {
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => (b.weightNum || 0) - (a.weightNum || 0));
+      setSubmissions(docs);
+    }, err => console.warn("submissions load failed:", err));
+    return () => unsub();
+  }, [activeTournament?.id]);
 
   function handleTourneyPhoto(e) {
     const file = e.target.files[0];
@@ -1096,6 +1113,45 @@ function TournamentView({ lang, profile, myCatches }) {
     const reader = new FileReader();
     reader.onload = (ev) => setTourneyPhoto(ev.target.result);
     reader.readAsDataURL(file);
+  }
+
+  async function submitEntry() {
+    if (!submitWeight || !submitSpecies || !tourneyPhoto || !activeTournament) return;
+    if (!user) {
+      alert(lang === "ja" ? "提出するにはログインしてください" : "Please log in to submit");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const now = Date.now();
+      const path = `tournaments/${activeTournament.id}/${user.uid}_${now}.jpg`;
+      const photoRef = ref(storage, path);
+      await uploadString(photoRef, tourneyPhoto, "data_url");
+      const photoURL = await getDownloadURL(photoRef);
+      const weightNum = parseFloat(submitWeight.replace(/[^0-9.]/g, "")) || 0;
+      await addDoc(collection(db, "tournamentSubmissions"), {
+        tournamentId: activeTournament.id,
+        userId: user.uid,
+        userName: profile.name || "Angler",
+        avatar: profile.avatar || "🎣",
+        species: submitSpecies,
+        weight: submitWeight,
+        weightNum,
+        photoURL,
+        createdAt: now,
+      });
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        setSubmitWeight("");
+        setSubmitSpecies("");
+        setTourneyPhoto(null);
+      }, 2500);
+    } catch (e) {
+      console.error("Tournament submit failed:", e);
+      alert((lang === "ja" ? "提出に失敗しました: " : "Submit failed: ") + e.message);
+    }
+    setSubmitting(false);
   }
 
   if (activeTournament) {
@@ -1134,10 +1190,10 @@ function TournamentView({ lang, profile, myCatches }) {
               </button>
             )}
             <button
-              disabled={!submitWeight || !submitSpecies || !tourneyPhoto}
-              onClick={() => { if (submitWeight && submitSpecies && tourneyPhoto) setSubmitted(true); }}
-              style={{ width: "100%", padding: "11px", background: (submitWeight && submitSpecies && tourneyPhoto) ? "#0d7377" : "#aaa", border: "none", borderRadius: 10, color: "white", cursor: (submitWeight && submitSpecies && tourneyPhoto) ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 800 }}>
-              {lang === "ja" ? "提出する" : "Submit Entry"}
+              disabled={!submitWeight || !submitSpecies || !tourneyPhoto || submitting}
+              onClick={submitEntry}
+              style={{ width: "100%", padding: "11px", background: (submitWeight && submitSpecies && tourneyPhoto && !submitting) ? "#0d7377" : "#aaa", border: "none", borderRadius: 10, color: "white", cursor: (submitWeight && submitSpecies && tourneyPhoto && !submitting) ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 800 }}>
+              {submitting ? (lang === "ja" ? "アップロード中..." : "Uploading...") : (lang === "ja" ? "提出する" : "Submit Entry")}
             </button>
           </div>
         )}
@@ -1150,7 +1206,32 @@ function TournamentView({ lang, profile, myCatches }) {
           </div>
         )}
 
-        {t.leaderboard.length > 0 && (
+        {/* LIVE submissions from Firestore, ranked by weight */}
+        {submissions.length > 0 && (
+          <>
+            <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "#0d7377", marginBottom: 8, borderBottom: "2px solid #1a1a14", paddingBottom: 4 }}>
+              🏅 {lang === "ja" ? `現在のランキング (${submissions.length}件)` : `Current Rankings (${submissions.length})`}
+            </div>
+            {submissions.map((entry, i) => (
+              <div key={entry.id} style={{ background: i === 0 ? "#e0f2f2" : "white", border: `1.5px solid ${i === 0 ? "#74c69d" : "#e0e0d8"}`, borderRadius: 10, padding: "10px 12px", marginBottom: 6, display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: i === 0 ? "#74c69d" : i === 1 ? "#ddd" : i === 2 ? "#e0a060" : "#f5f0e8", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "0.82rem", color: "#0d7377", flexShrink: 0 }}>
+                  {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
+                </div>
+                {entry.photoURL && (
+                  <img src={entry.photoURL} alt="catch" style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0d7377" }}>{entry.avatar} {entry.userName}</div>
+                  <div style={{ fontSize: "0.75rem", color: "#888" }}>{entry.species}</div>
+                </div>
+                <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#0d7377" }}>{entry.weight}</div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* Static demo leaderboard — only shown when there are no real submissions yet */}
+        {submissions.length === 0 && t.leaderboard.length > 0 && (
           <>
             <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "#0d7377", marginBottom: 8, borderBottom: "2px solid #1a1a14", paddingBottom: 4 }}>
               🏅 {lang === "ja" ? "現在のランキング" : "Current Rankings"}
@@ -4284,7 +4365,7 @@ If this is NOT a fish or the image is unclear, return:
         {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} activeUsers={activeUsers} locationSharing={locationSharing} setLocationSharing={setLocationSharing} weather={WEATHER} tideData={tideData} incrementAiUsage={incrementAiUsage} />}
 
         {/* ── WEATHER ── */}
-        {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} />}
+        {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} user={user} db={db} storage={storage} />}
         {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} forecast={forecast7day} tides={tideData} rivers={riverConditions} />}
 
         {/* ── COMMUNITY ── */}
