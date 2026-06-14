@@ -1122,7 +1122,7 @@ function TournamentView({ lang, profile, myCatches }) {
             </div>
             <input value={submitSpecies} onChange={e => setSubmitSpecies(e.target.value)} placeholder={lang === "ja" ? "魚種（例：アユ）" : "Species (e.g. Ayu)"} style={{ width: "100%", marginBottom: 8, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", color: "#1a1a14", fontFamily: "inherit", boxSizing: "border-box" }} />
             <input value={submitWeight} onChange={e => setSubmitWeight(e.target.value)} placeholder={lang === "ja" ? "重量（例：0.8kg）" : "Weight (e.g. 0.8kg)"} style={{ width: "100%", marginBottom: 10, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", color: "#1a1a14", fontFamily: "inherit", boxSizing: "border-box" }} />
-            <input ref={tourneyFileRef} type="file" accept="image/*" capture="environment" onChange={handleTourneyPhoto} style={{ display: "none" }} />
+            <input ref={tourneyFileRef} type="file" accept="image/*" onChange={handleTourneyPhoto} style={{ display: "none" }} />
             {tourneyPhoto ? (
               <div style={{ position: "relative", marginBottom: 10 }}>
                 <img src={tourneyPhoto} alt="catch" style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 8, display: "block" }} />
