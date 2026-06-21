@@ -1112,7 +1112,20 @@ function TournamentView({ lang, profile, myCatches, user, db, storage }) {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => setTourneyPhoto(ev.target.result);
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 800;
+        let w = img.width, h = img.height;
+        if (w > h && w > MAX) { h = h * (MAX / w); w = MAX; }
+        else if (h > MAX) { w = w * (MAX / h); h = MAX; }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        setTourneyPhoto(canvas.toDataURL("image/jpeg", 0.7));
+      };
+      img.src = ev.target.result;
+    };
     reader.readAsDataURL(file);
   }
 
@@ -1124,11 +1137,6 @@ function TournamentView({ lang, profile, myCatches, user, db, storage }) {
     }
     setSubmitting(true);
     try {
-      const now = Date.now();
-      const path = `tournaments/${activeTournament.id}/${user.uid}_${now}.jpg`;
-      const photoRef = ref(storage, path);
-      await uploadString(photoRef, tourneyPhoto, "data_url");
-      const photoURL = await getDownloadURL(photoRef);
       const weightNum = parseFloat(submitWeight.replace(/[^0-9.]/g, "")) || 0;
       await addDoc(collection(db, "tournamentSubmissions"), {
         tournamentId: activeTournament.id,
@@ -1138,8 +1146,8 @@ function TournamentView({ lang, profile, myCatches, user, db, storage }) {
         species: submitSpecies,
         weight: submitWeight,
         weightNum,
-        photoURL,
-        createdAt: now,
+        photoBase64: tourneyPhoto,
+        createdAt: Date.now(),
       });
       setSubmitted(true);
       setTimeout(() => {
@@ -1218,8 +1226,8 @@ function TournamentView({ lang, profile, myCatches, user, db, storage }) {
                 <div style={{ width: 28, height: 28, borderRadius: "50%", background: i === 0 ? "#74c69d" : i === 1 ? "#ddd" : i === 2 ? "#e0a060" : "#f5f0e8", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "0.82rem", color: "#0d7377", flexShrink: 0 }}>
                   {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
                 </div>
-                {entry.photoURL && (
-                  <img src={entry.photoURL} alt="catch" style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                {(entry.photoURL || entry.photoBase64) && (
+                  <img src={entry.photoURL || entry.photoBase64} alt="catch" style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0d7377" }}>{entry.avatar} {entry.userName}</div>
