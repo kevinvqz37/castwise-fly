@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import React from "react";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, where, getDocs, serverTimestamp, Timestamp } from "firebase/firestore";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, where, getDocs, serverTimestamp, Timestamp, limit } from "firebase/firestore";
 import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { Analytics } from "@vercel/analytics/react";
@@ -1319,8 +1319,8 @@ function TournamentView({ lang, profile, myCatches, user, db, storage }) {
 // ─── LINE SHARING ────────────────────────────────────────────────────────────
 function shareToLINE(catch_, lang) {
   const text = lang === "ja"
-    ? `🎣 釣れた！\n魚種: ${catch_.fish}\n重量: ${catch_.weight}\n場所: ${catch_.location}\n\n釣りナビPROで記録 → https://mabo-fly.vercel.app`
-    : `🎣 Got one!\nSpecies: ${catch_.fish}\nWeight: ${catch_.weight}\nLocation: ${catch_.location}\n\nLogged on CastWise Japan → https://mabo-fly.vercel.app`;
+    ? `🎣 釣れた！\n魚種: ${catch_.fish}\n重量: ${catch_.weight}\n場所: ${catch_.location}\n\n釣りナビPROで記録 → https://castwise-fly.vercel.app`
+    : `🎣 Got one!\nSpecies: ${catch_.fish}\nWeight: ${catch_.weight}\nLocation: ${catch_.location}\n\nLogged on CastWise Japan → https://castwise-fly.vercel.app`;
   const url = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
   window.open(url, "_blank");
 }
@@ -3118,7 +3118,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
               🤖 {lang === "ja" ? `現在の条件（${new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})}）でスポットをAI分析中` : `AI analyzing spots for current conditions (${new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})})`}
             </div>
             {[...spots].sort((a, b) => calcSpotScore(b, weather, tideData, activeUsers) - calcSpotScore(a, weather, tideData, activeUsers)).slice(0, 15).map(spot => (
-              <PredictionZoneCard key={spot.id} spot={spot} weather={weather} tideData={tideData} activeUsers={activeUsers} lang={lang} onAskAI={(s, sc) => { setPredictionSpot(s); setPredictionScore(sc); }} />
+              <PredictionZoneCard key={spot.id} spot={spot} weather={weather} tideData={tideData} activeUsers={activeUsers} lang={lang} onAskAI={async (s, sc) => { if (await incrementAiUsage()) { setPredictionSpot(s); setPredictionScore(sc); } }} />
             ))}
           </div>
         )}
@@ -3481,26 +3481,6 @@ Keep it under 220 words, emoji section headers.`;
 }
 
 // ─── MAIN APP ────────────────────────────────────────────────────────────────
-const MaboHeader = ({ lang, onLangToggle }) => (
-    <div style={{ background: MABO_YELLOW, borderBottom: `3px solid ${MABO_BLACK}` }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px 6px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 42, height: 42, background: MABO_BLACK, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", border: `2px solid ${MABO_BLACK}` }}>🐟</div>
-          <div>
-            <div style={{ fontSize: "1.15rem", fontWeight: 900, color: MABO_BLACK, lineHeight: 1.1 }}>釣りナビ PRO</div>
-            <div style={{ fontSize: "0.68rem", color: "#555", fontWeight: 700, letterSpacing: "0.04em" }}>MABO CHANNEL FISHING</div>
-          </div>
-        </div>
-        <button onClick={onLangToggle} style={{ background: MABO_BLACK, color: MABO_YELLOW, border: "none", borderRadius: 8, padding: "5px 12px", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer" }}>
-          {lang === "ja" ? "🇯🇵 JP" : "🇺🇸 EN"}
-        </button>
-      </div>
-      <div style={{ background: MABO_BLACK, textAlign: "center", fontSize: "0.72rem", fontWeight: 700, color: MABO_YELLOW, padding: "4px", letterSpacing: "0.1em" }}>
-        もっと賢く釣る
-      </div>
-    </div>
-  )
-
 
 export default function CastWiseJapan() {
   const [lang, setLang] = useLocalStorage("mabo_lang", "ja");
@@ -3526,7 +3506,7 @@ export default function CastWiseJapan() {
   const [profileTab, setProfileTab] = useState("catches");
   const [photoPreview, setPhotoPreview] = useState(null);
   const [editProfile, setEditProfile] = useState(false);
-  const [profile, setProfile] = useLocalStorage("mabo_profile", { name: "", bio: "釣り好き🎣", avatar: "🎣", catches: 0, followers: 0, following: 0 });
+  const [profile, setProfile] = useLocalStorage("mabo_profile", { name: "Angler", bio: "釣り好き🎣", avatar: "🎣", catches: 0, followers: 0, following: 0 });
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [obName, setObName] = useState("");
   const [obAvatar, setObAvatar] = useState("🎣");
@@ -3540,12 +3520,7 @@ export default function CastWiseJapan() {
   const [aiUsage, setAiUsage] = useState({ count: 0, date: "" });
   const [isPro, setIsPro] = useState(false);
 
-  // Show onboarding if name not set
-  useEffect(() => {
-    if (!profile.name || profile.name === "あなたの名前") {
-      setShowOnboarding(true);
-    }
-  }, []);
+  // Onboarding disabled — users can edit name in Profile tab
   // Ad system state
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [showRewarded, setShowRewarded] = useState(false);
@@ -3655,20 +3630,19 @@ export default function CastWiseJapan() {
 
   // Load catches from Firestore on startup
   useEffect(() => {
-    const q = query(collection(db, "catches"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "catches"), orderBy("createdAt", "desc"), limit(50));
     const unsub = onSnapshot(q, (snap) => {
       const loaded = snap.docs.map(d => {
         const data = d.data();
         return {
           ...data,
-          photo: data.photoURL || null,
+          photo: data.photoURL || data.photoBase64 || null,
           date: { ja: data.dateJa || "記録済", en: data.dateEn || "Logged" },
           comments: data.comments || [],
           firestoreId: d.id,
         };
       });
-      // If Firestore has data use it, otherwise show mock catches
-      setCatches(loaded.length > 0 ? loaded : MOCK_CATCHES);
+      setCatches(loaded);
       setMyCatches(loaded.filter(c => c.user === profile.name));
       setCatchesLoading(false);
     }, (err) => console.warn("Firestore listen error:", err));
@@ -3881,7 +3855,21 @@ export default function CastWiseJapan() {
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = async (ev) => {
-      const dataUrl = ev.target.result;
+      // Resize/compress before storing — saves bandwidth and AI cost
+      const dataUrl = await new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 1024;
+          let w = img.width, h = img.height;
+          if (w > h && w > MAX) { h = h * (MAX / w); w = MAX; }
+          else if (h > MAX) { w = w * (MAX / h); h = MAX; }
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", 0.75));
+        };
+        img.src = ev.target.result;
+      });
       setPhotoPreview(dataUrl);
       setNewCatch(p => ({ ...p, photo: dataUrl }));
       setFishIDResult(null);
@@ -4007,7 +3995,8 @@ If this is NOT a fish or the image is unclear, return:
         rating: 0,
         verified: true,
         createdAt: now,
-        photoURL: photoURL || null,
+        photoURL: null,
+        photoBase64: photoURL || null,
         // Save GPS if user opted in to sharing
         lat: (locationSharing && userLocation) ? userLocation.lat : null,
         lng: (locationSharing && userLocation) ? userLocation.lng : null,
@@ -4021,23 +4010,8 @@ If this is NOT a fish or the image is unclear, return:
       }
     }
 
-    if (newCatch.photo) {
-      try {
-        const photoRef = ref(storage, `catches/${now}.jpg`);
-        await uploadString(photoRef, newCatch.photo, "data_url");
-        const photoURL = await getDownloadURL(photoRef);
-        // Update local entry with real URL
-        const entryWithPhoto = { ...entry, photo: photoURL };
-        setMyCatches(p => [entryWithPhoto, ...p.slice(1)]);
-        setCatches(p => [entryWithPhoto, ...p.slice(1)]);
-        await saveToFirestore(photoURL);
-      } catch (err) {
-        console.warn("Photo upload failed:", err);
-        await saveToFirestore(null);
-      }
-    } else {
-      await saveToFirestore(null);
-    }
+    // Skip Storage entirely — embed base64 directly in Firestore
+    await saveToFirestore(newCatch.photo || null);
 
     setNewCatch({ fish: "", weight: "", location: "", notes: "", photo: null, method: "lure" });
     setPhotoPreview(null);
