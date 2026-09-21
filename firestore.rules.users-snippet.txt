@@ -1,0 +1,12 @@
+// Paste inside `match /databases/{database}/documents { ... }` in Firebase Console → Firestore → Rules.
+// Stops anyone from making themselves PRO from the browser. Only the webhook (admin SDK) can set isPro.
+match /users/{docId} {
+  allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+  allow create: if request.auth != null
+    && request.resource.data.uid == request.auth.uid
+    && request.resource.data.isPro == false;
+  allow update: if request.auth != null
+    && resource.data.uid == request.auth.uid
+    && !request.resource.data.diff(resource.data).affectedKeys()
+         .hasAny(['isPro', 'uid', 'stripeCustomerId', 'stripeSubscriptionId', 'proSince', 'stripeStatus']);
+}

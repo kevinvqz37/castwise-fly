@@ -44,6 +44,28 @@ export default async function handler(req, res) {
     console.warn("Rate limit check failed:", e?.message);
   }
 
+  // Only allow calls from our own site (blocks people using the key from elsewhere)
+  const origin = req.headers.origin || req.headers.referer || "";
+  const allowed = ["https://castwise-fly.vercel.app", "http://localhost:5173", ...(process.env.ALLOWED_ORIGINS || "").split(",").filter(Boolean)];
+  if (origin && !allowed.some(a => origin.startsWith(a)) && !/^https:\/\/castwise-fly-[a-z0-9-]+\.vercel\.app/.test(origin)) {
+    return res.status(403).json({ error: "Forbidden origin" });
+  }
+
+  // Never forward the raw client body — pin model and cap tokens so the key can't be abused
+  const body = req.body || {};
+  if (!Array.isArray(body.messages) || body.messages.length === 0 || body.messages.length > 20) {
+    return res.status(400).json({ error: "Invalid request" });
+  }
+  if (JSON.stringify(body.messages).length > 6_000_000) {
+    return res.status(413).json({ error: "Request too large" });
+  }
+  const safeBody = {
+    model: process.env.CLAUDE_MODEL || "claude-haiku-4-5",
+    max_tokens: Math.min(Number(body.max_tokens) || 800, 1500),
+    messages: body.messages,
+    ...(typeof body.system === "string" ? { system: body.system.slice(0, 4000) } : {}),
+  };
+
   try {
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -52,7 +74,7 @@ export default async function handler(req, res) {
         "x-api-key": process.env.ANTHROPIC_API_KEY,
         "anthropic-version": "2023-06-01",
       },
-      body: JSON.stringify(req.body),
+      body: JSON.stringify(safeBody),
     });
 
     const data = await anthropicRes.json();

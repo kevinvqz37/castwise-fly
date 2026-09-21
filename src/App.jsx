@@ -83,9 +83,17 @@ function AdsterraBanner() {
 
 function gl(obj, lang) { if (!obj) return ""; return obj[lang] || obj.en || obj.ja || ""; }
 
-function BannerAd({ lang, onDismiss, isPremium }) {
-  // Ads paused until launch
-  return null;
+function BannerAd({ isPremium }) {
+  if (isPremium) return null;
+  // Each banner gets its own sandboxed iframe so multiple Adsterra units don't clobber window.atOptions
+  const srcDoc = `<!doctype html><html><body style="margin:0;display:flex;justify-content:center;background:transparent"><script>atOptions={key:"${ADSTERRA_KEY}",format:"iframe",height:50,width:320,params:{}};<\/script><script src="https://www.highperformanceformat.com/${ADSTERRA_KEY}/invoke.js"><\/script></body></html>`;
+  return (
+    <div style={{ margin: "10px auto", maxWidth: 320, minHeight: 50, display: "flex", justifyContent: "center" }}>
+      <iframe title="ad" srcDoc={srcDoc} width={320} height={50} scrolling="no" loading="lazy"
+        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
+        style={{ border: 0, overflow: "hidden", display: "block" }} />
+    </div>
+  );
 }
 // ─── AMAZON AFFILIATE ────────────────────────────────────────────────────────
 const AMAZON_TAG = "mabo-22";
@@ -175,12 +183,17 @@ function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
     </div>
   );
 }
-const AD_CAMPAIGNS = [];
+// In-house sponsor slots → Amazon affiliate (tag mabo-22). Swap for paid sponsors later.
+const AD_CAMPAIGNS = [
+  { logo: "🪶", brand: "フライタックル特集", brandEn: "Fly Tackle Picks", bg: "#e8f4ec", accent: "#2d7a3a", q: "フライロッド", tagline: { ja: "初心者向けフライロッドをチェック", en: "Beginner fly rods on Amazon" } },
+  { logo: "🎣", brand: "テンカラ入門", brandEn: "Tenkara Starter", bg: "#f0f4fa", accent: "#0d7377", q: "テンカラ ロッド", tagline: { ja: "テンカラ竿・ラインをチェック", en: "Tenkara rods & lines" } },
+  { logo: "🥾", brand: "ウェーダー特集", brandEn: "Waders & Boots", bg: "#faf2e8", accent: "#c06a10", q: "ウェーダー", tagline: { ja: "渓流ウェーダーをチェック", en: "Stream waders & boots" } },
+];
 
 function RewardedAdModal({ lang, onComplete, onClose }) {
   const [phase, setPhase] = useState("intro"); // intro | watching | complete
   const [progress, setProgress] = useState(0);
-  const [ad] = useState(() => AD_CAMPAIGNS[Math.floor(Math.random() * (AD_CAMPAIGNS.length - 1))]);
+  const [ad] = useState(() => AD_CAMPAIGNS[Math.floor(Math.random() * AD_CAMPAIGNS.length)]);
   function startAd() {
     setPhase("watching");
     let p = 0;
@@ -222,11 +235,12 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
         )}
         {phase === "watching" && (
           <>
-            <div style={{ height: 160, background: `linear-gradient(135deg,${ad.bg},${ad.accent}22)`, borderRadius: 16, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 16, gap: 10 }}>
+            <a href={amazonLink(ad.q)} target="_blank" rel="noopener noreferrer sponsored" style={{ textDecoration: "none", height: 160, background: `linear-gradient(135deg,${ad.bg},${ad.accent}22)`, borderRadius: 16, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 16, gap: 10 }}>
               <div style={{ fontSize: "3.5rem", animation: "float 1s ease-in-out infinite" }}>{ad.logo}</div>
               <div style={{ fontWeight: 700, color: ad.accent, fontSize: "1.1rem" }}>{lang === "ja" ? ad.brand : ad.brandEn}</div>
               <div style={{ fontSize: "1.05rem", color: "#3a3a2a", textAlign: "center" }}>{(ad.tagline?.[lang] || ad.tagline?.en || ad.tagline?.ja || "")}</div>
-            </div>
+            <span style={{ fontSize: "0.8rem", color: ad.accent }}>Amazon↗</span>
+            </a>
             <div style={{ background: "#fffdf8", borderRadius: 99, height: 8, overflow: "hidden", marginBottom: 8 }}>
               <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg,#FFE500,#48cae4)", borderRadius: 99, transition: "width 0.3s" }} />
             </div>
@@ -241,7 +255,7 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
               <div style={{ fontSize: "3.5rem", marginBottom: 10, animation: "float 1s ease-in-out infinite" }}>🎉</div>
               <div style={{ fontWeight: 700, fontSize: "1.2rem", color: "#2d7a3a", marginBottom: 8 }}>{lang === "ja" ? "特典ゲット！" : "Reward Earned!"}</div>
               <div style={{ fontSize: "1rem", color: "#5a5a4a", marginBottom: 20 }}>
-                {lang === "ja" ? "+100ポイント & AI診断3回分が追加されました" : "+100 points & 3 AI uses added to your account"}
+                {lang === "ja" ? "+100ポイントが追加されました" : "+100 points added"}
               </div>
               <button onClick={onComplete} style={{ padding: "12px 32px", background: "#c8e8d0", border: "2px solid #60b080", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: "1.05rem" }}>
                 {lang === "ja" ? "✓ 受け取る" : "✓ Claim Reward"}
@@ -256,7 +270,7 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
 
 
 // ─── JAPAN2 SPRITE SHEET (Species 25-36) ─────────────────────────────────────
-const JAPAN2_SPRITE_URL = "/japan2_spritesheet.png";
+const JAPAN2_SPRITE_URL = null; // TODO: add public/japan2_spritesheet.png (file missing — falls back to emoji)
 const JAPAN2_COLS = 4;
 const JAPAN2_ROWS = 3;
 
@@ -3524,7 +3538,7 @@ export default function CastWiseJapan() {
   // Ad system state
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [showRewarded, setShowRewarded] = useState(false);
-  const [isPremium, setIsPremium] = useLocalStorage("mabo_premium", false);
+  const isPremium = isPro; // PRO is granted server-side by the Stripe webhook only
   const [bonusPoints, setBonusPoints] = useLocalStorage("mabo_points", 0);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [pendingTab, setPendingTab] = useState(null);
@@ -3684,6 +3698,43 @@ export default function CastWiseJapan() {
     setAiUsage({ count: 0, date: "" });
   };
 
+  // ─── STRIPE PAYMENT LINKS ───────────────────────────────────────────────
+  const STRIPE_LINKS = {
+    monthly: import.meta.env.VITE_STRIPE_LINK_MONTHLY,
+    annual: import.meta.env.VITE_STRIPE_LINK_ANNUAL,
+  };
+  const STRIPE_PORTAL = import.meta.env.VITE_STRIPE_PORTAL_URL;
+  function startCheckout(plan = "monthly") {
+    if (!user) { setShowAuth(true); return; }
+    const link = STRIPE_LINKS[plan] || STRIPE_LINKS.monthly;
+    if (!link) { alert(lang === "ja" ? "PROは近日公開予定です！" : "PRO is coming soon!"); return; }
+    const u = new URL(link);
+    u.searchParams.set("client_reference_id", user.uid);
+    if (user.email) u.searchParams.set("prefilled_email", user.email);
+    window.location.href = u.toString();
+  }
+
+  // After returning from Stripe (?pro=success), poll the user doc until the webhook flips isPro
+  useEffect(() => {
+    if (!user || !window.location.search.includes("pro=success")) return;
+    let tries = 0, stop = false;
+    const tick = async () => {
+      if (stop) return;
+      try {
+        const d = await getDocs(query(collection(db, "users"), where("uid", "==", user.uid)));
+        if (!d.empty && d.docs[0].data().isPro) {
+          setIsPro(true);
+          window.history.replaceState({}, "", window.location.pathname);
+          alert(lang === "ja" ? "👑 PROへようこそ！" : "👑 Welcome to PRO!");
+          return;
+        }
+      } catch (e) { console.warn(e); }
+      if (++tries < 10) setTimeout(tick, 2000);
+    };
+    tick();
+    return () => { stop = true; };
+  }, [user]);
+
   const incrementAiUsage = async () => {
     if (isPro) return true;
     // Safety: Only check auth if global user state is definitively null, without crashing
@@ -3824,7 +3875,7 @@ export default function CastWiseJapan() {
     if (!isPremium) {
       const newCount = tabSwitchCount + 1;
       setTabSwitchCount(newCount);
-      // Ads paused until launch
+      if (newCount % 8 === 0) { setPendingTab(newTab); setShowInterstitial(true); return; }
     }
     setTab(newTab);
   }
@@ -4460,13 +4511,14 @@ If this is NOT a fish or the image is unclear, return:
                 <div style={{ fontSize: "1.05rem", color: "#c06a10", fontWeight: 700 }}>3,210 pt</div>
               </div>
               {!isPremium && (
-                <button onClick={() => { setIsPremium(true); }} style={{ width: "100%", marginTop: 10, padding: "10px", background: "linear-gradient(135deg,rgba(144,96,224,0.2),rgba(72,202,228,0.1))", border: "2px solid #a080d0", borderRadius: 12, color: "#6040a0", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700 }}>
+                <button onClick={() => startCheckout("monthly")} style={{ width: "100%", marginTop: 10, padding: "10px", background: "linear-gradient(135deg,rgba(144,96,224,0.2),rgba(72,202,228,0.1))", border: "2px solid #a080d0", borderRadius: 12, color: "#6040a0", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700 }}>
                   👑 {lang === "ja" ? "PROにアップグレード — 広告なし ¥480/月" : "Upgrade to PRO — Ad-free ¥480/month"}
                 </button>
               )}
               {isPremium && (
                 <div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(144,96,224,0.1)", border: "2px solid #c0a0e0", borderRadius: 10, fontSize: "1.05rem", color: "#6040a0", textAlign: "center" }}>
                   👑 {lang === "ja" ? "PROメンバー — 広告なしでお楽しみください" : "PRO Member — Enjoy ad-free fishing!"}
+                  {STRIPE_PORTAL && <div><a href={STRIPE_PORTAL} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.85rem", color: "#6040a0" }}>{lang === "ja" ? "サブスクリプション管理" : "Manage subscription"}</a></div>}
                 </div>
               )}
             </div>
@@ -4757,7 +4809,7 @@ If this is NOT a fish or the image is unclear, return:
                   { id: "monthly", label: { ja: "月額プラン", en: "Monthly" }, price: "¥480", period: { ja: "/月", en: "/mo" }, badge: null },
                   { id: "annual", label: { ja: "年額プラン", en: "Annual" }, price: "¥3,800", period: { ja: "/年", en: "/yr" }, badge: { ja: "34%お得", en: "34% off" } },
                 ].map(plan => (
-                  <div key={plan.id} onClick={() => setIsPremium(true)} style={{ background: plan.id === "annual" ? "rgba(144,96,224,0.12)" : "#fffdf8", border: `1px solid ${plan.id === "annual" ? "rgba(144,96,224,0.45)" : "#d4cfc4"}`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div key={plan.id} onClick={() => startCheckout(plan.id)} style={{ background: plan.id === "annual" ? "rgba(144,96,224,0.12)" : "#fffdf8", border: `1px solid ${plan.id === "annual" ? "rgba(144,96,224,0.45)" : "#d4cfc4"}`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
                         <span style={{ fontWeight: 700, fontSize: "1.05rem" }}>{(plan.label?.[lang] || plan.label?.en || plan.label?.ja || "")}</span>
