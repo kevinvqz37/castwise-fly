@@ -8,6 +8,36 @@ import { Analytics } from "@vercel/analytics/react";
 import { EXTRA_FISH, EXTRA_FISH_EMOJI } from "./fishDataExtra";
 import { FLY_SVG } from "./flyArt";
 import { shareCatchCard } from "./shareCard";
+import { VectorTile } from "@mapbox/vector-tile";
+import Pbf from "pbf";
+
+// River lines for one map tile. Japan: 国土地理院 vector tiles (fast, CORS, free). Elsewhere: our /api/rivers Overpass proxy.
+async function fetchRiverTile(z, x, y, detail, signal) {
+  const n = 2 ** z;
+  const lng = ((x + 0.5) / n) * 360 - 180;
+  const lat = (Math.atan(Math.sinh(Math.PI * (1 - (2 * (y + 0.5)) / n))) * 180) / Math.PI;
+  const inJapan = lat > 24 && lat < 46 && lng > 122 && lng < 146;
+  if (inJapan) {
+    const r = await fetch(`https://cyberjapandata.gsi.go.jp/xyz/experimental_bvmap/${z}/${x}/${y}.pbf`, { signal });
+    if (r.status === 404) return [];
+    if (!r.ok) throw new Error(r.status);
+    const vt = new VectorTile(new Pbf(new Uint8Array(await r.arrayBuffer())));
+    const layer = vt.layers.river;
+    if (!layer) return [];
+    const ways = [];
+    for (let i = 0; i < layer.length; i++) {
+      const f = layer.feature(i);
+      if (![5301, 5302].includes(Number(f.properties.ftCode))) continue;
+      const gj = f.toGeoJSON(x, y, z);
+      const lines = gj.geometry.type === "MultiLineString" ? gj.geometry.coordinates : [gj.geometry.coordinates];
+      lines.forEach(l => l.length > 1 && ways.push({ n: "", t: z <= 10 ? "r" : "s", g: l.map(([lo, la]) => [la, lo]) }));
+    }
+    return ways;
+  }
+  const r = await fetch(`/api/rivers?tile=${z}/${x}/${y}&types=${detail ? "river,stream" : "river"}`, { signal });
+  if (!r.ok) throw new Error(r.status);
+  return (await r.json()).ways || [];
+}
 
 function FlyIllustration({ id, emoji, width = 120, height = 75, style = {} }) {
   // Painted illustration (public/flies/<id>.webp); SVG drawing as fallback
@@ -2696,47 +2726,45 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     if (!showHeatmap) { riverAbortRef.current?.abort(); layer.clearLayers(); setRiverStatus(""); return; }
     const z = map.getZoom();
     if (z < 9) { layer.clearLayers(); setRiverStatus("zoom"); return; }
-    const b = map.getBounds().pad(0.15);
-    const r = v => Math.round(v * 20) / 20;
-    const bbox = [r(b.getSouth()), r(b.getWest()), r(b.getNorth()), r(b.getEast())].join(",");
-    const types = z >= 11 ? "river|stream" : "river";
-    const key = bbox + "|" + types;
-    let ways = riverCacheRef.current.get(key);
-    if (!ways) {
-      riverAbortRef.current?.abort();
-      const ctrl = new AbortController(); riverAbortRef.current = ctrl;
-      setRiverStatus("loading");
-      const q = `[out:json][timeout:25];way["waterway"~"^(${types})$"](${bbox});out geom qt;`;
-      const endpoints = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
-      for (const url of endpoints) {
-        try {
-          const res = await fetch(url, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" }, signal: ctrl.signal });
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          const data = await res.json();
-          ways = (data.elements || []).filter(e => e.geometry && e.geometry.length > 1);
-          riverCacheRef.current.set(key, ways);
-          break;
-        } catch (e) {
-          if (e.name === "AbortError") return;
-          console.warn("Overpass failed:", url, e.message);
-        }
-      }
-      if (!ways) { setRiverStatus("error"); return; }
-    }
+    // Fetch cached tiles from our /api/rivers proxy (main rivers from z9, streams from z12)
+    const detail = z >= 13;
+    const tz = detail ? 14 : 9; // GSI: z9 tiles hold main rivers, z14 tiles hold every stream
+    const types = detail ? "d" : "m";
+    const b = map.getBounds();
+    const n = 2 ** tz;
+    const tx = lng => Math.floor(((lng + 180) / 360) * n);
+    const ty = lat => { const r = lat * Math.PI / 180; return Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n); };
+    const tiles = [];
+    for (let x = tx(b.getWest()); x <= tx(b.getEast()); x++)
+      for (let y = ty(b.getNorth()); y <= ty(b.getSouth()); y++) tiles.push([tz, x, y]);
+    if (tiles.length > 16) { setRiverStatus("zoom"); return; }
+    riverAbortRef.current?.abort();
+    const ctrl = new AbortController(); riverAbortRef.current = ctrl;
+    const key = t => t.join("/") + types;
+    const need = tiles.filter(t => !riverCacheRef.current.has(key(t)));
+    if (need.length) setRiverStatus("loading");
+    let failed = 0;
+    await Promise.all(need.map(async t => {
+      try {
+        riverCacheRef.current.set(key(t), await fetchRiverTile(t[0], t[1], t[2], detail, ctrl.signal));
+      } catch (e) { if (e.name !== "AbortError") failed++; }
+    }));
+    if (ctrl.signal.aborted) return;
+    const ways = tiles.flatMap(t => riverCacheRef.current.get(key(t)) || []);
     layer.clearLayers();
     const renderer = L.canvas({ padding: 0.3 });
     ways.forEach(w => {
-      const pts = w.geometry.map(p => [p.lat, p.lon]);
+      const pts = w.g;
       const mid = pts[Math.floor(pts.length / 2)];
       const sc = riverScore(mid[0], mid[1]);
-      const isRiver = w.tags?.waterway === "river";
-      const weight = isRiver ? (z >= 12 ? 7 : 5) : (z >= 13 ? 4 : 2.5);
-      const name = w.tags?.name || (isRiver ? (lang === "ja" ? "河川" : "River") : (lang === "ja" ? "支流・沢" : "Stream"));
+      const isRiver = w.t === "r";
+      const weight = isRiver ? (z >= 12 ? 6 : 4) : 3.5;
+      const name = w.n || (isRiver ? (lang === "ja" ? "河川" : "River") : (lang === "ja" ? "支流・沢" : "Stream"));
       L.polyline(pts, { renderer, color: heatColor(sc), weight, opacity: 0.85, lineCap: "round", lineJoin: "round" })
         .bindPopup(`<div style="font-family:sans-serif"><b>${name}</b><br><span style="color:${heatColor(sc)};font-weight:700">🔥 ${lang === "ja" ? "活性" : "Activity"} ${sc}</span></div>`)
         .addTo(layer);
     });
-    setRiverStatus(ways.length ? "" : "none");
+    setRiverStatus(ways.length ? (failed ? "partial" : "") : (failed ? "error" : "none"));
   }
   function scheduleRivers() {
     clearTimeout(riverTimerRef.current);
@@ -2763,10 +2791,11 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     const L = window.L;
 
     // Default center: Japan
-    const center = userLocation
+    const spotC = activeSpot && (SPOT_COORDS[activeSpot.name] || (activeSpot.lat ? { lat: activeSpot.lat, lng: activeSpot.lng } : null));
+    const center = spotC ? [spotC.lat, spotC.lng] : userLocation
       ? [userLocation.lat, userLocation.lng]
-      : [35.68, 139.69];
-    const zoom = userLocation ? 9 : 5;
+      : [33.3, 130.5]; // Kyushu (most spots) when location is unknown
+    const zoom = spotC ? 12 : userLocation ? 9 : 7;
 
     const map = L.map(mapRef.current, { zoomControl: true, attributionControl: true }).setView(center, zoom);
 
@@ -2879,7 +2908,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     if (!map) return;
     if (showHeatmap && map.getZoom() < 9) {
       const c = userLocation ? [userLocation.lat, userLocation.lng] : map.getCenter();
-      map.setView(c, 11);
+      map.setView(c, 10);
       return; // moveend triggers the load
     }
     scheduleRivers();
@@ -2904,6 +2933,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     zoom: { ja: "ズームインすると川ごとの活性が表示されます", en: "Zoom in to see activity by river" },
     error: { ja: "川データを取得できませんでした。少し待って再試行してください", en: "Couldn't load river data — try again shortly" },
     none: { ja: "この範囲に川が見つかりません", en: "No rivers in this area" },
+    partial: { ja: "一部の川を読み込めませんでした（地図を動かすと再試行）", en: "Some rivers failed to load — move the map to retry" },
   }[riverStatus];
 
   return (
