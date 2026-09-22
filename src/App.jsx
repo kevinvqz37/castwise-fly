@@ -6,6 +6,13 @@ import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage"
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { Analytics } from "@vercel/analytics/react";
 import { EXTRA_FISH, EXTRA_FISH_EMOJI } from "./fishDataExtra";
+import { FLY_SVG } from "./flyArt";
+
+function FlyIllustration({ id, emoji, width = 120, height = 75, style = {} }) {
+  const art = FLY_SVG[id];
+  if (!art) return <span style={{ fontSize: height * 0.6, ...style }}>{emoji || "🪶"}</span>;
+  return <div aria-hidden="true" style={{ width, height, ...style }} dangerouslySetInnerHTML={{ __html: art }} />;
+}
 
 // ─── FIREBASE ────────────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -2394,7 +2401,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               <button onClick={() => setSelPattern(null)} style={{ background: "#e8e3d8", border: "none", borderRadius: 8, padding: "4px 10px", color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", marginBottom: 12 }}>← {lang === "ja" ? "戻る" : "Back"}</button>
               <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.15), rgba(72,202,228,0.08))", border: "2px solid #FFE500", borderRadius: 18, padding: 18, marginBottom: 12 }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-                  <div style={{ fontSize: "3rem", lineHeight: 1, animation: "float 3s ease-in-out infinite" }}>{selPattern.emoji}</div>
+                  <FlyIllustration id={selPattern.id} emoji={selPattern.emoji} width={130} height={82} style={{ flexShrink: 0, animation: "float 3s ease-in-out infinite", background: "#fffdf8", borderRadius: 12 }} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: "1.1rem", lineHeight: 1.2 }}>{(selPattern.name?.[lang] || selPattern.name?.en || selPattern.name?.ja || "")}</div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
@@ -2438,7 +2445,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                   <div key={p.id} onClick={() => setSelPattern(p)} style={{ background: "rgba(116,198,157,0.06)", border: "2px solid #FFE500", borderRadius: 14, padding: "14px 12px", cursor: "pointer", animation: `fadeUp ${0.2 + i * 0.06}s ease both`, position: "relative" }}
                     onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"}
                     onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
-                    <div style={{ fontSize: "1.8rem", marginBottom: 6, animation: "float 3s ease-in-out infinite", animationDelay: `${i * 0.3}s` }}>{p.emoji}</div>
+                    <FlyIllustration id={p.id} emoji={p.emoji} width="100%" height={70} style={{ marginBottom: 6, animation: "float 3s ease-in-out infinite", animationDelay: `${i * 0.3}s` }} />
                     <div style={{ fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.3, marginBottom: 6 }}>{(p.name?.[lang] || p.name?.en || p.name?.ja || "")}</div>
                     <FlyTypeBadge type={p.type} lang={lang} />
                     <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginTop: 7 }}>🎣 {p.sizes}</div>
