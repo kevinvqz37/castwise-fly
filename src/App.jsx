@@ -157,11 +157,12 @@ function BannerAd({ isPremium, lang }) {
   );
 }
 // ─── AMAZON AFFILIATE ────────────────────────────────────────────────────────
-const AMAZON_TAG = "mabo-22";
+// Your Amazon Associates tracking ID (e.g. "castwise-22"), set in Vercel as VITE_AMAZON_TAG
+const AMAZON_TAG = import.meta.env.VITE_AMAZON_TAG || "";
 
 function amazonLink(searchQuery) {
   const query = encodeURIComponent(searchQuery + " 釣り");
-  return `https://www.amazon.co.jp/s?k=${query}&tag=${AMAZON_TAG}`;
+  return `https://www.amazon.co.jp/s?k=${query}${AMAZON_TAG ? `&tag=${AMAZON_TAG}` : ""}`;
 }
 
 function LureTag({ lure, lang }) {
@@ -243,7 +244,7 @@ function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
     </div>
   );
 }
-// In-house sponsor slots → Amazon affiliate (tag mabo-22). Swap for paid sponsors later.
+// In-house sponsor slots → Amazon affiliate (VITE_AMAZON_TAG). Swap for paid sponsors later.
 const AD_CAMPAIGNS = [
   { logo: "🪶", brand: "フライタックル特集", brandEn: "Fly Tackle Picks", bg: "#e8f4ec", accent: "#2d7a3a", q: "フライロッド", tagline: { ja: "初心者向けフライロッドをチェック", en: "Beginner fly rods on Amazon" } },
   { logo: "🎣", brand: "テンカラ入門", brandEn: "Tenkara Starter", bg: "#f0f4fa", accent: "#0d7377", q: "テンカラ ロッド", tagline: { ja: "テンカラ竿・ラインをチェック", en: "Tenkara rods & lines" } },
