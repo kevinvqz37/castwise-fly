@@ -54,6 +54,7 @@ export default async function handler(req, res) {
       let ref = await findUserRef("uid", uid);
       if (!ref && uid) ref = db().collection("users").doc(); // user doc missing — create it
       if (ref) {
+        if (uid) await db().collection("pros").doc(uid).set({ since: Date.now() }); // lets Firestore rules check PRO
         await ref.set({
           uid, isPro: true,
           stripeCustomerId: s.customer || null,
@@ -69,7 +70,14 @@ export default async function handler(req, res) {
       const sub = event.data.object;
       const active = event.type !== "customer.subscription.deleted" && ["active", "trialing", "past_due"].includes(sub.status);
       const ref = await findUserRef("stripeCustomerId", sub.customer);
-      if (ref) await ref.set({ isPro: active, stripeStatus: sub.status }, { merge: true });
+      if (ref) {
+        await ref.set({ isPro: active, stripeStatus: sub.status }, { merge: true });
+        const uid = (await ref.get()).data()?.uid;
+        if (uid) {
+          const pro = db().collection("pros").doc(uid);
+          active ? await pro.set({ since: Date.now() }, { merge: true }) : await pro.delete();
+        }
+      }
     }
   } catch (e) {
     console.error("Webhook handler error:", e);

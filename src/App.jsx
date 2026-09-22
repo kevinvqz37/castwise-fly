@@ -1167,7 +1167,7 @@ const MABO_TOURNAMENTS = [
   },
 ];
 
-function TournamentView({ lang, profile, myCatches, user, db, storage }) {
+function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = false, onUpgrade }) {
   const [activeTournament, setActiveTournament] = useState(null);
   const [showJoin, setShowJoin] = useState(false);
   const [submitWeight, setSubmitWeight] = useState("");
@@ -1220,6 +1220,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage }) {
       alert(lang === "ja" ? "提出するにはログインしてください" : "Please log in to submit");
       return;
     }
+    if (!isPro) { onUpgrade?.(); return; }
     setSubmitting(true);
     try {
       const weightNum = parseFloat(submitWeight.replace(/[^0-9.]/g, "")) || 0;
@@ -1265,7 +1266,18 @@ function TournamentView({ lang, profile, myCatches, user, db, storage }) {
           <div style={{ fontSize: "0.88rem", color: "#74c69d", fontWeight: 700, marginTop: 8 }}>{(t.prize?.[lang] || t.prize?.en || t.prize?.ja || "")}</div>
         </div>
 
-        {t.status === "live" && !submitted && (
+        {t.status === "live" && !submitted && !isPro && (
+          <div style={{ background: "linear-gradient(135deg,rgba(144,96,224,0.14),rgba(72,202,228,0.08))", border: "2px solid #c0a0e0", borderRadius: 14, padding: 16, marginBottom: 12, textAlign: "center" }}>
+            <div style={{ fontSize: "2rem" }}>🏆🔒</div>
+            <div style={{ fontWeight: 800, fontSize: "1rem", color: "#6040a0", margin: "4px 0" }}>{lang === "ja" ? "大会へのエントリーはPRO会員限定" : "Tournament entry is PRO-only"}</div>
+            <div style={{ fontSize: "0.85rem", color: "#5a5a4a", marginBottom: 12 }}>{lang === "ja" ? "リーダーボードは誰でも見られます。PROなら大会参加・広告なし・AI無制限。" : "Anyone can view the leaderboard. PRO unlocks entry, no ads and unlimited AI."}</div>
+            <button onClick={() => onUpgrade?.()} style={{ width: "100%", padding: 12, background: "#6040a0", color: "#fff", border: "none", borderRadius: 12, fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit" }}>
+              👑 {lang === "ja" ? "PROで参加する — ¥480/月" : "Join with PRO — ¥480/mo"}
+            </button>
+          </div>
+        )}
+
+        {t.status === "live" && !submitted && isPro && (
           <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 12 }}>
             <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#0d7377", marginBottom: 10 }}>
               🎣 {lang === "ja" ? "釣果を提出する" : "Submit Your Catch"}
@@ -4603,7 +4615,7 @@ If this is NOT a fish or the image is unclear, return:
         {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} activeUsers={activeUsers} locationSharing={locationSharing} setLocationSharing={setLocationSharing} weather={WEATHER} tideData={tideData} incrementAiUsage={incrementAiUsage} />}
 
         {/* ── WEATHER ── */}
-        {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} user={user} db={db} storage={storage} />}
+        {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} user={user} db={db} storage={storage} isPro={isPro} onUpgrade={() => startCheckout("monthly")} />}
         {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} forecast={forecast7day} tides={tideData} rivers={riverConditions} />}
 
         {/* ── COMMUNITY ── */}
@@ -5037,6 +5049,7 @@ If this is NOT a fish or the image is unclear, return:
                     { icon: "🪶", free: { ja: "フライ8パターン", en: "8 fly patterns" }, pro: { ja: "30+プレミアム", en: "30+ premium" } },
                     { icon: "📊", free: { ja: "基本釣果記録", en: "Basic log" }, pro: { ja: "AI釣果分析", en: "AI analytics" } },
                     { icon: "🗺️", free: { ja: "オンラインマップ", en: "Online maps" }, pro: { ja: "オフラインマップ", en: "Offline maps" } },
+                    { icon: "🏆", free: { ja: "大会の閲覧のみ", en: "View tournaments" }, pro: { ja: "大会にエントリー", en: "Enter tournaments" } },
                   ].map((f, i) => (
                     <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", padding: "9px 12px", background: "#f8f4ec", borderRadius: 10, marginBottom: 6 }}>
                       <span style={{ fontSize: "1.1rem", width: 24 }}>{f.icon}</span>

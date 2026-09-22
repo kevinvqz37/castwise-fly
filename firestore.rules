@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isPro() {
+      return request.auth != null && exists(/databases/$(database)/documents/pros/$(request.auth.uid));
+    }
+
+    // Accounts — only the webhook can set PRO
+    match /users/{docId} {
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.isPro == false;
+      allow update: if request.auth != null
+        && resource.data.uid == request.auth.uid
+        && !request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['isPro', 'uid', 'stripeCustomerId', 'stripeSubscriptionId', 'proSince', 'stripeStatus']);
+    }
+
+    // PRO membership flags (written only by the Stripe webhook / admin SDK)
+    match /pros/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Community feed
+    match /catches/{id} {
+      allow read: if true;
+      allow create, update: if request.resource.size() < 1000000;
+    }
+
+    // Tournament entries — PRO members only
+    match /tournamentSubmissions/{id} {
+      allow read: if true;
+      allow create: if isPro() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Live anglers map
+    match /activeUsers/{id} {
+      allow read, write: if true;
+    }
+  }
+}
