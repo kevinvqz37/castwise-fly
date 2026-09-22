@@ -3173,6 +3173,13 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
 function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers = [], locationSharing, setLocationSharing, weather, tideData, incrementAiUsage = async () => true }) {
   const [activeSpot, setActiveSpot] = useState(null);
   const [regionFilter, setRegionFilter] = useState("kyushu");
+  // Deep link from /spots pages (/?spot=<id>)
+  useEffect(() => {
+    const id = window.__castwiseSpot; if (!id) return;
+    window.__castwiseSpot = null;
+    const sp = MAP_SPOTS.find(x => x.id === id);
+    if (sp) { setRegionFilter(sp.region); setActiveSpot(sp); }
+  }, []);
   const [showCommunityPins, setShowCommunityPins] = useState(true);
   const [mapMode, setMapMode] = useState("spots"); // "spots" | "prediction"
   const [showHeatmap, setShowHeatmap] = useState(false);
@@ -3894,10 +3901,12 @@ export default function CastWiseJapan() {
 
   // Deep link from /zukan pages: /?fish=<id> opens that species
   useEffect(() => {
-    const id = Number(new URLSearchParams(window.location.search).get("fish"));
-    if (!id) return;
-    const f = FISH_DATA.find(x => x.id === id);
+    const q = new URLSearchParams(window.location.search);
+    const id = Number(q.get("fish")), spotId = Number(q.get("spot"));
+    if (!id && !spotId) return;
+    const f = id && FISH_DATA.find(x => x.id === id);
     if (f) { setSelectedFish(f); setTab("FishGuide"); }
+    if (spotId) { window.__castwiseSpot = spotId; setTab("Map"); }
     window.history.replaceState({}, "", window.location.pathname);
   }, []);
 
