@@ -2700,6 +2700,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
   const riverCacheRef = useRef(new Map());
   const riverAbortRef = useRef(null);
   const riverTimerRef = useRef(null);
+  const riverRendererRef = useRef(null);
   const liveRef = useRef({});
   liveRef.current = { spots, weather, activeUsers, showHeatmap, lang, userLocation };
   const [riverStatus, setRiverStatus] = useState("");
@@ -2729,7 +2730,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     const z = map.getZoom();
     if (z < 9) { layer.clearLayers(); setRiverStatus("zoom"); return; }
     // Fetch cached tiles from our /api/rivers proxy (main rivers from z9, streams from z12)
-    const detail = z >= 13;
+    const detail = z >= 14;
     const tz = detail ? 14 : 9; // GSI: z9 tiles hold main rivers, z14 tiles hold every stream
     const types = detail ? "d" : "m";
     const b = map.getBounds();
@@ -2739,7 +2740,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     const tiles = [];
     for (let x = tx(b.getWest()); x <= tx(b.getEast()); x++)
       for (let y = ty(b.getNorth()); y <= ty(b.getSouth()); y++) tiles.push([tz, x, y]);
-    if (tiles.length > 30) { setRiverStatus("zoom"); return; }
+    if (tiles.length > (detail ? 12 : 16)) { setRiverStatus(detail ? "zoomout" : "zoom"); return; }
     riverAbortRef.current?.abort();
     const ctrl = new AbortController(); riverAbortRef.current = ctrl;
     const key = t => t.join("/") + types;
@@ -2748,22 +2749,31 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     let failed = 0;
     await Promise.all(need.map(async t => {
       try {
-        riverCacheRef.current.set(key(t), await fetchRiverTile(t[0], t[1], t[2], detail, ctrl.signal));
+        const c = riverCacheRef.current;
+        c.set(key(t), await fetchRiverTile(t[0], t[1], t[2], detail, ctrl.signal));
+        while (c.size > 60) c.delete(c.keys().next().value); // cap memory
       } catch (e) { if (e.name !== "AbortError") failed++; }
     }));
     if (ctrl.signal.aborted) return;
     const ways = tiles.flatMap(t => riverCacheRef.current.get(key(t)) || []);
     layer.clearLayers();
-    const renderer = L.canvas({ padding: 0.3 });
-    ways.forEach(w => {
-      const pts = w.g;
-      const mid = pts[Math.floor(pts.length / 2)];
+    // One shared canvas renderer + one polyline per color band (thousands of separate
+    // layers/canvases crashed mobile Safari).
+    if (!riverRendererRef.current) riverRendererRef.current = L.canvas({ padding: 0.2 });
+    const renderer = riverRendererRef.current;
+    const bands = {};
+    for (const w of ways) {
+      const mid = w.g[Math.floor(w.g.length / 2)];
       const sc = riverScore(mid[0], mid[1]);
-      const isRiver = w.t === "r";
-      const weight = isRiver ? (z >= 12 ? 6 : 4) : 3.5;
-      const name = w.n || (isRiver ? (lang === "ja" ? "河川" : "River") : (lang === "ja" ? "支流・沢" : "Stream"));
-      L.polyline(pts, { renderer, color: heatColor(sc), weight, opacity: 0.85, lineCap: "round", lineJoin: "round" })
-        .bindPopup(`<div style="font-family:sans-serif"><b>${name}</b><br><span style="color:${heatColor(sc)};font-weight:700">🔥 ${lang === "ja" ? "活性" : "Activity"} ${sc}</span></div>`)
+      const band = sc >= 75 ? 75 : sc >= 60 ? 60 : sc >= 45 ? 45 : 0;
+      const k = band + (w.t === "r" ? "r" : "s");
+      (bands[k] ||= { band, river: w.t === "r", lines: [] }).lines.push(w.g);
+    }
+    const bandName = { 75: { ja: "高活性", en: "High activity" }, 60: { ja: "やや高い", en: "Good" }, 45: { ja: "普通", en: "Fair" }, 0: { ja: "低い", en: "Low" } };
+    Object.values(bands).forEach(({ band, river, lines }) => {
+      const color = heatColor(band);
+      L.polyline(lines, { renderer, color, weight: river ? (z >= 12 ? 6 : 4) : 3.5, opacity: 0.85, lineCap: "round", lineJoin: "round", smoothFactor: 1.5 })
+        .bindPopup(`<div style="font-family:sans-serif"><b>${river ? (lang === "ja" ? "河川" : "River") : (lang === "ja" ? "支流・沢" : "Stream")}</b><br><span style="color:${color};font-weight:700">🔥 ${bandName[band][lang] || bandName[band].en}</span></div>`)
         .addTo(layer);
     });
     setRiverStatus(ways.length ? (failed ? "partial" : "") : (failed ? "error" : "none"));
@@ -2935,6 +2945,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     zoom: { ja: "ズームインすると川ごとの活性が表示されます", en: "Zoom in to see activity by river" },
     error: { ja: "川データを取得できませんでした。少し待って再試行してください", en: "Couldn't load river data — try again shortly" },
     none: { ja: "この範囲に川が見つかりません", en: "No rivers in this area" },
+    zoomout: { ja: "範囲が広すぎます。少しズームインしてください", en: "Area too large — zoom in a little" },
     partial: { ja: "一部の川を読み込めませんでした（地図を動かすと再試行）", en: "Some rivers failed to load — move the map to retry" },
   }[riverStatus];
 
