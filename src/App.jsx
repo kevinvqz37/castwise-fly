@@ -27,7 +27,9 @@ async function fetchRiverTile(z, x, y, detail, signal) {
     const ways = [];
     for (let i = 0; i < layer.length; i++) {
       const f = layer.feature(i);
-      if (![5301, 5302].includes(Number(f.properties.ftCode))) continue;
+      // 5301/5302 river centerlines, 5322 channels; at detail zoom also 5201/5203 banks of wide rivers
+      const code = Number(f.properties.ftCode);
+      if (![5301, 5302, 5322].includes(code) && !(z >= 14 && (code === 5201 || code === 5203))) continue;
       const gj = f.toGeoJSON(x, y, z);
       const lines = gj.geometry.type === "MultiLineString" ? gj.geometry.coordinates : [gj.geometry.coordinates];
       lines.forEach(l => l.length > 1 && ways.push({ n: "", t: z <= 10 ? "r" : "s", g: l.map(([lo, la]) => [la, lo]) }));
@@ -2737,7 +2739,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     const tiles = [];
     for (let x = tx(b.getWest()); x <= tx(b.getEast()); x++)
       for (let y = ty(b.getNorth()); y <= ty(b.getSouth()); y++) tiles.push([tz, x, y]);
-    if (tiles.length > 16) { setRiverStatus("zoom"); return; }
+    if (tiles.length > 30) { setRiverStatus("zoom"); return; }
     riverAbortRef.current?.abort();
     const ctrl = new AbortController(); riverAbortRef.current = ctrl;
     const key = t => t.join("/") + types;
