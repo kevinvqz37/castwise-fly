@@ -426,6 +426,13 @@ const SPRITE_DATA = {
 };
 
 function FishIllustration({ fishId, spriteId, size = 80, style = {} }) {
+  // Hand-drawn illustrations for added species (public/fish/<id>.webp)
+  if (EXTRA_FISH_EMOJI[fishId]) {
+    return (
+      <img src={`/fish/${fishId}.webp`} alt="" loading="lazy" draggable={false}
+        style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }} />
+    );
+  }
   // Check if this is a Japan2 fish (ids 25-36)
   const japan2Key = JAPAN2_ID_MAP[fishId];
   const japan2Sprite = japan2Key ? JAPAN2_SPRITE_DATA[japan2Key] : null;
