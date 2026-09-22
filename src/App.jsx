@@ -5,6 +5,7 @@ import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, d
 import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { Analytics } from "@vercel/analytics/react";
+import { EXTRA_FISH, EXTRA_FISH_EMOJI } from "./fishDataExtra";
 
 // ─── FIREBASE ────────────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -482,7 +483,7 @@ function FishIllustration({ fishId, spriteId, size = 80, style = {} }) {
     );
   }
 
-  const emoji = spriteKey ? (SPRITE_EMOJI[spriteKey] || "🐟") : "🐟";
+  const emoji = spriteKey ? (SPRITE_EMOJI[spriteKey] || "🐟") : (EXTRA_FISH_EMOJI[fishId] || "🐟");
   return (
     <div style={{ width: size, height: size, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.55, animation: "float 3s ease-in-out infinite", ...style }}>
       {emoji}
@@ -568,6 +569,8 @@ const FISH_DATA = [
     regulations: { ja: "最小サイズ: 10インチ。DNER規制を確認", en: "Minimum 10 inches. Check current DNER regulations." } },
 
 ];
+FISH_DATA.push(...EXTRA_FISH);
+
 
 // ─── SEASONAL INTELLIGENCE ───────────────────────────────────────────────────
 // Current month index (0=Jan … 11=Dec). In production, derive from new Date().
@@ -2649,6 +2652,85 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
   const leafletRef = useRef(null);
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
+  // River heatmap (follows real waterways from OpenStreetMap via Overpass)
+  const riverLayerRef = useRef(null);
+  const riverCacheRef = useRef(new Map());
+  const riverAbortRef = useRef(null);
+  const riverTimerRef = useRef(null);
+  const liveRef = useRef({});
+  liveRef.current = { spots, weather, activeUsers, showHeatmap, lang, userLocation };
+  const [riverStatus, setRiverStatus] = useState("");
+
+  function riverScore(lat, lng) {
+    const { spots, weather, activeUsers } = liveRef.current;
+    let best = 0;
+    for (const spot of spots) {
+      const c = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
+      if (!c) continue;
+      const d = distKm(lat, lng, c.lat, c.lng);
+      if (d > 25) continue;
+      const sc = calcSpotScore(spot, weather, [], activeUsers) * (1 - (d / 25) * 0.6);
+      if (sc > best) best = sc;
+    }
+    return Math.round(best || 30);
+  }
+  const heatColor = sc => sc >= 75 ? "#e63946" : sc >= 60 ? "#f77f00" : sc >= 45 ? "#f6c500" : "#3a86ff";
+
+  async function loadRivers() {
+    const L = window.L, map = leafletRef.current;
+    if (!L || !map) return;
+    if (!riverLayerRef.current) riverLayerRef.current = L.layerGroup().addTo(map);
+    const layer = riverLayerRef.current;
+    const { showHeatmap, lang } = liveRef.current;
+    if (!showHeatmap) { riverAbortRef.current?.abort(); layer.clearLayers(); setRiverStatus(""); return; }
+    const z = map.getZoom();
+    if (z < 9) { layer.clearLayers(); setRiverStatus("zoom"); return; }
+    const b = map.getBounds().pad(0.15);
+    const r = v => Math.round(v * 20) / 20;
+    const bbox = [r(b.getSouth()), r(b.getWest()), r(b.getNorth()), r(b.getEast())].join(",");
+    const types = z >= 11 ? "river|stream" : "river";
+    const key = bbox + "|" + types;
+    let ways = riverCacheRef.current.get(key);
+    if (!ways) {
+      riverAbortRef.current?.abort();
+      const ctrl = new AbortController(); riverAbortRef.current = ctrl;
+      setRiverStatus("loading");
+      const q = `[out:json][timeout:25];way["waterway"~"^(${types})$"](${bbox});out geom qt;`;
+      const endpoints = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
+      for (const url of endpoints) {
+        try {
+          const res = await fetch(url, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" }, signal: ctrl.signal });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const data = await res.json();
+          ways = (data.elements || []).filter(e => e.geometry && e.geometry.length > 1);
+          riverCacheRef.current.set(key, ways);
+          break;
+        } catch (e) {
+          if (e.name === "AbortError") return;
+          console.warn("Overpass failed:", url, e.message);
+        }
+      }
+      if (!ways) { setRiverStatus("error"); return; }
+    }
+    layer.clearLayers();
+    const renderer = L.canvas({ padding: 0.3 });
+    ways.forEach(w => {
+      const pts = w.geometry.map(p => [p.lat, p.lon]);
+      const mid = pts[Math.floor(pts.length / 2)];
+      const sc = riverScore(mid[0], mid[1]);
+      const isRiver = w.tags?.waterway === "river";
+      const weight = isRiver ? (z >= 12 ? 7 : 5) : (z >= 13 ? 4 : 2.5);
+      const name = w.tags?.name || (isRiver ? (lang === "ja" ? "河川" : "River") : (lang === "ja" ? "支流・沢" : "Stream"));
+      L.polyline(pts, { renderer, color: heatColor(sc), weight, opacity: 0.85, lineCap: "round", lineJoin: "round" })
+        .bindPopup(`<div style="font-family:sans-serif"><b>${name}</b><br><span style="color:${heatColor(sc)};font-weight:700">🔥 ${lang === "ja" ? "活性" : "Activity"} ${sc}</span></div>`)
+        .addTo(layer);
+    });
+    setRiverStatus(ways.length ? "" : "none");
+  }
+  function scheduleRivers() {
+    clearTimeout(riverTimerRef.current);
+    riverTimerRef.current = setTimeout(loadRivers, 500);
+  }
 
   // Load Leaflet CSS + JS once
   useEffect(() => {
@@ -2677,14 +2759,23 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
 
     const map = L.map(mapRef.current, { zoomControl: true, attributionControl: true }).setView(center, zoom);
 
-    // OpenStreetMap tiles
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    // Base maps: GSI pale map (clear rivers/terrain in Japan) or OpenStreetMap elsewhere
+    const gsi = L.tileLayer("https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png", {
+      attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html">国土地理院</a>',
+      maxZoom: 18,
+    });
+    const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
       maxZoom: 18,
-    }).addTo(map);
+    });
+    const inJapan = !userLocation || (userLocation.lat > 24 && userLocation.lat < 46 && userLocation.lng > 122 && userLocation.lng < 146);
+    (inJapan ? gsi : osm).addTo(map);
+    L.control.layers({ [lang === "ja" ? "地理院地図" : "GSI Japan"]: gsi, "OpenStreetMap": osm }, null, { position: "topright" }).addTo(map);
 
     leafletRef.current = map;
+    map.on("moveend", scheduleRivers);
     renderMarkers();
+    scheduleRivers();
   }
 
   function renderMarkers() {
@@ -2749,20 +2840,6 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
       markersRef.current.push(marker);
     });
 
-    // Heatmap circles
-    if (showHeatmap) {
-      spots.forEach(spot => {
-        const coords = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
-        if (!coords) return;
-        const score = calcSpotScore(spot, weather, [], activeUsers);
-        const color = score >= 80 ? "#00ff88" : score >= 60 ? "#FFE500" : score >= 40 ? "#ff8800" : "#ff4444";
-        const radius = 1000 + (score * 20);
-        const c1 = L.circle([coords.lat, coords.lng], { radius: radius * 1.6, color: color, fillColor: color, fillOpacity: 0.1, weight: 0 }).addTo(map);
-        const c2 = L.circle([coords.lat, coords.lng], { radius: radius, color: color, fillColor: color, fillOpacity: 0.22, weight: 1, opacity: 0.5 }).addTo(map);
-        markersRef.current.push(c1, c2);
-      });
-    }
-
     // User location marker
     if (userLocation) {
       if (userMarkerRef.current) map.removeLayer(userMarkerRef.current);
@@ -2785,6 +2862,18 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     }
   }, [spots, userLocation, lang, activeUsers, showHeatmap]);
 
+  // River heatmap: reload when toggled or conditions change; jump in close enough to see rivers
+  useEffect(() => {
+    const map = leafletRef.current;
+    if (!map) return;
+    if (showHeatmap && map.getZoom() < 9) {
+      const c = userLocation ? [userLocation.lat, userLocation.lng] : map.getCenter();
+      map.setView(c, 11);
+      return; // moveend triggers the load
+    }
+    scheduleRivers();
+  }, [showHeatmap, spots, weather]);
+
   // Init map if Leaflet was already loaded
   useEffect(() => {
     if (window.L && !leafletRef.current && mapRef.current) {
@@ -2799,11 +2888,31 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     if (coords) leafletRef.current.flyTo([coords.lat, coords.lng], 12, { duration: 1 });
   }, [activeSpot]);
 
+  const statusText = {
+    loading: { ja: "川を読み込み中…", en: "Loading rivers…" },
+    zoom: { ja: "ズームインすると川ごとの活性が表示されます", en: "Zoom in to see activity by river" },
+    error: { ja: "川データを取得できませんでした。少し待って再試行してください", en: "Couldn't load river data — try again shortly" },
+    none: { ja: "この範囲に川が見つかりません", en: "No rivers in this area" },
+  }[riverStatus];
+
   return (
-    <div
-      ref={mapRef}
-      style={{ height: 300, borderRadius: 16, overflow: "hidden", marginBottom: 14, border: "2px solid #FFE500", position: "relative", zIndex: 1, background: "#e8f4f4" }}
-    />
+    <div style={{ position: "relative", marginBottom: 14 }}>
+      <div
+        ref={mapRef}
+        style={{ height: showHeatmap ? 420 : 300, borderRadius: 16, overflow: "hidden", border: "2px solid #FFE500", position: "relative", zIndex: 1, background: "#e8f4f4" }}
+      />
+      {showHeatmap && (
+        <div style={{ position: "absolute", left: 8, bottom: 8, zIndex: 500, background: "rgba(255,253,248,0.94)", borderRadius: 10, padding: "6px 10px", fontSize: "0.75rem", boxShadow: "0 1px 6px rgba(0,0,0,0.2)", pointerEvents: "none" }}>
+          {statusText ? <div style={{ fontWeight: 700, color: "#0d7377" }}>{statusText[lang] || statusText.en}</div> : (
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              {[["#e63946", "75+"], ["#f77f00", "60+"], ["#f6c500", "45+"], ["#3a86ff", lang === "ja" ? "低" : "Low"]].map(([c, t]) => (
+                <span key={c} style={{ display: "inline-flex", alignItems: "center", gap: 3 }}><span style={{ width: 14, height: 4, borderRadius: 2, background: c, display: "inline-block" }} />{t}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -3620,7 +3729,7 @@ export default function CastWiseJapan() {
     (f.name.includes(search) || f.nameEn.toLowerCase().includes(search.toLowerCase())) &&
     (filterDiff === "all" || f.difficulty === filterDiff) &&
     (!filterFly || f.flyFriendly) &&
-    (filterCat === "all" || FISH_CATS[f.id] === filterCat)
+    (filterCat === "all" || (FISH_CATS[f.id] || f.category) === filterCat)
   );
 
   const TABS_DATA = [
@@ -4178,7 +4287,7 @@ If this is NOT a fish or the image is unclear, return:
               <button onClick={() => setShowRewarded(true)} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", cursor: "pointer", fontWeight: 700 }}>🎁</button>
             )}
             <div style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "6px 10px", fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 700 }}>
-              🔥 {WEATHER?.fishingIndex ?? weather?.fishingIndex ?? 75}{bonusPoints > 0 && <span style={{ color: "#c06a10" }}> +{bonusPoints}</span>}
+              🔥 {WEATHER?.fishingIndex ?? 75}{bonusPoints > 0 && <span style={{ color: "#c06a10" }}> +{bonusPoints}</span>}
             </div>
           </div>
         </div>
