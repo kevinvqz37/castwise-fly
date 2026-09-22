@@ -5,7 +5,7 @@
       "destination": "/mabo.html"
     },
     {
-      "source": "/((?!api/|robots\\.txt|sitemap\\.xml|legal\\.html).*)",
+      "source": "/((?!api/|zukan|robots\\.txt|sitemap\\.xml|legal).*)",
       "destination": "/index.html"
     }
   ],
@@ -31,5 +31,6 @@
         }
       ]
     }
-  ]
+  ],
+  "cleanUrls": true
 }

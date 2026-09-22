@@ -1,5 +1,6 @@
 // Service Worker — 釣りナビ PRO offline support
-const CACHE = "castwise-v1";
+// Network-first for pages (so new deploys show up immediately), cache-first for hashed build assets.
+const CACHE = "castwise-v2";
 const PRECACHE = ["/", "/index.html"];
 
 self.addEventListener("install", e => {
@@ -15,30 +16,28 @@ self.addEventListener("activate", e => {
 });
 
 self.addEventListener("fetch", e => {
-  const url = new URL(e.request.url);
+  const req = e.request;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
 
-  // Always go to network for API calls, Firestore, Firebase Storage
-  if (url.hostname.includes("firestore") ||
-      url.hostname.includes("storage.googleapis") ||
-      url.hostname.includes("anthropic") ||
-      url.hostname.includes("open-meteo") ||
-      url.hostname.includes("nominatim") ||
-      url.hostname.includes("openstreetmap") ||
-      url.pathname.startsWith("/api/")) {
+  // Pages: network first, fall back to cache when offline
+  if (req.mode === "navigate" || req.headers.get("accept")?.includes("text/html")) {
+    e.respondWith(
+      fetch(req).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(req, clone));
+        return res;
+      }).catch(() => caches.match(req).then(r => r || caches.match("/index.html")))
+    );
     return;
   }
 
-  // Cache-first for app shell (HTML, CSS, JS)
+  // Hashed build assets, images, fonts: cache first
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        if (res.ok && e.request.method === "GET") {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return res;
-      }).catch(() => caches.match("/index.html"));
-    })
+    caches.match(req).then(cached => cached || fetch(req).then(res => {
+      if (res.ok) { const clone = res.clone(); caches.open(CACHE).then(c => c.put(req, clone)); }
+      return res;
+    }))
   );
 });

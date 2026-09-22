@@ -13,9 +13,23 @@
 
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
+
+// Daily AI request caps per account (server-side; the app shows 5 uses/day for free users)
+const FREE_DAILY = Number(process.env.AI_FREE_DAILY || 10);
+const PRO_DAILY = Number(process.env.AI_PRO_DAILY || 200);
+const redis = Redis.fromEnv();
+
+function admin() {
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT) return null;
+  if (!getApps().length) initializeApp({ credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
+  return { auth: getAuth(), db: getFirestore() };
+}
 
 const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
+  redis,
   limiter: Ratelimit.slidingWindow(15, "60 s"),
   analytics: false,
 });
@@ -42,6 +56,30 @@ export default async function handler(req, res) {
   } catch (e) {
     // If Redis is unreachable, fail open but log — don't block real users
     console.warn("Rate limit check failed:", e?.message);
+  }
+
+  // Per-account daily quota (requires Firebase login)
+  const fb = admin();
+  if (fb) {
+    const token = (req.headers.authorization || "").replace(/^Bearer /, "");
+    if (!token) return res.status(401).json({ error: "Login required for AI features." });
+    let uid;
+    try { uid = (await fb.auth.verifyIdToken(token)).uid; }
+    catch { return res.status(401).json({ error: "Session expired. Please log in again." }); }
+    try {
+      const snap = await fb.db.collection("users").where("uid", "==", uid).limit(1).get();
+      const isPro = !snap.empty && snap.docs[0].data().isPro === true;
+      const day = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); // JST day
+      const key = `ai:${uid}:${day}`;
+      const used = await redis.incr(key);
+      if (used === 1) await redis.expire(key, 172800);
+      const cap = isPro ? PRO_DAILY : FREE_DAILY;
+      if (used > cap) {
+        return res.status(429).json({ error: isPro ? "Daily AI limit reached." : "本日の無料AI回数を使い切りました。PROで無制限に。 / Daily free AI limit reached — upgrade to PRO." });
+      }
+    } catch (e) {
+      console.warn("Quota check failed:", e?.message); // fail open on infra errors
+    }
   }
 
   // Only allow calls from our own site (blocks people using the key from elsewhere)

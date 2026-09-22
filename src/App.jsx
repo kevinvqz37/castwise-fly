@@ -32,6 +32,13 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 const auth = getAuth(firebaseApp);
+
+// Auth header for /api/claude (server enforces daily AI quota per account)
+async function claudeHeaders() {
+  const h = { "Content-Type": "application/json" };
+  try { const t = await auth.currentUser?.getIdToken(); if (t) h.Authorization = `Bearer ${t}`; } catch { /* not logged in */ }
+  return h;
+}
 const storage = getStorage(firebaseApp);
 
 // ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
@@ -1057,7 +1064,7 @@ function PredictionZoneModal({ spot, score, weather, tideData, lang, onClose }) 
 
         const res = await fetch("/api/claude", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: await claudeHeaders(),
           body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 300, messages: [{ role: "user", content: prompt }] })
         });
         const data = await res.json();
@@ -2248,7 +2255,7 @@ function AIModal({ fish, weather, lang, onClose }) {
       const jaFallback = `🥇 本日のルアー診断\n\n🎯 第1位：バイブレーション（ゴールド系）\n水温${weather.waterTemp}℃の条件ではリアクションバイト狙いが◎。底からリフト＆フォール。\n\n🥈 第2位：シンキングペンシル\n流れのある場所でドリフト。橋脚明暗部でスロー引き。\n\n🥉 第3位：ワームリグ（クリア）\nプレッシャー高いポイントはフィネス系。1〜2gジグヘッドでデッドスロー。\n\n🔮 隠し技：カラーローテーション\nナチュラル⇔チャートで即変更。\n\n⏰ 黄金タイム：6〜8時・18〜20時`;
       const enFallback = `🥇 Today's Top Lure\n\n🎯 #1: Vibration plug (gold)\nAt ${weather.waterTemp}℃, trigger reaction bites. Lift-and-drop off the bottom.\n\n🥈 #2: Sinking pencil\nDrift through currents. Slow retrieve past bridge shadows at night.\n\n🥉 #3: Soft plastic (clear)\nFor pressured spots — deadstick a 1–2g jig head ultra-slow.\n\n🔮 Pro tip: Color rotation\nFlip between natural and chartreuse when bites stop.\n\n⏰ Golden window: 6–8am & 6–8pm`;
       try {
-        const res = await fetch("/api/claude", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
+        const res = await fetch("/api/claude", { method: "POST", headers: await claudeHeaders(), body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
         const data = await res.json(); setResponse(data.content?.[0]?.text || "");
       } catch { setResponse(lang === "ja" ? jaFallback : enFallback); }
       setLoading(false);
@@ -2277,7 +2284,7 @@ function AIFlyModal({ fish, weather, lang, currentMonth, onClose }) {
       const jaFallback = `🪶 本日のフライ診断（${currentMonth}）\n\n🥇 第1位：パラシュートアダムス #14\n水温${weather.waterTemp}℃でBWOのハッチが期待できる。くもりの光条件でパラシュートポストが見やすい。\n\n🥈 第2位：フェザントテールニンフ #14-16（ビーズヘッド）\nハッチ前後にインジケーター付きで深場をドリフト。\n\n🥉 第3位：テンカラ逆さ毛鉤 #10-12\n源流のコンパクトな渓流では竿のコントロールが活きる。テンション＆リリースで誘う。\n\n🌊 ハッチ予測\n気温14℃・水温${weather.waterTemp}℃はBWOとヒゲナガのハッチ好条件。特に夕方のライズに注目。\n\n🎋 テンカラ vs ウェスタン\n水質良好で木が多い源流ではテンカラ有利。開けた区間はウェスタンのメンディングが有効。\n\n⏰ ベストタイム：6〜9時と17〜19時のイブニングハッチを狙え！`;
       const enFallback = `🪶 Fly Fishing Forecast — ${currentMonth}\n\n🥇 #1: Parachute Adams #14\nAt ${weather.waterTemp}℃ water, BWO hatch is likely. White post stays visible in flat light.\n\n🥈 #2: Pheasant Tail Nymph #14-16 (bead head)\nBetween hatches, drift deep under an indicator.\n\n🥉 #3: Tenkara Sakasa Kebari #10-12\nIn tight headwater gorges, rod control beats line management every time.\n\n🌊 Hatch Outlook\n14℃ air, ${weather.waterTemp}℃ water — prime BWO and sedge conditions. Watch for evening rises.\n\n🎋 Tenkara vs Western\nClear water + overhanging trees → tenkara wins. Open runs → western mending has the edge.\n\n⏰ Best windows: 6–9am and the 5–7pm evening hatch.`;
       try {
-        const res = await fetch("/api/claude", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
+        const res = await fetch("/api/claude", { method: "POST", headers: await claudeHeaders(), body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
         const data = await res.json(); setResponse(data.content?.[0]?.text || "");
       } catch { setResponse(lang === "ja" ? jaFallback : enFallback); }
       setLoading(false);
@@ -3606,7 +3613,7 @@ Keep it under 220 words, emoji section headers.`;
 
       try {
         const res = await fetch("/api/claude", {
-          method: "POST", headers: { "Content-Type": "application/json" },
+          method: "POST", headers: await claudeHeaders(),
           body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200,
             messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] })
         });
@@ -3882,6 +3889,15 @@ export default function CastWiseJapan() {
     window.location.href = u.toString();
   }
 
+  // Deep link from /zukan pages: /?fish=<id> opens that species
+  useEffect(() => {
+    const id = Number(new URLSearchParams(window.location.search).get("fish"));
+    if (!id) return;
+    const f = FISH_DATA.find(x => x.id === id);
+    if (f) { setSelectedFish(f); setTab("FishGuide"); }
+    window.history.replaceState({}, "", window.location.pathname);
+  }, []);
+
   // After returning from Stripe (?pro=success), poll the user doc until the webhook flips isPro
   useEffect(() => {
     if (!user || !window.location.search.includes("pro=success")) return;
@@ -4105,7 +4121,7 @@ export default function CastWiseJapan() {
       try {
         const res = await fetch("/api/claude", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: await claudeHeaders(),
           body: JSON.stringify({
             model: "claude-sonnet-4-20250514",
             max_tokens: 1000,
@@ -4238,6 +4254,13 @@ If this is NOT a fish or the image is unclear, return:
     setLogOpen(false);
   }
 
+
+  // Season rank from recent community catches (100 pt per catch + bonus points)
+  const rankCounts = {};
+  catches.forEach(c => { if (c.user) rankCounts[c.user] = (rankCounts[c.user] || 0) + 1; });
+  const myRankCount = rankCounts[profile.name] || 0;
+  const myRank = myRankCount ? 1 + Object.values(rankCounts).filter(n => n > myRankCount).length : null;
+  const seasonPts = (profile.catches + myCatches.length) * 100 + (bonusPoints || 0);
 
   return (
     <div style={{ fontFamily: "'Noto Sans JP','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif", background: "#f5f0e8", minHeight: "100vh", color: "#0d7377", maxWidth: 430, margin: "0 auto", position: "relative", boxShadow: "0 4px 40px rgba(0,0,0,0.12)", fontSize: "16px", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
@@ -4666,7 +4689,7 @@ If this is NOT a fish or the image is unclear, return:
                   { la: { ja: "釣果", en: "Catches" }, v: profile.catches + myCatches.length },
                   { la: { ja: "フォロワー", en: "Followers" }, v: profile.followers },
                   { la: { ja: "フォロー中", en: "Following" }, v: profile.following },
-                  { la: { ja: "ランク", en: "Rank" }, v: "#8" },
+                  { la: { ja: "ランク", en: "Rank" }, v: myRank ? `#${myRank}` : "—" },
                 ].map((st, i) => (
                   <div key={st.la.ja} style={{ flex: 1, textAlign: "center", borderLeft: i > 0 ? "1px solid #e0dbd0" : "none" }}>
                     <div style={{ fontWeight: 700, fontSize: "1rem", color: "#0d7377" }}>{st.v}</div>
@@ -4675,8 +4698,8 @@ If this is NOT a fish or the image is unclear, return:
                 ))}
               </div>
               <div style={{ background: "#f8ece0", border: "2px solid #d0b090", borderRadius: 10, padding: "8px 12px", display: "flex", justifyContent: "space-between" }}>
-                <div style={{ fontSize: "1.05rem" }}>🏆 {lang === "ja" ? "シーズンランク" : "Season rank"}: <strong style={{ color: "#c06a10" }}>#8</strong></div>
-                <div style={{ fontSize: "1.05rem", color: "#c06a10", fontWeight: 700 }}>3,210 pt</div>
+                <div style={{ fontSize: "1.05rem" }}>🏆 {lang === "ja" ? "シーズンランク" : "Season rank"}: <strong style={{ color: "#c06a10" }}>{myRank ? `#${myRank}` : (lang === "ja" ? "釣果を投稿してランクイン" : "Post a catch to rank")}</strong></div>
+                <div style={{ fontSize: "1.05rem", color: "#c06a10", fontWeight: 700 }}>{seasonPts.toLocaleString()} pt</div>
               </div>
               {!isPremium && (
                 <button onClick={() => startCheckout("monthly")} style={{ width: "100%", marginTop: 10, padding: "10px", background: "linear-gradient(135deg,rgba(144,96,224,0.2),rgba(72,202,228,0.1))", border: "2px solid #a080d0", borderRadius: 12, color: "#6040a0", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700 }}>
