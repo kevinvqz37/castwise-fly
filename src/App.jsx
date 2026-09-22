@@ -83,15 +83,55 @@ function AdsterraBanner() {
 
 function gl(obj, lang) { if (!obj) return ""; return obj[lang] || obj.en || obj.ja || ""; }
 
-function BannerAd({ isPremium }) {
+// Set when you create a 300x250 unit in Adsterra (Websites → Add ad unit → Banner 300x250)
+const ADSTERRA_KEY_300 = "";
+
+const AFFILIATE_PICKS = [
+  { q: "フライロッド", ja: "🪶 初心者向けフライロッド", en: "🪶 Beginner fly rods" },
+  { q: "テンカラ ロッド", ja: "🎣 テンカラ竿セット", en: "🎣 Tenkara rod sets" },
+  { q: "ウェーダー", ja: "🥾 渓流ウェーダー", en: "🥾 Stream waders" },
+  { q: "偏光サングラス", ja: "🕶️ 偏光サングラス", en: "🕶️ Polarized sunglasses" },
+];
+function AffiliateCard({ lang, height = 50 }) {
+  const [p] = useState(() => AFFILIATE_PICKS[Math.floor(Math.random() * AFFILIATE_PICKS.length)]);
+  return (
+    <a href={amazonLink(p.q)} target="_blank" rel="noopener noreferrer sponsored"
+      style={{ width: "100%", height, display: "flex", flexDirection: height > 100 ? "column" : "row", alignItems: "center", justifyContent: "center", gap: 8, background: "#fff8e8", border: "2px solid #f0a020", borderRadius: 12, color: "#c06a10", fontWeight: 700, textDecoration: "none", fontSize: height > 100 ? "1.1rem" : "0.9rem" }}>
+      <span>{lang === "ja" ? p.ja : p.en}</span>
+      <span style={{ fontSize: "0.75rem", color: "#f0a020" }}>{lang === "ja" ? "Amazonで見る↗" : "See on Amazon↗"}</span>
+    </a>
+  );
+}
+
+// Adsterra unit in its own iframe; if nothing renders within 5s, show an Amazon affiliate card instead of a blank box
+function AdSlot({ adKey, width, height, lang }) {
+  const ref = useRef(null);
+  const [failed, setFailed] = useState(!adKey);
+  useEffect(() => {
+    if (!adKey) return;
+    const t = setTimeout(() => {
+      try {
+        const d = ref.current?.contentDocument;
+        const filled = d && d.querySelector("iframe, img, a, ins, video");
+        if (!filled) setFailed(true);
+      } catch { /* cross-origin = ad loaded something */ }
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [adKey]);
+  if (failed) return <AffiliateCard lang={lang} height={height} />;
+  const srcDoc = `<!doctype html><html><head><meta name="referrer" content="unsafe-url"></head><body style="margin:0;display:flex;justify-content:center;background:transparent"><script>atOptions={key:"${adKey}",format:"iframe",height:${height},width:${width},params:{}};<\/script><script src="https://www.highperformanceformat.com/${adKey}/invoke.js"><\/script></body></html>`;
+  return (
+    <iframe ref={ref} title="ad" srcDoc={srcDoc} width={width} height={height} scrolling="no"
+      sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+      style={{ border: 0, overflow: "hidden", display: "block", maxWidth: "100%" }} />
+  );
+}
+
+function BannerAd({ isPremium, lang }) {
   if (isPremium) return null;
-  // Each banner gets its own sandboxed iframe so multiple Adsterra units don't clobber window.atOptions
-  const srcDoc = `<!doctype html><html><body style="margin:0;display:flex;justify-content:center;background:transparent"><script>atOptions={key:"${ADSTERRA_KEY}",format:"iframe",height:50,width:320,params:{}};<\/script><script src="https://www.highperformanceformat.com/${ADSTERRA_KEY}/invoke.js"><\/script></body></html>`;
   return (
     <div style={{ margin: "10px auto", maxWidth: 320, minHeight: 50, display: "flex", justifyContent: "center" }}>
-      <iframe title="ad" srcDoc={srcDoc} width={320} height={50} scrolling="no" loading="lazy"
-        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
-        style={{ border: 0, overflow: "hidden", display: "block" }} />
+      <AdSlot adKey={ADSTERRA_KEY} width={320} height={50} lang={lang} />
     </div>
   );
 }
@@ -162,9 +202,8 @@ function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
             {countdown > 0 ? (lang === "ja" ? `${countdown}秒後にスキップ` : `Skip in ${countdown}s`) : (lang === "ja" ? "スキップ可能 →" : "Skip now →")}
           </span>
         </div>
-        {/* Ad renders here — Adsterra injects iframe into body, so this is a placeholder */}
-        <div ref={adRef} style={{ minHeight: 250, display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f0e8", overflow: "hidden" }}>
-          <span style={{ fontSize: "0.8rem", color: "#9a9a8a" }}>{lang === "ja" ? "広告を読み込み中..." : "Loading ad..."}</span>
+        <div ref={adRef} style={{ minHeight: 250, display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f0e8", overflow: "hidden", padding: 12 }}>
+          <AdSlot adKey={ADSTERRA_KEY_300} width={300} height={250} lang={lang} />
         </div>
         <div style={{ padding: "12px 16px", display: "flex", gap: 10 }}>
           <button onClick={countdown <= 0 ? onClose : undefined}
