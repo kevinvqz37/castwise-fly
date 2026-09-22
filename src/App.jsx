@@ -8,6 +8,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { EXTRA_FISH, EXTRA_FISH_EMOJI } from "./fishDataExtra";
 import { FLY_SVG } from "./flyArt";
 import { shareCatchCard } from "./shareCard";
+import exifr from "exifr";
 import { VectorTile } from "@mapbox/vector-tile";
 import Pbf from "pbf";
 
@@ -1144,6 +1145,7 @@ const TOURNAMENTS = [
     status: "live",
     participants: 2,
     location: { ja: "九州全域（どこでも可）", en: "Anywhere in Kyushu" },
+    area: { lat: 32.6, lng: 130.8, radiusKm: 260 }, // Kyushu
     period: { ja: "随時開催中", en: "Ongoing rivalry" },
     target: { ja: "全魚種（最大1匹の重量）", en: "All species — largest single fish wins" },
     rule: { ja: "最大1匹の重量で勝負。写真証明必須。", en: "Largest single fish by weight. Photo proof required." },
@@ -1161,6 +1163,7 @@ const TOURNAMENTS = [
     status: "upcoming",
     participants: 0,
     location: { ja: "全国（オンライン提出）", en: "Nationwide (online submission)" },
+    area: { bbox: [24, 122, 46, 146] }, // Japan
     period: { ja: "10月1日〜11月30日", en: "Oct 1 – Nov 30" },
     target: { ja: "全魚種", en: "All species" },
     rule: { ja: "最大1匹の重量（写真証明）", en: "Largest single fish (photo proof)" },
@@ -1178,6 +1181,8 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
   const [submitting, setSubmitting] = useState(false);
   const [submissions, setSubmissions] = useState([]);
   const [tourneyPhoto, setTourneyPhoto] = useState(null);
+  const [photoCheck, setPhotoCheck] = useState(null); // { ok, msgs[], exif: {takenAt, lat, lng}, device: {lat, lng, acc} }
+  const [checkingPhoto, setCheckingPhoto] = useState(false);
   const tourneyFileRef = useRef(null);
 
   // Live-sync submissions for active tournament
@@ -1195,9 +1200,57 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
     return () => unsub();
   }, [activeTournament?.id]);
 
-  function handleTourneyPhoto(e) {
+  // Anti-cheat: the photo must be taken TODAY and WHERE YOU ARE NOW (and inside the tournament area).
+  // Reads EXIF before resizing (canvas strips metadata), compares with the phone's live GPS.
+  function getDevicePosition() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) return reject(new Error("no-geo"));
+      navigator.geolocation.getCurrentPosition(
+        p => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, acc: Math.round(p.coords.accuracy) }),
+        err => reject(err), { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+    });
+  }
+  function inArea(area, lat, lng) {
+    if (!area) return true;
+    if (area.bbox) { const [s1, w1, n1, e1] = area.bbox; return lat >= s1 && lat <= n1 && lng >= w1 && lng <= e1; }
+    return distKm(lat, lng, area.lat, area.lng) <= area.radiusKm;
+  }
+  const jstDay = d => new Date(d.getTime() + 9 * 3600e3).toISOString().slice(0, 10);
+
+  async function handleTourneyPhoto(e) {
     const file = e.target.files[0];
+    e.target.value = "";
     if (!file) return;
+    setCheckingPhoto(true); setPhotoCheck(null); setTourneyPhoto(null);
+    const L = (ja, en) => (lang === "ja" ? ja : en);
+    const msgs = []; let ok = true;
+    let meta = null, dev = null;
+    try { meta = await exifr.parse(file, { tiff: true, exif: true, gps: true, xmp: false, icc: false, iptc: false }); } catch { meta = null; }
+    try { dev = await getDevicePosition(); } catch { dev = null; }
+
+    const taken = meta?.DateTimeOriginal || meta?.CreateDate;
+    const exifLat = meta?.latitude, exifLng = meta?.longitude;
+    // 1) Date: must be today (JST) and within the last 18 hours
+    if (!taken) { ok = false; msgs.push(L("❌ 撮影日時の情報がない写真です。アプリの「撮影」で今その場で撮ってください。", "❌ Photo has no capture date. Use 'Take photo' to shoot it right now.")); }
+    else if (jstDay(taken) !== jstDay(new Date()) || Date.now() - taken.getTime() > 18 * 3600e3 || taken.getTime() - Date.now() > 10 * 60e3) {
+      ok = false; msgs.push(L(`❌ 本日撮影した写真のみ有効です（撮影日: ${taken.toLocaleDateString("ja-JP")}）`, `❌ Only photos taken today count (taken: ${taken.toLocaleDateString("en-US")})`));
+    } else msgs.push(L("✅ 本日撮影", "✅ Taken today"));
+    // 2) Location: phone GPS required
+    if (!dev) { ok = false; msgs.push(L("❌ 位置情報をオンにしてください（大会の不正防止に必要です）", "❌ Turn on location — required for tournament verification")); }
+    else {
+      if (!inArea(t0Area(), dev.lat, dev.lng)) { ok = false; msgs.push(L("❌ 現在地が大会エリア外です", "❌ You're outside the tournament area")); }
+      else msgs.push(L("✅ 大会エリア内", "✅ Inside tournament area"));
+      // 3) If the photo has GPS, it must match where you are now
+      if (exifLat != null && exifLng != null) {
+        const d = distKm(exifLat, exifLng, dev.lat, dev.lng);
+        if (d > 10) { ok = false; msgs.push(L(`❌ 写真の撮影場所が現在地と一致しません（${d.toFixed(0)}km離れています）`, `❌ Photo location doesn't match your current location (${d.toFixed(0)} km away)`)); }
+        else msgs.push(L("✅ 撮影場所と現在地が一致", "✅ Photo location matches"));
+      } else msgs.push(L("ℹ️ 写真にGPS情報なし → 現在地で確認", "ℹ️ No GPS in photo — verified with your current location"));
+    }
+    setPhotoCheck({ ok, msgs, exif: { takenAt: taken ? taken.getTime() : null, lat: exifLat ?? null, lng: exifLng ?? null }, device: dev });
+    setCheckingPhoto(false);
+    if (!ok) return;
+
     const reader = new FileReader();
     reader.onload = (ev) => {
       const img = new Image();
@@ -1215,6 +1268,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
     };
     reader.readAsDataURL(file);
   }
+  function t0Area() { return activeTournament?.area || null; }
 
   async function submitEntry() {
     if (!submitWeight || !submitSpecies || !tourneyPhoto || !activeTournament) return;
@@ -1223,6 +1277,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
       return;
     }
     if (!isPro) { onUpgrade?.(); return; }
+    if (!photoCheck?.ok) { alert(lang === "ja" ? "写真の確認が完了していません" : "Photo hasn't passed verification"); return; }
     setSubmitting(true);
     try {
       const weightNum = parseFloat(submitWeight.replace(/[^0-9.]/g, "")) || 0;
@@ -1236,6 +1291,13 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
         weightNum,
         photoBase64: tourneyPhoto,
         createdAt: Date.now(),
+        submittedAt: serverTimestamp(),
+        verification: {
+          photoTakenAt: photoCheck.exif.takenAt,
+          photoLat: photoCheck.exif.lat, photoLng: photoCheck.exif.lng,
+          deviceLat: photoCheck.device.lat, deviceLng: photoCheck.device.lng, deviceAccuracyM: photoCheck.device.acc,
+          checks: photoCheck.msgs,
+        },
       });
       setSubmitted(true);
       setTimeout(() => {
@@ -1243,6 +1305,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
         setSubmitWeight("");
         setSubmitSpecies("");
         setTourneyPhoto(null);
+        setPhotoCheck(null);
       }, 2500);
     } catch (e) {
       console.error("Tournament submit failed:", e);
@@ -1286,7 +1349,16 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
             </div>
             <input value={submitSpecies} onChange={e => setSubmitSpecies(e.target.value)} placeholder={lang === "ja" ? "魚種（例：アユ）" : "Species (e.g. Ayu)"} style={{ width: "100%", marginBottom: 8, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", color: "#1a1a14", fontFamily: "inherit", boxSizing: "border-box" }} />
             <input value={submitWeight} onChange={e => setSubmitWeight(e.target.value)} placeholder={lang === "ja" ? "重量（例：0.8kg）" : "Weight (e.g. 0.8kg)"} style={{ width: "100%", marginBottom: 10, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", color: "#1a1a14", fontFamily: "inherit", boxSizing: "border-box" }} />
-            <input ref={tourneyFileRef} type="file" accept="image/*" onChange={handleTourneyPhoto} style={{ display: "none" }} />
+            <input ref={tourneyFileRef} type="file" accept="image/*" capture="environment" onChange={handleTourneyPhoto} style={{ display: "none" }} />
+            <div style={{ fontSize: "0.78rem", color: "#0d7377", marginBottom: 8, lineHeight: 1.5 }}>
+              {lang === "ja" ? "🛡️ 不正防止：本日・大会エリア内でその場で撮影した写真のみ有効。位置情報をオンにしてください。" : "🛡️ Anti-cheat: only photos taken today, on the spot, inside the tournament area. Location must be on."}
+            </div>
+            {checkingPhoto && <div style={{ fontSize: "0.85rem", color: "#5a5a4a", marginBottom: 8 }}>{lang === "ja" ? "📡 写真と現在地を確認中…" : "📡 Checking photo and location…"}</div>}
+            {photoCheck && (
+              <div style={{ background: photoCheck.ok ? "#e8f6ec" : "#fdecea", border: `2px solid ${photoCheck.ok ? "#2d7a3a" : "#b82030"}`, borderRadius: 10, padding: "8px 10px", marginBottom: 10, fontSize: "0.8rem", color: "#1a1a14", lineHeight: 1.6 }}>
+                {photoCheck.msgs.map((m, i) => <div key={i}>{m}</div>)}
+              </div>
+            )}
             {tourneyPhoto ? (
               <div style={{ position: "relative", marginBottom: 10 }}>
                 <img src={tourneyPhoto} alt="catch" style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 8, display: "block" }} />
@@ -1298,7 +1370,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
               </button>
             )}
             <button
-              disabled={!submitWeight || !submitSpecies || !tourneyPhoto || submitting}
+              disabled={!submitWeight || !submitSpecies || !tourneyPhoto || !photoCheck?.ok || submitting}
               onClick={submitEntry}
               style={{ width: "100%", padding: "11px", background: (submitWeight && submitSpecies && tourneyPhoto && !submitting) ? "#0d7377" : "#aaa", border: "none", borderRadius: 10, color: "white", cursor: (submitWeight && submitSpecies && tourneyPhoto && !submitting) ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 800 }}>
               {submitting ? (lang === "ja" ? "アップロード中..." : "Uploading...") : (lang === "ja" ? "提出する" : "Submit Entry")}
