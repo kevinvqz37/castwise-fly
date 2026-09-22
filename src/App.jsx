@@ -7,6 +7,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { Analytics } from "@vercel/analytics/react";
 import { EXTRA_FISH, EXTRA_FISH_EMOJI } from "./fishDataExtra";
 import { FLY_SVG } from "./flyArt";
+import { shareCatchCard } from "./shareCard";
 
 function FlyIllustration({ id, emoji, width = 120, height = 75, style = {} }) {
   // Painted illustration (public/flies/<id>.webp); SVG drawing as fallback
@@ -3683,6 +3684,7 @@ export default function CastWiseJapan() {
   const [newCatch, setNewCatch] = useState({ fish: "", weight: "", location: "", notes: "", photo: null, method: "lure" });
   const [myCatches, setMyCatches] = useState([]);
   const [logOpen, setLogOpen] = useState(false);
+  const [justLogged, setJustLogged] = useState(null); // catch to offer a share card for
   const [commentOpen, setCommentOpen] = useState(null);
   const [commentText, setCommentText] = useState("");
   const [search, setSearch] = useState("");
@@ -4253,6 +4255,7 @@ If this is NOT a fish or the image is unclear, return:
     setPhotoPreview(null);
     setFishIDResult(null);
     setLogOpen(false);
+    setJustLogged(entry);
   }
 
 
@@ -4654,6 +4657,7 @@ If this is NOT a fish or the image is unclear, return:
                   <div style={{ display: "flex", gap: 6 }}>
                     <button onClick={() => toggleLike(c.id)} style={{ flex: 1, padding: "7px", background: liked[c.id] ? "rgba(230,57,70,0.13)" : "#fffdf8", border: `2px solid ${liked[c.id] ? "#b82030" : "#e0dbd0"}`, borderRadius: 8, color: liked[c.id] ? "#e63946" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem" }}>{liked[c.id] ? "❤️" : "🤍"} {c.likes}</button>
                     <button onClick={() => setCommentOpen(commentOpen === c.id ? null : c.id)} style={{ flex: 1, padding: "7px", background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 8, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem" }}>💬 {c.comments.length}</button>
+                    <button onClick={() => shareCatchCard({ catchData: c, fish: FISH_DATA.find(f => f.name === c.fish || f.nameEn === c.fish), lang })} style={{ padding: "7px 10px", background: "#fff6c8", border: "2px solid #e0b000", borderRadius: 8, color: "#8a6a00", cursor: "pointer", fontSize: "1.05rem", fontWeight: 700 }}>📸</button>
                     <button onClick={() => shareToLINE(c, lang)} style={{ padding: "7px 10px", background: "#e0f2f2", border: "2px solid #06c755", borderRadius: 8, color: "#06c755", cursor: "pointer", fontSize: "1.05rem", fontWeight: 700 }}>LINE</button>
                     <button onClick={() => shareToTwitter(c, lang)} style={{ padding: "7px 10px", background: "#e8f0f8", border: "2px solid #1da1f2", borderRadius: 8, color: "#1da1f2", cursor: "pointer", fontSize: "1.05rem" }}>𝕏</button>
                   </div>
@@ -5046,6 +5050,20 @@ If this is NOT a fish or the image is unclear, return:
         )}
       </div>
 
+      {justLogged && (
+        <div onClick={() => setJustLogged(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 320, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 360, background: "#fffdf8", borderRadius: 22, padding: 22, textAlign: "center", animation: "fadeUp 0.3s ease" }}>
+            <div style={{ fontSize: "2.6rem" }}>🎉</div>
+            <div style={{ fontWeight: 800, fontSize: "1.15rem", margin: "6px 0" }}>{lang === "ja" ? "釣果を記録しました！" : "Catch logged!"}</div>
+            <div style={{ fontSize: "0.92rem", color: "#5a5a4a", marginBottom: 16 }}>{lang === "ja" ? "釣果カードを作ってインスタ・Xでシェアしよう" : "Make a catch card and share it on Instagram or X"}</div>
+            <button onClick={async () => { await shareCatchCard({ catchData: justLogged, fish: FISH_DATA.find(f => f.name === justLogged.fish || f.nameEn === justLogged.fish), lang }); setJustLogged(null); }}
+              style={{ width: "100%", padding: 14, background: "#0d7377", color: "#fff", border: "none", borderRadius: 14, fontWeight: 800, fontSize: "1.05rem", cursor: "pointer", fontFamily: "inherit" }}>
+              📸 {lang === "ja" ? "釣果カードをシェア" : "Share catch card"}
+            </button>
+            <button onClick={() => setJustLogged(null)} style={{ marginTop: 10, background: "none", border: "none", color: "#7a7a6a", cursor: "pointer", fontFamily: "inherit" }}>{lang === "ja" ? "あとで" : "Later"}</button>
+          </div>
+        </div>
+      )}
       {showAI && selectedFish && <AIModal fish={selectedFish} weather={WEATHER} lang={lang} onClose={() => setShowAI(false)} />}
       {showFlyAI && <AIFlyModal fish={flyAIFish} weather={WEATHER} lang={lang} currentMonth={lang === "ja" ? HATCH_CALENDAR[new Date().getMonth()].month.ja : HATCH_CALENDAR[new Date().getMonth()].month.en} onClose={() => setShowFlyAI(false)} />}
       {showInterstitial && <InterstitialAd lang={lang} isPremium={isPremium} onClose={closeInterstitial} onWatchReward={() => { setShowInterstitial(false); setShowRewarded(true); }} />}
