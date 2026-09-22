@@ -9,6 +9,12 @@ import { EXTRA_FISH, EXTRA_FISH_EMOJI } from "./fishDataExtra";
 import { FLY_SVG } from "./flyArt";
 
 function FlyIllustration({ id, emoji, width = 120, height = 75, style = {} }) {
+  // Painted illustration (public/flies/<id>.webp); SVG drawing as fallback
+  const [failed, setFailed] = useState(false);
+  if (!failed && id >= 1 && id <= 8) {
+    return <img src={`/flies/${id}.webp`} alt="" loading="lazy" draggable={false} onError={() => setFailed(true)}
+      style={{ width, height, objectFit: "contain", display: "block", ...style }} />;
+  }
   const art = FLY_SVG[id];
   if (!art) return <span style={{ fontSize: height * 0.6, ...style }}>{emoji || "🪶"}</span>;
   return <div aria-hidden="true" style={{ width, height, ...style }} dangerouslySetInnerHTML={{ __html: art }} />;
