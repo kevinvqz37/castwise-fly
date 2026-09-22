@@ -1104,8 +1104,8 @@ function PredictionZoneModal({ spot, score, weather, tideData, lang, onClose }) 
   );
 }
 
-// ─── MABO TOURNAMENTS ────────────────────────────────────────────────────────
-const MABO_TOURNAMENTS = [
+// ─── TOURNAMENTS ────────────────────────────────────────────────────────
+const TOURNAMENTS = [
   {
     id: 0,
     name: { ja: "⚔️ Kevin vs 梁井 — 一騎打ち大会", en: "⚔️ Kevin vs 梁井 — Head to Head" },
@@ -1124,36 +1124,6 @@ const MABO_TOURNAMENTS = [
     leaderboard: []
   },
   {
-    id: 1,
-    name: { ja: "マボカップ2025 春季大会", en: "Mabo Cup 2025 Spring" },
-    status: "live",
-    participants: 47,
-    location: { ja: "球磨川・人吉市", en: "Kuma River, Hitoyoshi" },
-    period: { ja: "5月25日〜6月1日", en: "May 25 – Jun 1" },
-    target: { ja: "アユ・ヤマメ", en: "Ayu & Yamame" },
-    rule: { ja: "3匹合計重量", en: "3-fish total weight" },
-    prize: { ja: "🥇 シマノ プレミアムロッドセット", en: "🥇 Shimano Premium Rod Set" },
-    leaderboard: [
-      { rank: 1, name: "釣り師タケシ", weight: "2.4kg", species: "アユ" },
-      { rank: 2, name: "くまもとアングラー", weight: "2.1kg", species: "アユ" },
-      { rank: 3, name: "九州フィッシャー", weight: "1.8kg", species: "ヤマメ" },
-      { rank: 4, name: "MatsuoKen", weight: "1.6kg", species: "アユ" },
-      { rank: 5, name: "南九州つり太郎", weight: "1.4kg", species: "アユ" },
-    ]
-  },
-  {
-    id: 2,
-    name: { ja: "マボチャンネル アユ友釣り選手権", en: "Mabo Ayu Tomozuri Championship" },
-    status: "upcoming",
-    participants: 0,
-    location: { ja: "矢部川・黒木町", en: "Yabe River, Kurogi" },
-    period: { ja: "7月15日〜8月31日", en: "Jul 15 – Aug 31" },
-    target: { ja: "アユ（友釣り限定）", en: "Ayu (Tomozuri only)" },
-    rule: { ja: "最大1匹の重量", en: "Largest single fish" },
-    prize: { ja: "🥇 マボ公認アングラー認定 + ダイワロッド", en: "🥇 Mabo Certified Angler + Daiwa Rod" },
-    leaderboard: []
-  },
-  {
     id: 3,
     name: { ja: "秋の大物チャレンジ", en: "Autumn Big Fish Challenge" },
     status: "upcoming",
@@ -1162,7 +1132,7 @@ const MABO_TOURNAMENTS = [
     period: { ja: "10月1日〜11月30日", en: "Oct 1 – Nov 30" },
     target: { ja: "全魚種", en: "All species" },
     rule: { ja: "最大1匹の重量（写真証明）", en: "Largest single fish (photo proof)" },
-    prize: { ja: "🥇 マボチャンネル出演権利", en: "🥇 Feature on Mabo Channel" },
+    prize: { ja: "🥇 Amazonギフト券 ¥3,000（PRO会員限定）", en: "🥇 ¥3,000 Amazon gift card (PRO members only)" },
     leaderboard: []
   },
 ];
@@ -1363,11 +1333,11 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
   return (
     <div style={{ padding: "14px 14px 80px" }}>
       <div style={{ background: "#0d7377", borderRadius: 14, padding: "12px 16px", marginBottom: 14, textAlign: "center" }}>
-        <div style={{ color: "#74c69d", fontWeight: 900, fontSize: "1rem", marginBottom: 2 }}>🏆 マボカップ シリーズ</div>
-        <div style={{ color: "#aaa", fontSize: "0.78rem" }}>{lang === "ja" ? "マボチャンネル主催の公式釣り大会" : "Official fishing tournaments by Mabo Channel"}</div>
+        <div style={{ color: "#74c69d", fontWeight: 900, fontSize: "1rem", marginBottom: 2 }}>🏆 Castwise 釣り大会</div>
+        <div style={{ color: "#aaa", fontSize: "0.78rem" }}>{lang === "ja" ? "Castwise 公式オンライン釣り大会（エントリーはPRO会員限定）" : "Official Castwise online tournaments (PRO members enter)"}</div>
       </div>
 
-      {MABO_TOURNAMENTS.map(t => (
+      {TOURNAMENTS.map(t => (
         t.rivalry ? (
           <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: "linear-gradient(135deg, #1a1a14, #2a1a00)", border: "2px solid #FFE500", borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
@@ -5019,7 +4989,7 @@ If this is NOT a fish or the image is unclear, return:
               <>
                 <div style={{ background: "linear-gradient(135deg,rgba(144,96,224,0.15),rgba(72,202,228,0.08))", border: "2px solid #c0a0e0", borderRadius: 18, padding: 18, marginBottom: 16, textAlign: "center" }}>
                   <div style={{ fontSize: "2.5rem", marginBottom: 8 }}>👑</div>
-                  <div style={{ fontWeight: 700, fontSize: "1.15rem", marginBottom: 6 }}>{lang === "ja" ? "釣りナビ PRO" : "Mabo Fishing"}</div>
+                  <div style={{ fontWeight: 700, fontSize: "1.15rem", marginBottom: 6 }}>{lang === "ja" ? "釣りナビ PRO" : "Castwise PRO"}</div>
                   <div style={{ fontSize: "0.92rem", color: "#5a5a4a", lineHeight: 1.6 }}>{lang === "ja" ? "広告なしで、より多くの機能を楽しもう" : "More features, zero ads"}</div>
                 </div>
                 {[
