@@ -482,7 +482,7 @@ const SPRITE_DATA = {
 
 function FishIllustration({ fishId, spriteId, size = 80, style = {} }) {
   // Hand-drawn illustrations for added species (public/fish/<id>.webp — 101-114 so far)
-  if (fishId >= 101 && fishId <= 114) {
+  if (fishId >= 101 && fishId <= 115) {
     return (
       <img src={`/fish/${fishId}.webp`} alt="" loading="lazy" draggable={false}
         style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }} />

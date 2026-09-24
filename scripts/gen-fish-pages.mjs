@@ -25,7 +25,7 @@ const slug = f => f.nameEn.toLowerCase().replace(/\(.*?\)/g, "").replace(/[^a-z0
 const cat = f => f.category || ({ 4: "saltwater", 6: "saltwater", 7: "saltwater", 8: "saltwater", 12: "saltwater", 13: "saltwater", 14: "saltwater", 15: "shore", 16: "saltwater" }[f.id]) || "freshwater";
 const CAT_JA = { freshwater: "淡水", saltwater: "海水", shore: "ショア", caribbean: "カリブ海" };
 const DIFF_JA = { beginner: "初心者向け", intermediate: "中級者向け", advanced: "上級者向け" };
-const img = f => (f.id >= 101 && f.id <= 114 ? `/fish/${f.id}.webp` : null);
+const img = f => (f.id >= 101 && f.id <= 115 ? `/fish/${f.id}.webp` : null);
 
 const css = `*{box-sizing:border-box}body{margin:0;font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:#f5f0e8;color:#1a1a14;line-height:1.8}
 header{background:#0a2837;color:#fff;padding:14px 18px;display:flex;gap:10px;align-items:center}header a{color:#ffe500;text-decoration:none;font-weight:700}
