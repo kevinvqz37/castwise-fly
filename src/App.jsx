@@ -755,17 +755,17 @@ const SEASONAL_TIPS = {
       tip: { ja: "大型ブリの回遊が始まる！富山湾・日本海側は特に熱い。ヘビーなタックルで大物に備えよう。", en: "Big yellowtail migration begins. Toyama Bay and the Sea of Japan side get especially hot. Heavy tackle ready for metre-class fish." },
       hotLures: { ja: ["メタルジグ 100〜200g", "ビッグポッパー", "ジグサビキ（ハイアピール）"], en: ["Metal jig 100–200g", "Big popper", "Heavy jig-sabiki"] } },
   ],
+  115: [
+    { months: [4,5], phase: "early", badge: { ja: "🌧️ シーズンイン", en: "Season starts" }, urgency: "medium",
+      tip: { ja: "梅雨入りで活性が上がる。日没後の下流域、増水と濁りが入った夜が狙い目。ドバミミズを房掛けで。", en: "The rainy season switches eels on. Fish the lower river after dark, especially on rising, coloured water, with a bunch of nightcrawlers." } },
+    { months: [6,7,8], phase: "peak", badge: { ja: "🔥 ウナギ最盛期", en: "Peak eel season" }, urgency: "peak",
+      tip: { ja: "真夏の夜が本番。石積み・テトラ・護岸の切れ目にぶっこみ、鈴で待つ。雨後の増水翌日は特に良い。", en: "Midsummer nights are prime. Bottom-fish rock piles, tetrapods and gaps in the bank, and wait on a bell. The day after a rise is best." } },
+    { months: [9], phase: "late", badge: { ja: "⏳ ラストシーズン", en: "Last of the season" }, urgency: "high",
+      tip: { ja: "大型が狙える時期。水温が下がる前の荒食いを狙い、深場・堰下の淀みを探る。小型はリリースを。", en: "Big-eel time. They feed hard before the water cools — try deeper holes and slack water below weirs. Release the small ones." } },
+  ],
 };
 
 // Get current seasonal tip for a fish
-SEASONAL_TIPS[115] = [
-  { months: [4,5], phase: "early", badge: { ja: "🌧️ シーズンイン", en: "Season starts" }, urgency: "medium",
-    tip: { ja: "梅雨入りで活性が上がる。日没後の下流域、増水と濁りが入った夜が狙い目。ドバミミズを房掛けで。", en: "The rainy season switches eels on. Fish the lower river after dark, especially on rising, coloured water, with a bunch of nightcrawlers." } },
-  { months: [6,7,8], phase: "peak", badge: { ja: "🔥 ウナギ最盛期", en: "Peak eel season" }, urgency: "peak",
-    tip: { ja: "真夏の夜が本番。石積み・テトラ・護岸の切れ目にぶっこみ、鈴で待つ。雨後の増水翌日は特に良い。", en: "Midsummer nights are prime. Bottom-fish rock piles, tetrapods and gaps in the bank, and wait on a bell. The day after a rise is best." } },
-  { months: [9], phase: "late", badge: { ja: "⏳ ラストシーズン", en: "Last of the season" }, urgency: "high",
-    tip: { ja: "大型が狙える時期。水温が下がる前の荒食いを狙い、深場・堰下の淀みを探る。小型はリリースを。", en: "Big-eel time. They feed hard before the water cools — try deeper holes and slack water below weirs. Release the small ones." } },
-];
 
 function getSeasonalTip(fishId) {
   const tips = SEASONAL_TIPS[fishId];
