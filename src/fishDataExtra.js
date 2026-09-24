@@ -4,6 +4,31 @@ const S = (ja, en) => ({ ja, en });
 
 export const EXTRA_FISH = [
   {
+    id: 115, name: "ウナギ", nameEn: "Japanese Eel (Unagi)", emoji: "🐍", category: "freshwater",
+    color: "#2b2b22", accent: "#c8a24a", difficulty: "intermediate", flyFriendly: false,
+    season: S("6月〜9月（梅雨〜初秋が最盛期）", "June–September (peak from the rainy season to early autumn)"),
+    habitat: S("河口・下流〜中流の石積み、テトラ、護岸際、堰下の淀み、クリーク", "Estuaries and lower/mid rivers: rock piles, tetrapods, wall edges, slack water below weirs, creeks"),
+    bestTime: S("日没後〜夜10時ごろ。雨後の増水・濁りが最大のチャンス", "From sunset to about 10pm. Best right after rain, when the river rises and colors up"),
+    description: S("夜行性で警戒心が強い川の主。梅雨の増水と濁りで一気に active になる。近年は資源が減っているため、食べる分だけ持ち帰り、小型はリリースを。", "A wary, nocturnal river dweller. Rising, muddy water after rain switches them on. Stocks have declined, so keep only what you'll eat and release small ones."),
+    gear: {
+      rod: S("投げ竿・万能竿 2.4〜3.6m（穴釣りは1.5m前後の短竿）", "2.4–3.6m surf or all-round rod (1.5m short rod for hole fishing)"),
+      reel: S("2500〜3000番スピニング（ドラグは緩めに）", "2500–3000 spinning, drag set loose"),
+      line: S("ナイロン4〜6号（根ズレ対策）", "20–25lb nylon — abrasion resistance matters"),
+      hooks: S("丸セイゴ12〜15号 / ウナギ針。ハリス5〜6号", "Maru-seigo #12–15 or eel hooks, 5–6 gou leader"),
+      lures: ["ドバミミズ", "アオイソメ", "川エビ・テナガエビ", "サンマ・アジの切り身", "ぶっこみ仕掛け 3〜8号オモリ", "鈴・ケミホタル"],
+      tips: S("竿を2〜3本置き竿にして扇状に投げ分け、アタリは前アタリのあと竿先が舞い込むまで待つ。掛けたら止めずに一気に抜くのがコツ（穴や障害物に潜られると出てこない）。", "Fan out 2–3 rods on rests. Wait through the first taps until the tip loads, then lift hard and keep it coming — let an eel reach a hole or structure and it's gone."),
+    },
+    howTo: [
+      { t: S("① 場所を選ぶ", "1. Pick the spot"), b: S("汽水〜下流域の石積み、テトラ周り、護岸の切れ目、堰やワンドの淀み。餌が溜まる場所の“縁”が一級ポイント。日中に地形と根の位置を下見しておく。", "Rock piles, tetrapods, gaps in concrete banks, slack water by weirs and backwaters in brackish or lower river. Scout the structure in daylight.") },
+      { t: S("② タイミング", "2. Timing"), b: S("梅雨〜9月、日没から2〜3時間が本番。雨で増水し、少し濁った夜が最高。新月や曇天の暗い夜も有利。", "June–September, the first 2–3 hours after sunset. A rising, slightly muddy river after rain is prime. Dark, moonless or cloudy nights help.") },
+      { t: S("③ 仕掛け", "3. Rig"), b: S("道糸4〜6号に中通しオモリ3〜8号、サルカン、ハリス5〜6号30cm、丸セイゴ12〜15号のシンプルなぶっこみ。餌はドバミミズを房掛け、または川エビ・切り身。", "Simple bottom rig: sliding sinker, swivel, 30cm leader, big hook. Bait with a bunch of nightcrawlers, a live river shrimp, or a strip of fish.") },
+      { t: S("④ 釣り方", "4. Fishing it"), b: S("底に置いて待つ釣り。鈴やケミホタルでアタリを取り、コツコツの前アタリでは合わせず、竿先が絞り込まれてから大きく合わせる。20〜30分アタリがなければ場所を移動。", "Put it on the bottom and wait. Use a bell or glow stick. Ignore the first taps — set the hook when the tip pulls down hard. No bites in 20–30 min? Move.") },
+      { t: S("⑤ 取り込みと安全", "5. Landing & safety"), b: S("掛けたら一気に抜き上げ、袋やバケツへ。ヌルヌルで暴れるので軍手が必須。夜の川は足元が危険——ライト・ライフジャケット・単独釣行を避けるなど安全第一。", "Lift straight away into a bag or bucket. Wear gloves — they're slimy and strong. Night riverbanks are dangerous: headlamp, life jacket, and don't fish alone.") },
+    ],
+    spots: [{ name: "筑後川下流（福岡・佐賀）", rating: 4.6, type: S("河口・下流", "Estuary") }, { name: "矢部川（福岡）", rating: 4.4, type: S("下流", "Lower river") }, { name: "利根川水系（関東）", rating: 4.5, type: S("下流", "Lower river") }],
+    regulations: S("河川は漁業権が設定されている場所が多く遊漁券が必要。多くの漁協で全長20〜25cm以下は再放流、禁漁期を定める県もある。シラスウナギ（稚魚）の採捕は許可制で無許可は違法。ニホンウナギは絶滅危惧種のため、持ち帰りは食べる分だけに。", "Most rivers require a fishing ticket; many co-ops release eels under 20–25cm and some prefectures have closed seasons. Catching glass eels requires a licence — unlicensed collection is illegal. The Japanese eel is endangered: keep only what you will eat."),
+  },
+  {
     id: 101, name: "アマゴ", nameEn: "Amago Trout", emoji: "🐡", category: "freshwater",
     color: "#3d3b5b", accent: "#e76f51", difficulty: "intermediate", flyFriendly: true,
     flyNote: S("ヤマメと並ぶ渓流フライの代表魚。朱点が美しい。ドライフライへの反応が良い。", "Yamame's red-spotted cousin of western Japan. A classic dry-fly and tenkara target."),

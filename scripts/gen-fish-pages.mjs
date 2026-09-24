@@ -25,7 +25,7 @@ const slug = f => f.nameEn.toLowerCase().replace(/\(.*?\)/g, "").replace(/[^a-z0
 const cat = f => f.category || ({ 4: "saltwater", 6: "saltwater", 7: "saltwater", 8: "saltwater", 12: "saltwater", 13: "saltwater", 14: "saltwater", 15: "shore", 16: "saltwater" }[f.id]) || "freshwater";
 const CAT_JA = { freshwater: "淡水", saltwater: "海水", shore: "ショア", caribbean: "カリブ海" };
 const DIFF_JA = { beginner: "初心者向け", intermediate: "中級者向け", advanced: "上級者向け" };
-const img = f => (f.id >= 101 ? `/fish/${f.id}.webp` : null);
+const img = f => (f.id >= 101 && f.id <= 114 ? `/fish/${f.id}.webp` : null);
 
 const css = `*{box-sizing:border-box}body{margin:0;font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:#f5f0e8;color:#1a1a14;line-height:1.8}
 header{background:#0a2837;color:#fff;padding:14px 18px;display:flex;gap:10px;align-items:center}header a{color:#ffe500;text-decoration:none;font-weight:700}
@@ -69,6 +69,7 @@ for (const f of FISH) {
 <p>${esc(desc)}</p><p class="en">${esc(t(f.description || f.desc, "en"))}</p>
 <h2>基本情報とタックル</h2><table>${rows.map(r => `<tr><th>${r[0]}</th><td>${esc(r[1])}</td></tr>`).join("")}</table>
 ${lures.length ? `<h2>おすすめのルアー・エサ・フライ</h2><ul>${lures.map(l => `<li>${esc(l)}</li>`).join("")}</ul>` : ""}
+${f.howTo ? `<h2>${esc(f.name)}の釣り方（手順）</h2>${f.howTo.map(h => `<h3>${esc(t(h.t, "ja"))}</h3><p>${esc(t(h.b, "ja"))}</p><p class="en">${esc(t(h.b, "en"))}</p>`).join("")}` : ""}
 ${g.tips || g.technique ? `<h2>釣り方のコツ</h2><p>${esc(t(g.tips || g.technique, "ja"))}</p><p class="en">${esc(t(g.tips || g.technique, "en"))}</p>` : ""}
 ${f.flyNote ? `<h2>フライフィッシング・テンカラで狙うなら</h2><p>${esc(t(f.flyNote, "ja"))}</p>` : ""}
 ${f.spots?.length ? `<h2>${esc(f.name)}が釣れる主な釣り場</h2><ul>${f.spots.map(sp => `<li>${esc(sp.name)}${sp.rating ? `（★${sp.rating}）` : ""}${sp.type ? ` — ${esc(t(sp.type, "ja"))}` : ""}</li>`).join("")}</ul>` : ""}
