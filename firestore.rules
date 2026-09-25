@@ -36,6 +36,22 @@ service cloud.firestore {
       allow create: if isPro() && request.resource.data.userId == request.auth.uid;
     }
 
+    // Analytics counters — written by the app, read only by the server (admin SDK)
+    match /stats/{day} {
+      allow read: if false;
+      allow create, update: if true;
+      allow delete: if false;
+    }
+    match /presence/{sid} {
+      allow read: if false;
+      allow create, update, delete: if true;
+    }
+    match /events/{id} {
+      allow read: if false;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
     // Live anglers map
     match /activeUsers/{id} {
       allow read, write: if true;

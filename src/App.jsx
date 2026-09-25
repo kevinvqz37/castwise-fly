@@ -9,6 +9,10 @@ import { EXTRA_FISH, EXTRA_FISH_EMOJI } from "./fishDataExtra";
 import { FLY_SVG } from "./flyArt";
 import { shareCatchCard } from "./shareCard";
 import exifr from "exifr";
+import { initAnalytics, track } from "./analytics";
+import OwnerDashboard from "./OwnerDashboard";
+
+const OWNER_EMAIL = "kevinvqz@gmail.com";
 import { VectorTile } from "@mapbox/vector-tile";
 import Pbf from "pbf";
 
@@ -3884,6 +3888,7 @@ export default function CastWiseJapan() {
     { key: "Weather",    ja: "天気",   en: "Weather",  es: "Clima",    icon: "🌤️" },
     { key: "Community",  ja: "みんな", en: "Feed",     es: "Feed",     icon: "🌊" },
     { key: "Profile",    ja: "マイ",   en: "Profile",  es: "Perfil",   icon: "👤" },
+    ...(user?.email?.toLowerCase() === OWNER_EMAIL ? [{ key: "Owner", ja: "📊", en: "📊", es: "📊", icon: "📊" }] : []),
   ];
 
 
@@ -3998,12 +4003,16 @@ export default function CastWiseJapan() {
   function startCheckout(plan = "monthly") {
     if (!user) { setShowAuth(true); return; }
     const link = STRIPE_LINKS[plan] || STRIPE_LINKS.monthly;
+    track("pro_click");
     if (!link) { alert(lang === "ja" ? "PROは近日公開予定です！" : "PRO is coming soon!"); return; }
     const u = new URL(link);
     u.searchParams.set("client_reference_id", user.uid);
     if (user.email) u.searchParams.set("prefilled_email", user.email);
     window.location.href = u.toString();
   }
+
+  // First-party analytics (visits, live presence, feature use)
+  useEffect(() => { initAnalytics(db, lang); }, []);
 
   // Deep link from /zukan pages: /?fish=<id> opens that species
   useEffect(() => {
@@ -4038,6 +4047,7 @@ export default function CastWiseJapan() {
   }, [user]);
 
   const incrementAiUsage = async () => {
+    track("ai_use");
     if (isPro) return true;
     // Safety: Only check auth if global user state is definitively null, without crashing
     if (!user) {
@@ -4371,6 +4381,7 @@ If this is NOT a fish or the image is unclear, return:
     setFishIDResult(null);
     setLogOpen(false);
     setJustLogged(entry);
+    track("catch_logged");
   }
 
 
@@ -4720,6 +4731,7 @@ If this is NOT a fish or the image is unclear, return:
         {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} activeUsers={activeUsers} locationSharing={locationSharing} setLocationSharing={setLocationSharing} weather={WEATHER} tideData={tideData} incrementAiUsage={incrementAiUsage} />}
 
         {/* ── WEATHER ── */}
+        {tab === "Owner" && user?.email?.toLowerCase() === OWNER_EMAIL && <OwnerDashboard lang={lang} />}
         {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} user={user} db={db} storage={storage} isPro={isPro} onUpgrade={() => startCheckout("monthly")} />}
         {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} forecast={forecast7day} tides={tideData} rivers={riverConditions} />}
 
