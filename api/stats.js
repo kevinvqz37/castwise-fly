@@ -6,7 +6,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
 export const maxDuration = 30;
-const OWNER = (process.env.OWNER_EMAIL || "kevinvqz@gmail.com").toLowerCase();
+const OWNERS = (process.env.OWNER_EMAIL || "kevin@shigematsutech.com,kevinvqz@gmail.com").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
 
 function admin() {
   if (!process.env.FIREBASE_SERVICE_ACCOUNT) return null;
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     if (!token) return res.status(401).json({ error: "login required" });
     try {
       const u = await fb.auth.verifyIdToken(token);
-      if ((u.email || "").toLowerCase() !== OWNER) return res.status(403).json({ error: "not the owner" });
+      if (!OWNERS.includes((u.email || "").toLowerCase())) return res.status(403).json({ error: "not the owner" });
     } catch { return res.status(401).json({ error: "bad token" }); }
   }
 

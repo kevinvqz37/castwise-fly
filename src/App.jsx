@@ -12,7 +12,10 @@ import exifr from "exifr";
 import { initAnalytics, track } from "./analytics";
 import OwnerDashboard from "./OwnerDashboard";
 
-const OWNER_EMAIL = "kevinvqz@gmail.com";
+// Accounts that can see the 📊 owner dashboard (VITE_OWNER_EMAILS overrides; comma separated)
+const OWNER_EMAILS = (import.meta.env.VITE_OWNER_EMAILS || "kevin@shigematsutech.com,kevinvqz@gmail.com")
+  .split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+const isOwner = u => !!u?.email && OWNER_EMAILS.includes(u.email.toLowerCase());
 import { VectorTile } from "@mapbox/vector-tile";
 import Pbf from "pbf";
 
@@ -3888,7 +3891,7 @@ export default function CastWiseJapan() {
     { key: "Weather",    ja: "天気",   en: "Weather",  es: "Clima",    icon: "🌤️" },
     { key: "Community",  ja: "みんな", en: "Feed",     es: "Feed",     icon: "🌊" },
     { key: "Profile",    ja: "マイ",   en: "Profile",  es: "Perfil",   icon: "👤" },
-    ...(user?.email?.toLowerCase() === OWNER_EMAIL ? [{ key: "Owner", ja: "📊", en: "📊", es: "📊", icon: "📊" }] : []),
+    ...(isOwner(user) ? [{ key: "Owner", ja: "📊", en: "📊", es: "📊", icon: "📊" }] : []),
   ];
 
 
@@ -4731,7 +4734,7 @@ If this is NOT a fish or the image is unclear, return:
         {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} activeUsers={activeUsers} locationSharing={locationSharing} setLocationSharing={setLocationSharing} weather={WEATHER} tideData={tideData} incrementAiUsage={incrementAiUsage} />}
 
         {/* ── WEATHER ── */}
-        {tab === "Owner" && user?.email?.toLowerCase() === OWNER_EMAIL && <OwnerDashboard lang={lang} />}
+        {tab === "Owner" && isOwner(user) && <OwnerDashboard lang={lang} />}
         {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} user={user} db={db} storage={storage} isPro={isPro} onUpgrade={() => startCheckout("monthly")} />}
         {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} forecast={forecast7day} tides={tideData} rivers={riverConditions} />}
 
