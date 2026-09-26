@@ -8,17 +8,45 @@ import { getFirestore } from "firebase-admin/firestore";
 export const maxDuration = 30;
 const OWNERS = (process.env.OWNER_EMAIL || "kevin@shigematsutech.com,kevinvqz@gmail.com").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
 
+// Returns {auth, db} or {error} — never throws. A bare throw here surfaces to
+// the client as FUNCTION_INVOCATION_FAILED with no clue what went wrong.
 function admin() {
-  if (!process.env.FIREBASE_SERVICE_ACCOUNT) return null;
-  if (!getApps().length) initializeApp({ credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
-  return { auth: getAuth(), db: getFirestore() };
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!raw) return { error: "FIREBASE_SERVICE_ACCOUNT is not set" };
+  let sa;
+  try {
+    sa = JSON.parse(raw);
+  } catch {
+    return { error: "FIREBASE_SERVICE_ACCOUNT is not valid JSON" };
+  }
+  // Pasted through a shell or dashboard, the key's newlines often arrive as literal \n.
+  if (typeof sa.private_key === "string") sa.private_key = sa.private_key.replace(/\\n/g, "\n");
+  if (!sa.project_id || !sa.client_email || !sa.private_key) {
+    return { error: "FIREBASE_SERVICE_ACCOUNT is missing project_id, client_email or private_key" };
+  }
+  try {
+    if (!getApps().length) initializeApp({ credential: cert(sa) });
+    return { auth: getAuth(), db: getFirestore() };
+  } catch (e) {
+    return { error: "firebase-admin init failed: " + (e?.message || "unknown") };
+  }
 }
 const jstDay = (offsetDays = 0) =>
   new Date(Date.now() + 9 * 3600e3 - offsetDays * 86400e3).toISOString().slice(0, 10);
 
 export default async function handler(req, res) {
+  try {
+    return await run(req, res);
+  } catch (e) {
+    console.error("stats:", e);
+    if (res.headersSent) return;
+    return res.status(500).json({ error: "stats failed", detail: e?.message || String(e) });
+  }
+}
+
+async function run(req, res) {
   const fb = admin();
-  if (!fb) return res.status(500).json({ error: "server not configured" });
+  if (fb.error) return res.status(500).json({ error: "server not configured", detail: fb.error });
 
   // --- auth ---
   const key = req.query.key;
