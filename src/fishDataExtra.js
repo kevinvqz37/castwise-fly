@@ -1,5 +1,7 @@
 // Additional species (ids 101+). Same shape as FISH_DATA entries in App.jsx.
 // `category` drives the Explore filter (freshwater | saltwater | shore).
+import { PR_FISH } from "./fishDataPR.js";
+
 const S = (ja, en) => ({ ja, en });
 
 export const EXTRA_FISH = [
@@ -189,6 +191,7 @@ export const EXTRA_FISH = [
     spots: [{ name: "旧江戸川（東京・千葉）", rating: 4.4, type: S("河口", "Estuary") }, { name: "室見川河口（福岡）", rating: 4.3, type: S("河口", "Estuary") }, { name: "松島湾（宮城）", rating: 4.3, type: S("湾", "Bay") }],
     regulations: S("河口域は漁業権が設定されている場合あり。現地の表示を確認。", "Some estuaries have fishing rights — check local signage."),
   },
+  ...PR_FISH,
 ];
 
 export const EXTRA_FISH_EMOJI = Object.fromEntries(EXTRA_FISH.map(f => [f.id, f.emoji]));

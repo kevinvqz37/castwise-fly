@@ -40,7 +40,7 @@ footer{text-align:center;font-size:.8rem;color:#7a7a6a;padding:20px}footer a{col
 const CHROME = {
   ja: { home: "🎣 Castwise 釣りナビPRO", nav: [["/zukan/", "魚図鑑"], ["/spots/", "釣り場"]], open: "アプリを開く", legal: "法的情報" },
   en: { home: "🎣 Castwise", nav: [["/zukan/", "Fish guide"], ["/spots/puerto-rico", "Spots"]], open: "Open the app", legal: "Legal" },
-  es: { home: "🎣 Castwise", nav: [["/es/spots/puerto-rico", "Sitios de pesca"], ["/", "Abrir la app"]], open: "Abrir la app", legal: "Aviso legal" },
+  es: { home: "🎣 Castwise", nav: [["/es/zukan/", "Peces"], ["/es/spots/puerto-rico", "Sitios"], ["/", "Abrir la app"]], open: "Abrir la app", legal: "Aviso legal" },
 };
 const shell = ({ title, desc, url, body, ld, image, lang = "ja", alts }) => `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title>
@@ -101,6 +101,9 @@ fs.writeFileSync(path.join(out, "index.html"), shell({
 // ─── SPOT PAGES ──────────────────────────────────────────────────────────────
 const PREF_SLUG = { 福岡: "fukuoka", 佐賀: "saga", 長崎: "nagasaki", 熊本: "kumamoto", 大分: "oita", 宮崎: "miyazaki", 鹿児島: "kagoshima", 北海道: "hokkaido", 神奈川: "kanagawa", 滋賀: "shiga", 東京: "tokyo", 岐阜: "gifu" };
 const isPR = sp => sp.region === "puertorico";
+// Some PR spot names carry a Japanese gloss for JA readers — "Mosquito Pier (旧海軍桟橋)".
+// It is noise on an English or Spanish page, so drop the bracketed CJK part there.
+const spotName = sp => String(sp.name).replace(/[（(]\s*[^)）]*[\u3040-\u30ff\u4e00-\u9fff][^)）]*[)）]/g, "").replace(/\s{2,}/g, " ").trim();
 const prefSlug = sp => isPR(sp) ? "puerto-rico" : PREF_SLUG[sp.pref] || "japan";
 const prefName = sp => isPR(sp) ? "Puerto Rico" : (sp.pref || "日本");
 const spotSlug = sp => `${sp.id}`;
@@ -110,12 +113,12 @@ const fishLinks = txt => FISH.filter(f => txt.includes(f.name.replace(/（.*?）
 for (const sp of SPOTS.filter(x => x.name)) {
   const pr = isPR(sp), L = pr ? "en" : "ja";
   const fishTxt = t(sp.fish, L), fishJa = t(sp.fish, "ja");
-  const title = pr ? `${sp.name} Fishing Guide — ${fishTxt} | Puerto Rico | Castwise` : `${sp.name}の釣り情報｜${fishJa}｜${sp.pref}の釣り場｜Castwise`;
-  const desc = (pr ? `${sp.name} (${sp.pref}, Puerto Rico): ${fishTxt}. Best season: ${t(sp.bestSeason, "en")}. ${t(sp.tip, "en")}` : `${sp.name}（${sp.pref}）で釣れる魚：${fishJa}。ベストシーズン：${t(sp.bestSeason, "ja")}。${t(sp.tip, "ja")}`).slice(0, 155);
+  const title = pr ? `${spotName(sp)} Fishing Guide — ${fishTxt} | Puerto Rico | Castwise` : `${sp.name}の釣り情報｜${fishJa}｜${sp.pref}の釣り場｜Castwise`;
+  const desc = (pr ? `${spotName(sp)} (${sp.pref}, Puerto Rico): ${fishTxt}. Best season: ${t(sp.bestSeason, "en")}. ${t(sp.tip, "en")}` : `${sp.name}（${sp.pref}）で釣れる魚：${fishJa}。ベストシーズン：${t(sp.bestSeason, "ja")}。${t(sp.tip, "ja")}`).slice(0, 155);
   const near = SPOTS.filter(o => o.id !== sp.id && o.name && prefSlug(o) === prefSlug(sp)).slice(0, 10);
   const links = fishLinks(fishJa + " " + t(sp.fish, "en"));
   const body = `
-<h1>${esc(sp.icon || "🎣")} ${esc(sp.name)}<br><span class="en">${pr ? "Fishing spot guide" : "釣り場ガイド"} · ${esc(prefName(sp))}</span></h1>
+<h1>${esc(sp.icon || "🎣")} ${esc(pr ? spotName(sp) : sp.name)}<br><span class="en">${pr ? "Fishing spot guide" : "釣り場ガイド"} · ${esc(prefName(sp))}</span></h1>
 <div class="tags"><span>${esc(t(sp.type, L))}</span><span>★ ${sp.rating}</span></div>
 <table>
 <tr><th>${pr ? "Target fish" : "釣れる魚"}</th><td>${esc(fishTxt)}${links ? `<br><small>${links}</small>` : ""}</td></tr>
@@ -125,9 +128,9 @@ for (const sp of SPOTS.filter(x => x.name)) {
 <h2>${pr ? "Local tip" : "釣りのコツ"}</h2><p>${esc(t(sp.tip, L))}</p>${pr ? `<p class="en">${esc(t(sp.tip, "ja"))}</p>` : `<p class="en">${esc(t(sp.tip, "en"))}</p>`}
 <p><a href="https://www.google.com/maps/search/?api=1&query=${sp.lat},${sp.lng}" target="_blank" rel="noopener">📍 ${pr ? "Open in Google Maps" : "Googleマップで開く"}</a></p>
 <a class="cta" href="/?spot=${sp.id}">${pr ? "🌤️ Today's fishing forecast for this spot (free)" : "🌤️ この釣り場の今日の釣り予報・天気・潮をチェック（無料）"}</a>
-${near.length ? `<h2>${pr ? "More spots in Puerto Rico" : `${esc(sp.pref)}のほかの釣り場`}</h2><ul class="grid">${near.map(o => `<li><a href="/spots/${spotSlug(o)}">${esc(o.name)}</a></li>`).join("")}</ul>` : ""}
+${near.length ? `<h2>${pr ? "More spots in Puerto Rico" : `${esc(sp.pref)}のほかの釣り場`}</h2><ul class="grid">${near.map(o => `<li><a href="/spots/${spotSlug(o)}">${esc(pr ? spotName(o) : o.name)}</a></li>`).join("")}</ul>` : ""}
 <p><a href="/spots/${prefSlug(sp)}">${pr ? "All Puerto Rico spots →" : `${esc(sp.pref)}の釣り場一覧 →`}</a></p>`;
-  const ld = { "@context": "https://schema.org", "@type": "TouristAttraction", name: sp.name, description: desc, geo: { "@type": "GeoCoordinates", latitude: sp.lat, longitude: sp.lng }, touristType: "Anglers" };
+  const ld = { "@context": "https://schema.org", "@type": "TouristAttraction", name: pr ? spotName(sp) : sp.name, description: desc, geo: { "@type": "GeoCoordinates", latitude: sp.lat, longitude: sp.lng }, touristType: "Anglers" };
   const alts = pr ? [
     { l: "en", u: `${SITE}/spots/${spotSlug(sp)}` },
     { l: "es", u: `${SITE}/es/spots/${spotSlug(sp)}` },
@@ -143,7 +146,7 @@ for (const [ps, list] of Object.entries(prefGroups)) {
   const pr = ps === "puerto-rico", name = prefName(list[0]);
   const title = pr ? `Puerto Rico Fishing Spots — ${list.length} spots (tarpon, snook, bonefish) | Castwise` : `${name}の釣り場${list.length}選｜釣れる魚・時期・アクセス｜Castwise`;
   const desc = pr ? `The ${list.length} best fishing spots in Puerto Rico: Vieques, Culebra, Fajardo, San Juan lagoons and lakes. Species, seasons and access.` : `${name}のおすすめ釣り場${list.length}か所。釣れる魚、ベストシーズン、アクセス、遊漁券情報をまとめました。`;
-  const body = `<h1>${pr ? "Puerto Rico fishing spots" : `${esc(name)}の釣り場`}</h1><p>${esc(desc)}</p><ul class="grid">${list.sort((a, b) => b.rating - a.rating).map(sp => `<li><a href="/spots/${spotSlug(sp)}">${esc(sp.icon || "")} ${esc(sp.name)}<br><span class="en">${esc(t(sp.fish, pr ? "en" : "ja"))}</span></a></li>`).join("")}</ul><a class="cta" href="/">${pr ? "🎣 Open the app" : "🎣 アプリで今日の釣り予報を見る"}</a>`;
+  const body = `<h1>${pr ? "Puerto Rico fishing spots" : `${esc(name)}の釣り場`}</h1><p>${esc(desc)}</p><ul class="grid">${list.sort((a, b) => b.rating - a.rating).map(sp => `<li><a href="/spots/${spotSlug(sp)}">${esc(sp.icon || "")} ${esc(pr ? spotName(sp) : sp.name)}<br><span class="en">${esc(t(sp.fish, pr ? "en" : "ja"))}</span></a></li>`).join("")}</ul><a class="cta" href="/">${pr ? "🎣 Open the app" : "🎣 アプリで今日の釣り予報を見る"}</a>`;
   fs.writeFileSync(`dist/spots/${ps}.html`, shell({
     title, desc, url: `${SITE}/spots/${ps}`, body, lang: pr ? "en" : "ja",
     alts: pr ? [{ l: "en", u: `${SITE}/spots/puerto-rico` }, { l: "es", u: `${SITE}/es/spots/puerto-rico` }, { l: "x-default", u: `${SITE}/spots/puerto-rico` }] : null,
@@ -156,6 +159,50 @@ fs.writeFileSync("dist/spots/index.html", shell({
 }));
 
 
+
+// ─── SPANISH SPECIES PAGES (/es/zukan/…) ─────────────────────────────────────
+// Only the species that carry a Spanish name: the Caribbean ones a Puerto Rican
+// angler would search for by name — "como pescar sabalo", "tucunare Dos Bocas".
+{
+  const ESF = FISH.filter(f => f.nameEs);
+  fs.mkdirSync("dist/es/zukan", { recursive: true });
+  const DIFF_ES = { beginner: "Principiante", intermediate: "Intermedio", advanced: "Avanzado" };
+  for (const f of ESF) {
+    const sl = slug(f), g = f.gear || {}, lures = g.lures || [];
+    const descEs = t(f.description || f.desc, "es");
+    const title = `Cómo pescar ${f.nameEs} (${f.nameEn}) — equipo, temporada y sitios | Castwise`;
+    const metaDesc = `Guía para pescar ${f.nameEs} en Puerto Rico. Temporada: ${t(f.season, "es")}. ${descEs}`.slice(0, 150);
+    const rows = [
+      ["Temporada", t(f.season, "es")], ["Dónde vive", t(f.habitat, "es")], ["Mejor hora", t(f.bestTime, "es")],
+      ["Caña", t(g.rod || g.rods, "es")], ["Carrete", t(g.reel, "es")], ["Línea", t(g.line, "es")], ["Anzuelo", t(g.hooks, "es")],
+    ].filter(r => r[1]);
+    const others = ESF.filter(o => o.id !== f.id).slice(0, 12);
+    const body = `
+<div class="hero">${img(f) ? `<img src="${img(f)}" alt="Ilustración de ${esc(f.nameEs)}" width="480" height="240">` : `<div style="font-size:4rem">${f.emoji || "🐟"}</div>`}</div>
+<h1>Cómo pescar ${esc(f.nameEs)}<br><span class="en">${esc(f.nameEn)}</span></h1>
+<div class="tags">${f.difficulty ? `<span>${DIFF_ES[f.difficulty] || ""}</span>` : ""}${f.flyFriendly ? "<span>🪶 Se pesca con mosca</span>" : ""}</div>
+<p>${esc(descEs)}</p>
+<h2>Datos y equipo</h2><table>${rows.map(r => `<tr><th>${r[0]}</th><td>${esc(r[1])}</td></tr>`).join("")}</table>
+${lures.length ? `<h2>Señuelos y carnadas</h2><ul>${lures.map(l => `<li>${esc(l)}</li>`).join("")}</ul>` : ""}
+${f.howTo ? `<h2>Paso a paso</h2>${f.howTo.map(h => `<h3>${esc(t(h.t, "es"))}</h3><p>${esc(t(h.b, "es"))}</p>`).join("")}` : ""}
+${g.tips || g.technique ? `<h2>El consejo que importa</h2><p>${esc(t(g.tips || g.technique, "es"))}</p>` : ""}
+${f.spots?.length ? `<h2>Dónde se pesca</h2><ul>${f.spots.map(sp => `<li>${esc(sp.name)}${sp.rating ? ` (★${sp.rating})` : ""}</li>`).join("")}</ul>` : ""}
+${f.regulations ? `<h2>Reglamento y cuidado</h2><p>${esc(t(f.regulations, "es"))}</p>` : ""}
+<a class="cta" href="/?fish=${f.id}">🤖 Chequea con IA si hoy pica el ${esc(f.nameEs)} (gratis)</a>
+<h2>Otras especies de Puerto Rico</h2><ul class="grid">${others.map(o => `<li><a href="/es/zukan/${slug(o)}">${esc(o.nameEs)}</a></li>`).join("")}</ul>`;
+    const ld = { "@context": "https://schema.org", "@type": "Article", headline: `Cómo pescar ${f.nameEs}`, inLanguage: "es", about: { "@type": "Thing", name: f.nameEs, alternateName: f.nameEn }, publisher: { "@type": "Organization", name: "Shigematsu Tech" }, mainEntityOfPage: `${SITE}/es/zukan/${sl}` };
+    fs.writeFileSync(`dist/es/zukan/${sl}.html`, shell({
+      title, desc: metaDesc, url: `${SITE}/es/zukan/${sl}`, body, ld, image: img(f), lang: "es",
+      alts: [{ l: "ja", u: `${SITE}/zukan/${sl}` }, { l: "es", u: `${SITE}/es/zukan/${sl}` }],
+    }));
+  }
+  const iTitle = `Peces de Puerto Rico — cómo pescar ${ESF.length} especies | Castwise`;
+  const iDesc = `Sábalo, macabí, róbalo, tucunaré, dorado y más: temporada, equipo, técnica y dónde pescarlos en Puerto Rico.`;
+  const iBody = `<h1>Peces de Puerto Rico</h1><p>${esc(iDesc)}</p><ul class="grid">${ESF.map(f => `<li><a href="/es/zukan/${slug(f)}">${f.emoji || "🐟"} ${esc(f.nameEs)}<br><span class="en">${esc(f.nameEn)}</span></a></li>`).join("")}</ul><a class="cta" href="/es/spots/puerto-rico">📍 Ver los sitios de pesca →</a>`;
+  fs.writeFileSync("dist/es/zukan/index.html", shell({ title: iTitle, desc: iDesc, url: `${SITE}/es/zukan/`, body: iBody, lang: "es" }));
+  globalThis.__ES_FISH_URLS = [`${SITE}/es/zukan/`, ...ESF.map(f => `${SITE}/es/zukan/${slug(f)}`)];
+}
+
 // ─── SPANISH PUERTO RICO PAGES (/es/spots/…) ─────────────────────────────────
 // Spanish is the working language of Puerto Rican anglers; these are the pages
 // that answer searches like "pesca en Vieques" or "donde pescar sabalo en PR".
@@ -164,11 +211,11 @@ fs.writeFileSync("dist/spots/index.html", shell({
   fs.mkdirSync("dist/es/spots", { recursive: true });
   for (const sp of PR) {
     const fishEs = t(sp.fish, "es"), tipEs = t(sp.tip, "es");
-    const title = `Pesca en ${sp.name} — ${fishEs} | Puerto Rico | Castwise`;
-    const desc = `${sp.name} (${sp.pref}, Puerto Rico): ${fishEs}. Mejor temporada: ${t(sp.bestSeason, "es")}. ${tipEs}`.slice(0, 155);
+    const title = `Pesca en ${spotName(sp)} — ${fishEs} | Puerto Rico | Castwise`;
+    const desc = `${spotName(sp)} (${sp.pref}, Puerto Rico): ${fishEs}. Mejor temporada: ${t(sp.bestSeason, "es")}. ${tipEs}`.slice(0, 155);
     const near = PR.filter(o => o.id !== sp.id).slice(0, 10);
     const body = `
-<h1>${esc(sp.icon || "🎣")} ${esc(sp.name)}<br><span class="en">Guía de pesca · ${esc(sp.pref)}, Puerto Rico</span></h1>
+<h1>${esc(sp.icon || "🎣")} ${esc(spotName(sp))}<br><span class="en">Guía de pesca · ${esc(sp.pref)}, Puerto Rico</span></h1>
 <div class="tags"><span>${esc(t(sp.type, "es"))}</span><span>★ ${sp.rating}</span></div>
 <table>
 <tr><th>Especies</th><td>${esc(fishEs)}</td></tr>
@@ -178,9 +225,9 @@ fs.writeFileSync("dist/spots/index.html", shell({
 <h2>Consejo local</h2><p>${esc(tipEs)}</p>
 <p><a href="https://www.google.com/maps/search/?api=1&query=${sp.lat},${sp.lng}" target="_blank" rel="noopener">📍 Abrir en Google Maps</a></p>
 <a class="cta" href="/?spot=${sp.id}&lang=es">🌤️ Pronóstico de pesca de hoy para este sitio (gratis)</a>
-${near.length ? `<h2>Más sitios en Puerto Rico</h2><ul class="grid">${near.map(o => `<li><a href="/es/spots/${spotSlug(o)}">${esc(o.name)}</a></li>`).join("")}</ul>` : ""}
+${near.length ? `<h2>Más sitios en Puerto Rico</h2><ul class="grid">${near.map(o => `<li><a href="/es/spots/${spotSlug(o)}">${esc(spotName(o))}</a></li>`).join("")}</ul>` : ""}
 <p><a href="/es/spots/puerto-rico">Todos los sitios de Puerto Rico →</a></p>`;
-    const ld = { "@context": "https://schema.org", "@type": "TouristAttraction", name: sp.name, description: desc, geo: { "@type": "GeoCoordinates", latitude: sp.lat, longitude: sp.lng }, touristType: "Pescadores" };
+    const ld = { "@context": "https://schema.org", "@type": "TouristAttraction", name: spotName(sp), description: desc, geo: { "@type": "GeoCoordinates", latitude: sp.lat, longitude: sp.lng }, touristType: "Pescadores" };
     fs.writeFileSync(`dist/es/spots/${spotSlug(sp)}.html`, shell({
       title, desc, url: `${SITE}/es/spots/${spotSlug(sp)}`, body, ld, lang: "es",
       alts: [{ l: "en", u: `${SITE}/spots/${spotSlug(sp)}` }, { l: "es", u: `${SITE}/es/spots/${spotSlug(sp)}` }, { l: "x-default", u: `${SITE}/spots/${spotSlug(sp)}` }],
@@ -188,7 +235,7 @@ ${near.length ? `<h2>Más sitios en Puerto Rico</h2><ul class="grid">${near.map(
   }
   const hubTitle = `Pesca en Puerto Rico — ${PR.length} sitios (sábalo, macabí, róbalo) | Castwise`;
   const hubDesc = `Los ${PR.length} mejores sitios de pesca de Puerto Rico: Vieques, Culebra, Fajardo, las lagunas de San Juan y los lagos. Especies, temporadas y cómo llegar.`;
-  const hubBody = `<h1>Sitios de pesca en Puerto Rico</h1><p>${esc(hubDesc)}</p><ul class="grid">${PR.slice().sort((a, b) => b.rating - a.rating).map(sp => `<li><a href="/es/spots/${spotSlug(sp)}">${esc(sp.icon || "")} ${esc(sp.name)}<br><span class="en">${esc(t(sp.fish, "es"))}</span></a></li>`).join("")}</ul><a class="cta" href="/">🎣 Abrir la app</a>`;
+  const hubBody = `<h1>Sitios de pesca en Puerto Rico</h1><p>${esc(hubDesc)}</p><ul class="grid">${PR.slice().sort((a, b) => b.rating - a.rating).map(sp => `<li><a href="/es/spots/${spotSlug(sp)}">${esc(sp.icon || "")} ${esc(spotName(sp))}<br><span class="en">${esc(t(sp.fish, "es"))}</span></a></li>`).join("")}</ul><a class="cta" href="/">🎣 Abrir la app</a>`;
   fs.writeFileSync("dist/es/spots/puerto-rico.html", shell({
     title: hubTitle, desc: hubDesc, url: `${SITE}/es/spots/puerto-rico`, body: hubBody, lang: "es",
     alts: [{ l: "en", u: `${SITE}/spots/puerto-rico` }, { l: "es", u: `${SITE}/es/spots/puerto-rico` }, { l: "x-default", u: `${SITE}/spots/puerto-rico` }],
@@ -225,6 +272,6 @@ const today = new Date().toISOString().slice(0, 10);
 const urls = [`${SITE}/`, `${SITE}/zukan/`, ...FISH.map(f => `${SITE}/zukan/${slug(f)}`),
   `${SITE}/spots/`, ...Object.keys(prefGroups).map(p => `${SITE}/spots/${p}`), ...SPOTS.filter(x => x.name).map(sp => `${SITE}/spots/${spotSlug(sp)}`),
   ...Array.from({ length: 12 }, (_, i) => `${SITE}/tsuki/${i + 1}`), `${SITE}/legal.html`,
-  ...(globalThis.__ES_URLS || [])];
+  ...(globalThis.__ES_URLS || []), ...(globalThis.__ES_FISH_URLS || [])];
 fs.writeFileSync("dist/sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
-console.log(`pages: ${FISH.length} species, ${SPOTS.length} spots, ${Object.keys(prefGroups).length} areas, 12 months, ${(globalThis.__ES_URLS || []).length} es — sitemap ${urls.length} urls`);
+console.log(`pages: ${FISH.length} species, ${SPOTS.length} spots, ${Object.keys(prefGroups).length} areas, 12 months, ${(globalThis.__ES_URLS || []).length + (globalThis.__ES_FISH_URLS || []).length} es — sitemap ${urls.length} urls`);

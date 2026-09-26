@@ -5,7 +5,7 @@
       "destination": "/mabo.html"
     },
     {
-      "source": "/((?!api/|zukan|spots|es/spots|tsuki|robots\\.txt|sitemap\\.xml|legal|google).*)",
+      "source": "/((?!api/|zukan|spots|es/|tsuki|robots\\.txt|sitemap\\.xml|legal|google).*)",
       "destination": "/index.html"
     }
   ],
