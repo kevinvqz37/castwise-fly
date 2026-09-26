@@ -28,7 +28,7 @@ export const PR_FISH = [
     regulations: S("淡水の貯水池はDRNA（天然資源環境省）の管轄。最新のサイズ・数量制限を確認。", "Freshwater reservoirs are managed by the DRNA — check current size and bag limits.", "Los embalses los maneja el DRNA — verifica los límites de talla y cantidad vigentes."),
   },
   {
-    id: 202, name: "クレバルジャック", nameEn: "Jack Crevalle", nameEs: "Jurel", emoji: "🐟", category: "caribbean",
+    id: 202, name: "クレバルジャック", nameEn: "Jack Crevalle", nameEs: "Jurel", spriteId: "jack_crevalle", emoji: "🐟", category: "caribbean",
     color: "#f0e2a8", accent: "#b8860b", difficulty: "beginner", flyFriendly: true,
     season: S("通年", "Year-round", "Todo el año"),
     habitat: S("河口、港、桟橋、マングローブの水路、サーフ。ボイルを見つけたら即キャスト。", "Estuaries, harbours, piers, mangrove channels and the surf. Cast at any bust-up you see.", "Estuarios, puertos, muelles, canales de mangle y la orilla. Tira a cualquier reventón que veas."),
@@ -100,7 +100,7 @@ export const PR_FISH = [
     regulations: S("最小サイズ制限あり。DRNAの規則を確認。", "Minimum size limit applies — check DRNA rules.", "Aplica talla mínima — verifica el reglamento del DRNA."),
   },
   {
-    id: 205, name: "レッドハインド（ハタ）", nameEn: "Red Hind (Grouper)", nameEs: "Mero cabrilla", emoji: "🐡", category: "caribbean",
+    id: 205, name: "レッドハインド（ハタ）", nameEn: "Red Hind (Grouper)", nameEs: "Mero cabrilla", spriteId: "grouper", emoji: "🐡", category: "caribbean",
     color: "#f6d2c0", accent: "#8b2500", difficulty: "intermediate", flyFriendly: false,
     season: S("通年（12〜2月は産卵期の禁漁あり）", "Year-round, but a Dec–Feb spawning closure applies", "Todo el año, pero hay veda de desove de diciembre a febrero"),
     habitat: S("水深15〜40mの岩礁帯。穴や棚の中に定位し、あまり動かない。", "Rocky reef in 15–40m. They sit tight in holes and under ledges and do not move far.", "Arrecife rocoso entre 15 y 40m. Se quedan metidos en cuevas y bajo salientes, y no se mueven mucho."),
@@ -124,7 +124,7 @@ export const PR_FISH = [
     regulations: S("12月〜2月に産卵期の禁漁措置あり。最小サイズ制限も。DRNAの最新規則を必ず確認。", "A December–February spawning closure applies, plus a minimum size. Always check the current DRNA rules.", "Hay veda de desove de diciembre a febrero, además de talla mínima. Verifica siempre el reglamento vigente del DRNA."),
   },
   {
-    id: 206, name: "ブルーマーリン（クロカジキ）", nameEn: "Blue Marlin", nameEs: "Aguja azul", emoji: "🗡️", category: "caribbean",
+    id: 206, name: "ブルーマーリン（クロカジキ）", nameEn: "Blue Marlin", nameEs: "Aguja azul", spriteId: "marlin", emoji: "🗡️", category: "caribbean",
     color: "#bcd8ee", accent: "#12467a", difficulty: "advanced", flyFriendly: false,
     season: S("6月〜10月（8〜9月が最盛期）", "June–October, peaking August–September", "Junio–octubre, con el pico en agosto y septiembre"),
     habitat: S("大陸棚の落ち込み、水深200m以深のブルーウォーター。北岸沖とビエケス南沖が実績。", "The drop-off and blue water beyond 200m. The north coast and the water south of Vieques both produce.", "La caída de la plataforma y el agua azul de más de 200m. La costa norte y el sur de Vieques producen."),
@@ -148,7 +148,7 @@ export const PR_FISH = [
     regulations: S("国際的にリリースが推奨される魚種。トーナメントでもリリース制が主流。", "International practice is release, and tournaments here are release-format.", "La práctica internacional es soltarla, y los torneos aquí son de captura y suelta."),
   },
   {
-    id: 207, name: "キハダマグロ", nameEn: "Yellowfin Tuna", nameEs: "Atún aleta amarilla", emoji: "🐟", category: "caribbean",
+    id: 207, name: "キハダマグロ", nameEn: "Yellowfin Tuna", nameEs: "Atún aleta amarilla", spriteId: "yellowfin_tuna", emoji: "🐟", category: "caribbean",
     color: "#cfe0f0", accent: "#1f5f8b", difficulty: "advanced", flyFriendly: false,
     season: S("3月〜8月", "March–August", "Marzo–agosto"),
     habitat: S("ブルーウォーター。鳥山、流れ藻、イルカの群れの下につく。", "Blue water, under working birds, weed lines and pods of dolphin.", "Agua azul, bajo aves trabajando, líneas de sargazo y manadas de delfines."),
