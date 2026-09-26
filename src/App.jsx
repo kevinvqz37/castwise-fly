@@ -83,6 +83,8 @@ async function claudeHeaders() {
 const storage = getStorage(firebaseApp);
 
 // ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
+const ES_NOTE = "\n\nResponde íntegramente en español (español de Puerto Rico), conservando los encabezados con emoji.";
+
 const T = {
   appTagline: { ja: "もっと賢く釣る", en: "fish smarter · catch more", es: "pesca más inteligente" },
   whatFishing: { ja: "何を釣りますか？", en: "What are you fishing for?", es: "¿Qué vas a pescar?" },
@@ -143,6 +145,7 @@ function AdsterraBanner() {
   );
 }
 
+const fishName = (f, lang) => !f ? "" : (lang === "ja" ? (f.name || f.nameEn) : ((lang === "es" && f.nameEs) || f.nameEn || f.name));
 function gl(obj, lang) { if (!obj) return ""; return obj[lang] || obj.en || obj.ja || ""; }
 
 // Set when you create a 300x250 unit in Adsterra (Websites → Add ad unit → Banner 300x250)
@@ -160,7 +163,7 @@ function AffiliateCard({ lang, height = 50 }) {
     <a href={amazonLink(p.q)} target="_blank" rel="noopener noreferrer sponsored"
       style={{ width: "100%", height, display: "flex", flexDirection: height > 100 ? "column" : "row", alignItems: "center", justifyContent: "center", gap: 8, background: "#fff8e8", border: "2px solid #f0a020", borderRadius: 12, color: "#c06a10", fontWeight: 700, textDecoration: "none", fontSize: height > 100 ? "1.1rem" : "0.9rem" }}>
       <span>{lang === "ja" ? p.ja : p.en}</span>
-      <span style={{ fontSize: "0.75rem", color: "#f0a020" }}>{lang === "ja" ? "Amazonで見る↗" : "See on Amazon↗"}</span>
+      <span style={{ fontSize: "0.75rem", color: "#f0a020" }}>{lang === "ja" ? "Amazonで見る↗" : lang === "es" ? "Ver en Amazon↗" : "See on Amazon↗"}</span>
     </a>
   );
 }
@@ -260,9 +263,9 @@ function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div style={{ width: "100%", maxWidth: 390, background: "#fffdf8", borderRadius: 24, overflow: "hidden", animation: "fadeUp 0.4s ease" }}>
         <div style={{ background: "#f8f4ec", padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "スポンサー広告" : "Sponsored"}</span>
+          <span style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "スポンサー広告" : lang === "es" ? "Publicidad" : "Sponsored"}</span>
           <span style={{ fontSize: "0.88rem", color: "#5a5a4a", fontWeight: 700 }}>
-            {countdown > 0 ? (lang === "ja" ? `${countdown}秒後にスキップ` : `Skip in ${countdown}s`) : (lang === "ja" ? "スキップ可能 →" : "Skip now →")}
+            {countdown > 0 ? (lang === "ja" ? `${countdown}秒後にスキップ` : lang === "es" ? `Saltar en ${countdown}s` : `Skip in ${countdown}s`) : (lang === "ja" ? "スキップ可能 →" : lang === "es" ? "Saltar ahora →" : "Skip now →")}
           </span>
         </div>
         <div ref={adRef} style={{ minHeight: 250, display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f0e8", overflow: "hidden", padding: 12 }}>
@@ -271,13 +274,13 @@ function InterstitialAd({ lang, onClose, onWatchReward, isPremium }) {
         <div style={{ padding: "12px 16px", display: "flex", gap: 10 }}>
           <button onClick={countdown <= 0 ? onClose : undefined}
             style={{ flex: 1, padding: "12px", background: countdown <= 0 ? "#e0f2f2" : "#e8e3d8", border: `2px solid ${countdown <= 0 ? "#1a1a14" : "#c4bfb4"}`, borderRadius: 12, color: countdown <= 0 ? "#1a1a14" : "#9a9a8a", cursor: countdown <= 0 ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
-            {countdown > 0 ? `⏱ ${countdown}s` : (lang === "ja" ? "✕ スキップ" : "✕ Skip")}
+            {countdown > 0 ? `⏱ ${countdown}s` : (lang === "ja" ? "✕ スキップ" : lang === "es" ? "✕ Saltar" : "✕ Skip")}
           </button>
         </div>
         {onWatchReward && (
           <div style={{ padding: "0 16px 16px" }}>
             <button onClick={onWatchReward} style={{ width: "100%", padding: "10px", background: "#d0eae8", border: "2px solid #c8b800", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 600 }}>
-              🎁 {lang === "ja" ? "広告を見て+50ポイントゲット！" : "Watch for +50 bonus points!"}
+              🎁 {lang === "ja" ? "広告を見て+50ポイントゲット！" : lang === "es" ? "¡Míralo y gana +50 puntos!" : "Watch for +50 bonus points!"}
             </button>
           </div>
         )}
@@ -312,25 +315,25 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
           <>
             <div style={{ textAlign: "center", marginBottom: 20 }}>
               <div style={{ fontSize: "3rem", marginBottom: 8 }}>🎁</div>
-              <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: 6 }}>{lang === "ja" ? "報酬広告" : "Rewarded Ad"}</div>
+              <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: 6 }}>{lang === "ja" ? "報酬広告" : lang === "es" ? "Anuncio con recompensa" : "Rewarded Ad"}</div>
               <div style={{ fontSize: "0.95rem", color: "#5a5a4a", lineHeight: 1.6 }}>
-                {lang === "ja" ? "15秒の動画を見て特典をゲット！" : "Watch a 15s video to earn your reward!"}
+                {lang === "ja" ? "15秒の動画を見て特典をゲット！" : lang === "es" ? "¡Mira un video de 15s y gana tu recompensa!" : "Watch a 15s video to earn your reward!"}
               </div>
             </div>
             <div style={{ background: "#e8f4ec", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 16 }}>
               {[{ icon: "⭐", text: { ja: "+100 釣りポイント", en: "+100 Fishing Points" } }, { icon: "🤖", text: { ja: "AIアドバイス 3回分", en: "3 free AI advice uses" } }, { icon: "🪶", text: { ja: "プレミアムフライパターン解放", en: "Premium fly pattern unlocked" } }].map((r, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: i < 2 ? 8 : 0 }}>
                   <span style={{ fontSize: "1.2rem" }}>{r.icon}</span>
-                  <span style={{ fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 600 }}>{r.text[lang]}</span>
+                  <span style={{ fontSize: "0.95rem", color: "#2d7a3a", fontWeight: 600 }}>{gl(r.text, lang)}</span>
                 </div>
               ))}
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={startAd} style={{ flex: 2, padding: "12px", background: "#c8e8d0", border: "2px solid #60b080", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: "1.05rem" }}>
-                {lang === "ja" ? "▶ 動画を見る" : "▶ Watch Video"}
+                {lang === "ja" ? "▶ 動画を見る" : lang === "es" ? "▶ Ver video" : "▶ Watch Video"}
               </button>
               <button onClick={onClose} style={{ flex: 1, padding: "12px", background: "transparent", border: "2px solid #d4cfc4", borderRadius: 12, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem" }}>
-                {lang === "ja" ? "後で" : "Later"}
+                {lang === "ja" ? "後で" : lang === "es" ? "Después" : "Later"}
               </button>
             </div>
           </>
@@ -347,7 +350,7 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
               <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg,#FFE500,#48cae4)", borderRadius: 99, transition: "width 0.3s" }} />
             </div>
             <div style={{ textAlign: "center", fontSize: "1rem", color: "#5a5a4a" }}>
-              {lang === "ja" ? `${Math.ceil((100 - progress) / 6.7)}秒...` : `${Math.ceil((100 - progress) / 6.7)}s remaining...`}
+              {lang === "ja" ? `${Math.ceil((100 - progress) / 6.7)}秒...` : lang === "es" ? `Quedan ${Math.ceil((100 - progress) / 6.7)}s...` : `${Math.ceil((100 - progress) / 6.7)}s remaining...`}
             </div>
           </>
         )}
@@ -355,12 +358,12 @@ function RewardedAdModal({ lang, onComplete, onClose }) {
           <>
             <div style={{ textAlign: "center", padding: "20px 0" }}>
               <div style={{ fontSize: "3.5rem", marginBottom: 10, animation: "float 1s ease-in-out infinite" }}>🎉</div>
-              <div style={{ fontWeight: 700, fontSize: "1.2rem", color: "#2d7a3a", marginBottom: 8 }}>{lang === "ja" ? "特典ゲット！" : "Reward Earned!"}</div>
+              <div style={{ fontWeight: 700, fontSize: "1.2rem", color: "#2d7a3a", marginBottom: 8 }}>{lang === "ja" ? "特典ゲット！" : lang === "es" ? "¡Recompensa ganada!" : "Reward Earned!"}</div>
               <div style={{ fontSize: "1rem", color: "#5a5a4a", marginBottom: 20 }}>
-                {lang === "ja" ? "+100ポイントが追加されました" : "+100 points added"}
+                {lang === "ja" ? "+100ポイントが追加されました" : lang === "es" ? "+100 puntos añadidos" : "+100 points added"}
               </div>
               <button onClick={onComplete} style={{ padding: "12px 32px", background: "#c8e8d0", border: "2px solid #60b080", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: "1.05rem" }}>
-                {lang === "ja" ? "✓ 受け取る" : "✓ Claim Reward"}
+                {lang === "ja" ? "✓ 受け取る" : lang === "es" ? "✓ Reclamar recompensa" : "✓ Claim Reward"}
               </button>
             </div>
           </>
@@ -581,61 +584,61 @@ const FISH_DATA = [
   { id: 15, name: "ハマチ（ショア）", nameEn: "Young Yellowtail (Shore)", emoji: "🦈", color: "#203848", accent: "#ffd020", difficulty: "intermediate", flyFriendly: false, season: { ja: "夏〜秋（7〜11月）", en: "Summer–Autumn (July–November)" }, habitat: { ja: "地磯・サーフ・港湾の外側", en: "Shore reefs, surf, outer harbor walls" }, bestTime: { ja: "朝マズメ・夕マズメ", en: "Dawn & dusk feeding windows" }, description: { ja: "ショアジギング最人気ターゲット。岸から大型青物を狙う爽快感はたまらない。遠投メタルジグを100gクラスで全力でシャクる。", en: "Shore jigging's most exciting target. Hurling heavy jigs from the rocks at charging pelagics is Japan's fastest-growing shore style." }, gear: { rod: { ja: "ショアジギングロッド 10〜11フィート H〜XH", en: "10–11ft H–XH shore jigging rod" }, reel: { ja: "5000〜6000番スピニング", en: "5000–6000 spinning reel" }, line: { ja: "PE 2.0〜3.0号 + フロロリーダー 35〜50lb", en: "PE 2.0–3.0 + 35–50lb fluoro leader" }, hooks: { ja: "アシストフック #2/0〜4/0", en: "Assist hook #2/0–4/0" }, lures: ["メタルジグ 60〜100g（ブルピン/シルバー）", "ポッパー 100mm以上", "ペンシルベイト（水面の炸裂を楽しむ）"], tips: { ja: "早朝の第一投が黄金。太陽が高くなる前の30分が最も熱い。全力遠投してスピードジャーキング。", en: "The first cast at dawn is golden. The 30-minute window before the sun rises is peak. Cast far, retrieve fast." } }, spots: [{ name: "大分・蒲江地磯", rating: 5.0, type: { ja: "地磯", en: "Shore Reef" } }, { name: "高知・足摺岬", rating: 4.9, type: { ja: "地磯", en: "Shore Reef" } }, { name: "静岡・御前崎", rating: 4.7, type: { ja: "地磯", en: "Shore Reef" } }] },
   { id: 16, name: "メバル", nameEn: "Rockfish (Mebaru)", emoji: "🐟", color: "#5a3818", accent: "#e0b060", difficulty: "beginner", flyFriendly: false, season: { ja: "通年（冬〜春が最盛期）", en: "Year-round (peak winter–spring)" }, habitat: { ja: "磯・防波堤・港湾の岩礁周り", en: "Rocky shores, breakwaters, harbor reefs" }, bestTime: { ja: "夜間〜早朝・常夜灯周り", en: "Night to early morning, harbor lights" }, description: { ja: "メバリングで大人気のライトゲームターゲット。繊細なアタリと軽量タックルの組み合わせが醍醐味。夜の常夜灯周りに多く集まる。", en: "The star of mebaring light-game fishing. Ultra-sensitive bites on ultra-light tackle make it addictive. Gathers under harbor lights at night." }, gear: { rod: { ja: "メバリングロッド 6〜7フィート L〜UL", en: "6–7ft L–UL mebaring rod" }, reel: { ja: "1000〜2000番スピニング", en: "1000–2000 spinning reel" }, line: { ja: "PE 0.2〜0.4号 + フロロリーダー 3〜5lb", en: "PE 0.2–0.4 + 3–5lb fluoro leader" }, hooks: { ja: "ジグヘッド 0.5〜1.5g #8〜10", en: "Jig head 0.5–1.5g #8–10" }, lures: ["1.5〜2インチワーム（クリアカラー）", "プラグ", "スプーン", "フローティングミノー"], tips: { ja: "夜の常夜灯周りは超一級ポイント。ゆっくりとしたデッドスローリトリーブが基本。ラインの動きでアタリを取る。", en: "Night lights in harbors are prime. Ultra-slow retrieve is key. Watch the line for the subtlest bites." } }, spots: [{ name: "横浜港・山下ふ頭", rating: 4.5, type: { ja: "港湾", en: "Harbor" } }, { name: "神戸港・ポートアイランド", rating: 4.6, type: { ja: "港湾", en: "Harbor" } }, { name: "松山港（愛媛）", rating: 4.7, type: { ja: "港湾", en: "Harbor" } }] },
   // ── CARIBBEAN / PUERTO RICO ─────────────────────────────────────────────────
-  { id: 17, name: "タリポン", nameEn: "Tarpon", spriteId: "tarpon", emoji: "🐟", category: "saltwater", difficulty: "advanced",
-    desc: { ja: "カリブ海の王者。100lb超の個体も珍しくない。ジャンプが凄まじく釣り人を魅了する。", en: "King of the Caribbean. Fish over 100lb are common. Aerial acrobatics are legendary." },
-    season: { ja: "通年（夏最高）", en: "Year-round (summer peak)" }, color: "#c8e6f0", accent: "#1565a0",
-    gear: { rods: { ja: "ヘビーロッド 8' H、またはフライロッド12番", en: "Heavy 8' rod or 12-weight fly rod" }, line: { ja: "PE3〜5号、リーダー100lb", en: "30-50lb braid, 100lb leader" }, lures: ["Bubble Walker", "Mullet plug", "Crab fly", "Deceiver"], technique: { ja: "夜の常夜灯周りでポッパー。朝夕のフラットでフライ。", en: "Poppers around night lights. Fly on flats at dawn and dusk." } },
+  { id: 17, name: "タリポン", nameEn: "Tarpon", nameEs: "Sábalo", spriteId: "tarpon", emoji: "🐟", category: "saltwater", difficulty: "advanced",
+    desc: { ja: "カリブ海の王者。100lb超の個体も珍しくない。ジャンプが凄まじく釣り人を魅了する。", en: "King of the Caribbean. Fish over 100lb are common. Aerial acrobatics are legendary.", es: "El rey del Caribe. Los ejemplares de más de 100 libras son comunes. Sus saltos son legendarios." },
+    season: { ja: "通年（夏最高）", en: "Year-round (summer peak)", es: "Todo el año (pico en verano)" }, color: "#c8e6f0", accent: "#1565a0",
+    gear: { rods: { ja: "ヘビーロッド 8' H、またはフライロッド12番", en: "Heavy 8' rod or 12-weight fly rod", es: "Caña pesada de 8' o caña de mosca #12" }, line: { ja: "PE3〜5号、リーダー100lb", en: "30-50lb braid, 100lb leader", es: "Trenzada 30-50lb, líder de 100lb" }, lures: ["Bubble Walker", "Mullet plug", "Crab fly", "Deceiver"], technique: { ja: "夜の常夜灯周りでポッパー。朝夕のフラットでフライ。", en: "Poppers around night lights. Fly on flats at dawn and dusk.", es: "Popper bajo las luces de noche. Mosca en las llanuras al amanecer y al atardecer." } },
     spots: [{ name: "Laguna Tortuguero", rating: 4.9 }, { name: "Boca de Cangrejos", rating: 4.7 }, { name: "Vieques - Mosquito Pier", rating: 4.9 }],
-    regulations: { ja: "キャッチ＆リリース推奨。遊漁ライセンス不要（海釣り）", en: "C&R recommended. No license required for saltwater fishing in PR." } },
+    regulations: { ja: "キャッチ＆リリース推奨。遊漁ライセンス不要（海釣り）", en: "C&R recommended. No license required for saltwater fishing in PR.", es: "Se recomienda captura y suelta. No hace falta licencia para pescar en el mar en PR." } },
 
-  { id: 18, name: "スノック", nameEn: "Snook", spriteId: "snook", emoji: "🐟", category: "saltwater", difficulty: "intermediate",
-    desc: { ja: "マングローブの王様。鋭いエラ蓋で仕掛けを切る。繊細なアプローチが必要。", en: "King of the mangroves. Sharp gill plate cuts lines. Requires finesse." },
-    season: { ja: "通年（秋春最高）", en: "Year-round (fall/spring best)" }, color: "#d4e8d0", accent: "#2d6a1f",
-    gear: { rods: { ja: "ライトロッド 7' M", en: "7' medium spinning or 8-weight fly rod" }, line: { ja: "PE1.5〜2号、リーダー40lb", en: "15-20lb braid, 40lb fluorocarbon leader" }, lures: ["Live mullet", "DOA shrimp", "Clouser Minnow", "Topwater plug"], technique: { ja: "マングローブの根際をタイトに狙う。朝夕のトップウォーターが最高。", en: "Cast tight to mangrove roots. Topwater at dawn and dusk is explosive." } },
+  { id: 18, name: "スノック", nameEn: "Snook", nameEs: "Róbalo", spriteId: "snook", emoji: "🐟", category: "saltwater", difficulty: "intermediate",
+    desc: { ja: "マングローブの王様。鋭いエラ蓋で仕掛けを切る。繊細なアプローチが必要。", en: "King of the mangroves. Sharp gill plate cuts lines. Requires finesse.", es: "El rey del mangle. El borde de la agalla corta la línea. Hay que pescarlo con finura." },
+    season: { ja: "通年（秋春最高）", en: "Year-round (fall/spring best)", es: "Todo el año (mejor en otoño y primavera)" }, color: "#d4e8d0", accent: "#2d6a1f",
+    gear: { rods: { ja: "ライトロッド 7' M", en: "7' medium spinning or 8-weight fly rod", es: "Caña spinning media de 7' o caña de mosca #8" }, line: { ja: "PE1.5〜2号、リーダー40lb", en: "15-20lb braid, 40lb fluorocarbon leader", es: "Trenzada 15-20lb, líder de fluorocarbono de 40lb" }, lures: ["Live mullet", "DOA shrimp", "Clouser Minnow", "Topwater plug"], technique: { ja: "マングローブの根際をタイトに狙う。朝夕のトップウォーターが最高。", en: "Cast tight to mangrove roots. Topwater at dawn and dusk is explosive.", es: "Tira pegado a las raíces del mangle. De superficie al amanecer y al atardecer es explosivo." } },
     spots: [{ name: "Laguna Tortuguero", rating: 4.9 }, { name: "Humacao Nature Reserve", rating: 4.6 }],
-    regulations: { ja: "最小サイズ: 28インチ。禁漁期: 12〜2月", en: "Minimum 28 inches. Closed Dec–Feb (spawning)." } },
+    regulations: { ja: "最小サイズ: 28インチ。禁漁期: 12〜2月", en: "Minimum 28 inches. Closed Dec–Feb (spawning).", es: "Mínimo 28 pulgadas. Veda de diciembre a febrero (desove)." } },
 
-  { id: 19, name: "ボーンフィッシュ", nameEn: "Bonefish", spriteId: "bonefish", emoji: "🐟", category: "saltwater", difficulty: "advanced",
-    desc: { ja: "フラットフィッシングの究極ターゲット。透明な浅瀬で銀色に輝く魚体を発見してキャストする。", en: "The ultimate flats target. Spotting silver shapes in crystal shallows and making the perfect cast." },
-    season: { ja: "11〜5月", en: "Nov–May" }, color: "#e8f4f0", accent: "#0d7377",
-    gear: { rods: { ja: "フライロッド8〜9番", en: "8-9 weight fly rod" }, line: { ja: "ボーンフィッシュテーパー、ティペット16lb", en: "Bonefish taper fly line, 16lb tippet" }, lures: ["Crazy Charlie", "Gotcha", "Crab pattern", "Shrimp fly"], technique: { ja: "干潮時に干潟をウェーディングしてサイトフィッシング。", en: "Wade the flats at low tide and sight fish. Stealth is everything." } },
+  { id: 19, name: "ボーンフィッシュ", nameEn: "Bonefish", nameEs: "Macabí", spriteId: "bonefish", emoji: "🐟", category: "saltwater", difficulty: "advanced",
+    desc: { ja: "フラットフィッシングの究極ターゲット。透明な浅瀬で銀色に輝く魚体を発見してキャストする。", en: "The ultimate flats target. Spotting silver shapes in crystal shallows and making the perfect cast.", es: "El objetivo máximo de las llanuras. Verlo como una sombra plateada en agua cristalina y clavar el lanzado perfecto." },
+    season: { ja: "11〜5月", en: "Nov–May", es: "Noviembre–mayo" }, color: "#e8f4f0", accent: "#0d7377",
+    gear: { rods: { ja: "フライロッド8〜9番", en: "8-9 weight fly rod", es: "Caña de mosca #8-9" }, line: { ja: "ボーンフィッシュテーパー、ティペット16lb", en: "Bonefish taper fly line, 16lb tippet", es: "Línea cónica para macabí, tippet de 16lb" }, lures: ["Crazy Charlie", "Gotcha", "Crab pattern", "Shrimp fly"], technique: { ja: "干潮時に干潟をウェーディングしてサイトフィッシング。", en: "Wade the flats at low tide and sight fish. Stealth is everything.", es: "Camina la llanura en marea baja y pesca a la vista. El sigilo lo es todo." } },
     spots: [{ name: "Vieques - Red Beach Flats", rating: 5.0 }, { name: "Culebra - Flamenco Beach Flats", rating: 4.9 }],
-    regulations: { ja: "キャッチ＆リリース推奨", en: "C&R strongly recommended." } },
+    regulations: { ja: "キャッチ＆リリース推奨", en: "C&R strongly recommended.", es: "Se recomienda encarecidamente captura y suelta." } },
 
-  { id: 20, name: "パーミット", nameEn: "Permit", spriteId: "permit", emoji: "🐟", category: "saltwater", difficulty: "advanced",
-    desc: { ja: "フラットフィッシングで最も難しいターゲット。1匹釣れれば一生の思い出。", en: "The most difficult flats fish. Landing one on fly is a lifetime achievement." },
-    season: { ja: "春〜初夏", en: "Spring–early summer" }, color: "#f0f4e8", accent: "#5a7a20",
-    gear: { rods: { ja: "フライロッド9〜10番", en: "9-10 weight fly rod" }, line: { ja: "ボーンフィッシュラインと同様", en: "Similar to bonefish setup" }, lures: ["Merkin crab", "EP Crab", "Del's Merkin", "Live crab"], technique: { ja: "カニフライをパーミットの鼻先にプレゼンテーション。絶対に急がない。", en: "Present a crab fly to the permit's nose. Never rush the presentation." } },
+  { id: 20, name: "パーミット", nameEn: "Permit", nameEs: "Palometa", spriteId: "permit", emoji: "🐟", category: "saltwater", difficulty: "advanced",
+    desc: { ja: "フラットフィッシングで最も難しいターゲット。1匹釣れれば一生の思い出。", en: "The most difficult flats fish. Landing one on fly is a lifetime achievement.", es: "El pez más difícil de la llanura. Sacar uno con mosca es un logro de por vida." },
+    season: { ja: "春〜初夏", en: "Spring–early summer", es: "Primavera–principios de verano" }, color: "#f0f4e8", accent: "#5a7a20",
+    gear: { rods: { ja: "フライロッド9〜10番", en: "9-10 weight fly rod", es: "Caña de mosca #9-10" }, line: { ja: "ボーンフィッシュラインと同様", en: "Similar to bonefish setup", es: "Montaje parecido al de macabí" }, lures: ["Merkin crab", "EP Crab", "Del's Merkin", "Live crab"], technique: { ja: "カニフライをパーミットの鼻先にプレゼンテーション。絶対に急がない。", en: "Present a crab fly to the permit's nose. Never rush the presentation.", es: "Presenta la mosca cangrejo justo frente a su nariz. Nunca apures la presentación." } },
     spots: [{ name: "Vieques - Blue Beach", rating: 4.9 }, { name: "Culebra - Flamenco Beach Flats", rating: 4.9 }],
-    regulations: { ja: "キャッチ＆リリース強く推奨", en: "C&R strongly recommended." } },
+    regulations: { ja: "キャッチ＆リリース強く推奨", en: "C&R strongly recommended.", es: "Se recomienda encarecidamente captura y suelta." } },
 
-  { id: 21, name: "マヒマヒ", nameEn: "Mahi-Mahi (Dorado)", spriteId: "mahi_mahi", emoji: "🐠", category: "offshore", difficulty: "beginner",
-    desc: { ja: "最もカラフルな海の魚。青・緑・金の輝きが美しく食味も最高。", en: "Most colorful fish in the sea. Spectacular colors and exceptional table fare." },
-    season: { ja: "3〜8月", en: "Mar–Aug" }, color: "#e8f8e0", accent: "#2d8a2d",
-    gear: { rods: { ja: "ライトロッド、PE2〜3号", en: "Light to medium rod, 20-30lb braid" }, line: { ja: "PE2〜3号、リーダー40lb", en: "20-30lb braid, 40lb leader" }, lures: ["Ballyhoo", "Feather jig", "Mahi fly", "Popper"], technique: { ja: "流木・藻の周りに集まる。チャムで引き寄せてからルアー。", en: "Gather around floating debris. Chum them up then switch to lures." } },
+  { id: 21, name: "マヒマヒ", nameEn: "Mahi-Mahi (Dorado)", nameEs: "Dorado", spriteId: "mahi_mahi", emoji: "🐠", category: "offshore", difficulty: "beginner",
+    desc: { ja: "最もカラフルな海の魚。青・緑・金の輝きが美しく食味も最高。", en: "Most colorful fish in the sea. Spectacular colors and exceptional table fare.", es: "El pez más colorido del mar. Colores espectaculares y excelente en la mesa." },
+    season: { ja: "3〜8月", en: "Mar–Aug", es: "Marzo–agosto" }, color: "#e8f8e0", accent: "#2d8a2d",
+    gear: { rods: { ja: "ライトロッド、PE2〜3号", en: "Light to medium rod, 20-30lb braid", es: "Caña ligera o media, trenzada 20-30lb" }, line: { ja: "PE2〜3号、リーダー40lb", en: "20-30lb braid, 40lb leader", es: "Trenzada 20-30lb, líder de 40lb" }, lures: ["Ballyhoo", "Feather jig", "Mahi fly", "Popper"], technique: { ja: "流木・藻の周りに集まる。チャムで引き寄せてからルアー。", en: "Gather around floating debris. Chum them up then switch to lures.", es: "Se juntan bajo objetos flotantes. Cébalos y luego cambia a señuelos." } },
     spots: [{ name: "La Parguera", rating: 5.0 }, { name: "Vieques - Offshore", rating: 5.0 }],
-    regulations: { ja: "サイズ・数量制限なし（プエルトリコ）", en: "No size or bag limit in PR." } },
+    regulations: { ja: "サイズ・数量制限なし（プエルトリコ）", en: "No size or bag limit in PR.", es: "Sin límite de talla ni de cantidad en PR." } },
 
-  { id: 22, name: "ワフー", nameEn: "Wahoo (Ono)", spriteId: "wahoo", emoji: "🐟", category: "offshore", difficulty: "intermediate",
-    desc: { ja: "海で最も速い魚の一つ。60mph以上で泳ぐ。引きが強烈で食味は最高級。", en: "One of the fastest fish in the ocean at 60mph+. Intense fight and premium eating." },
-    season: { ja: "通年（秋冬最高）", en: "Year-round (fall/winter best)" }, color: "#e8f0f8", accent: "#1a5a8a",
-    gear: { rods: { ja: "ヘビーロッド、PE4〜6号", en: "Heavy rod, 40-60lb braid" }, line: { ja: "PE4〜6号、ワイヤーリーダー必須", en: "40-60lb braid, wire leader essential" }, lures: ["High-speed lure", "Rapala X-Rap", "Drone spoon"], technique: { ja: "高速トローリング（12〜15ノット）が最も効果的。", en: "High-speed trolling at 12-15 knots is most effective." } },
+  { id: 22, name: "ワフー", nameEn: "Wahoo (Ono)", nameEs: "Peto", spriteId: "wahoo", emoji: "🐟", category: "offshore", difficulty: "intermediate",
+    desc: { ja: "海で最も速い魚の一つ。60mph以上で泳ぐ。引きが強烈で食味は最高級。", en: "One of the fastest fish in the ocean at 60mph+. Intense fight and premium eating.", es: "Uno de los peces más rápidos del océano, sobre 60 mph. Pelea intensa y carne de primera." },
+    season: { ja: "通年（秋冬最高）", en: "Year-round (fall/winter best)", es: "Todo el año (mejor en otoño e invierno)" }, color: "#e8f0f8", accent: "#1a5a8a",
+    gear: { rods: { ja: "ヘビーロッド、PE4〜6号", en: "Heavy rod, 40-60lb braid", es: "Caña pesada, trenzada 40-60lb" }, line: { ja: "PE4〜6号、ワイヤーリーダー必須", en: "40-60lb braid, wire leader essential", es: "Trenzada 40-60lb, líder de alambre imprescindible" }, lures: ["High-speed lure", "Rapala X-Rap", "Drone spoon"], technique: { ja: "高速トローリング（12〜15ノット）が最も効果的。", en: "High-speed trolling at 12-15 knots is most effective.", es: "Curricán rápido a 12-15 nudos es lo más efectivo." } },
     spots: [{ name: "Vieques - Offshore", rating: 5.0 }, { name: "La Parguera", rating: 5.0 }],
-    regulations: { ja: "サイズ・数量制限なし（プエルトリコ）", en: "No size or bag limit in PR." } },
+    regulations: { ja: "サイズ・数量制限なし（プエルトリコ）", en: "No size or bag limit in PR.", es: "Sin límite de talla ni de cantidad en PR." } },
 
-  { id: 23, name: "バラクーダ", nameEn: "Barracuda", spriteId: "barracuda", emoji: "🦈", category: "saltwater", difficulty: "beginner",
-    desc: { ja: "鋭い歯を持つスピードスター。シルバーのルアーに猛突進する。", en: "Speed demon with razor teeth. Will charge at silver lures with explosive strikes." },
-    season: { ja: "通年", en: "Year-round" }, color: "#f0f0f8", accent: "#445580",
-    gear: { rods: { ja: "ミディアムロッド、PE2〜3号", en: "Medium rod, 20-30lb braid" }, line: { ja: "PE2〜3号、ワイヤーリーダー推奨", en: "20-30lb braid, wire leader recommended" }, lures: ["Silver spoon", "Tube lure", "Needlefish lure", "Rapala"], technique: { ja: "リーフや岩礁際を高速リトリーブ。シルバーカラーに強い反応。", en: "Fast retrieve along reefs. Silver colors get the strongest reactions." } },
+  { id: 23, name: "バラクーダ", nameEn: "Barracuda", nameEs: "Picúa", spriteId: "barracuda", emoji: "🦈", category: "saltwater", difficulty: "beginner",
+    desc: { ja: "鋭い歯を持つスピードスター。シルバーのルアーに猛突進する。", en: "Speed demon with razor teeth. Will charge at silver lures with explosive strikes.", es: "Un demonio de velocidad con dientes de navaja. Se lanza sobre los señuelos plateados con ataques explosivos." },
+    season: { ja: "通年", en: "Year-round", es: "Todo el año" }, color: "#f0f0f8", accent: "#445580",
+    gear: { rods: { ja: "ミディアムロッド、PE2〜3号", en: "Medium rod, 20-30lb braid", es: "Caña media, trenzada 20-30lb" }, line: { ja: "PE2〜3号、ワイヤーリーダー推奨", en: "20-30lb braid, wire leader recommended", es: "Trenzada 20-30lb, se recomienda líder de alambre" }, lures: ["Silver spoon", "Tube lure", "Needlefish lure", "Rapala"], technique: { ja: "リーフや岩礁際を高速リトリーブ。シルバーカラーに強い反応。", en: "Fast retrieve along reefs. Silver colors get the strongest reactions.", es: "Recogida rápida a lo largo del arrecife. Los colores plateados provocan las reacciones más fuertes." } },
     spots: [{ name: "Culebra Island", rating: 5.0 }, { name: "Vieques - North Shore Reef", rating: 4.8 }],
-    regulations: { ja: "大型個体の食用は避けること（シガテラ毒）", en: "Avoid eating large barracuda due to ciguatera risk." } },
+    regulations: { ja: "大型個体の食用は避けること（シガテラ毒）", en: "Avoid eating large barracuda due to ciguatera risk.", es: "Evita comer picúa grande por el riesgo de ciguatera." } },
 
-  { id: 24, name: "レッドスナッパー", nameEn: "Red Snapper", spriteId: "red_snapper", emoji: "🐠", category: "reef", difficulty: "beginner",
-    desc: { ja: "カリブ海で最も人気の食用魚。赤い体が美しくリーフ釣りの定番ターゲット。", en: "One of the Caribbean's most prized food fish. Classic reef bottom fishing target." },
-    season: { ja: "通年", en: "Year-round" }, color: "#fce8e8", accent: "#c0302a",
-    gear: { rods: { ja: "ミディアムヘビーロッド、PE3〜4号", en: "Medium-heavy rod, 30-40lb braid" }, line: { ja: "PE3〜4号、リーダー40〜60lb", en: "30-40lb braid, 40-60lb leader" }, lures: ["Squid", "Live bait", "Jig 60-100g", "Cut fish"], technique: { ja: "リーフの根際でボトムフィッシング。生餌か冷凍イカが有効。", en: "Bottom fishing along reef structures. Live or frozen squid is most effective." } },
+  { id: 24, name: "レッドスナッパー", nameEn: "Red Snapper", nameEs: "Chillo (pargo colorado)", spriteId: "red_snapper", emoji: "🐠", category: "reef", difficulty: "beginner",
+    desc: { ja: "カリブ海で最も人気の食用魚。赤い体が美しくリーフ釣りの定番ターゲット。", en: "One of the Caribbean's most prized food fish. Classic reef bottom fishing target.", es: "Uno de los pescados de mesa más apreciados del Caribe. Objetivo clásico de pesca de fondo en arrecife." },
+    season: { ja: "通年", en: "Year-round", es: "Todo el año" }, color: "#fce8e8", accent: "#c0302a",
+    gear: { rods: { ja: "ミディアムヘビーロッド、PE3〜4号", en: "Medium-heavy rod, 30-40lb braid", es: "Caña media-pesada, trenzada 30-40lb" }, line: { ja: "PE3〜4号、リーダー40〜60lb", en: "30-40lb braid, 40-60lb leader", es: "Trenzada 30-40lb, líder de 40-60lb" }, lures: ["Squid", "Live bait", "Jig 60-100g", "Cut fish"], technique: { ja: "リーフの根際でボトムフィッシング。生餌か冷凍イカが有効。", en: "Bottom fishing along reef structures. Live or frozen squid is most effective.", es: "Pesca de fondo junto a estructuras de arrecife. El calamar vivo o congelado es lo más efectivo." } },
     spots: [{ name: "Vieques - North Shore Reef", rating: 4.8 }, { name: "Culebra Island", rating: 5.0 }],
-    regulations: { ja: "最小サイズ: 10インチ。DNER規制を確認", en: "Minimum 10 inches. Check current DNER regulations." } },
+    regulations: { ja: "最小サイズ: 10インチ。DNER規制を確認", en: "Minimum 10 inches. Check current DNER regulations.", es: "Mínimo 10 pulgadas. Verifica el reglamento vigente del DRNA." } },
 
 ];
 FISH_DATA.push(...EXTRA_FISH);
@@ -928,6 +931,20 @@ const WEATHER_FALLBACK = {
 };
 
 // ─── LOCAL STORAGE PERSISTENCE ───────────────────────────────────────────────
+// First visit: follow the browser. Japan gets ja, the Spanish-speaking
+// Caribbean gets es, everyone else en. Overridden by the switcher and stored.
+function defaultLang() {
+  try {
+    const l = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    if (/^ja/i.test(l)) return "ja";
+    if (/^es/i.test(l)) return "es";
+  } catch { /* no navigator */ }
+  return "en";
+}
+
+const LANGS = ["ja", "en", "es"];
+const LANG_LABEL = { ja: "🇯🇵 JP", en: "🇺🇸 EN", es: "🇵🇷 ES" };
+
 function useLocalStorage(key, defaultValue) {
   const [value, setValue] = useState(() => {
     try {
@@ -1083,7 +1100,7 @@ function PredictionZoneCard({ spot, weather, tideData, activeUsers, lang, onAskA
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#0d7377" }}>{spot.icon} {spot.name}</div>
-          <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>📌 {spot.pref} · {typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
+          <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>📌 {spot.pref} · {typeof spot.type === "object" ? gl(spot.type, lang) : spot.type}</div>
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
           <div style={{ fontSize: "1.6rem", fontWeight: 900, color: colors.text, lineHeight: 1 }}>{score}</div>
@@ -1093,7 +1110,7 @@ function PredictionZoneCard({ spot, weather, tideData, activeUsers, lang, onAskA
       <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}>
         <span style={{ fontSize: "0.82rem", fontWeight: 700, color: colors.text }}>{colors.label} {score >= 80 ? (lang === "ja" ? "最高の条件！" : lang === "es" ? "¡Condiciones óptimas!" : "Prime conditions!") : score >= 60 ? (lang === "ja" ? "良い条件" : lang === "es" ? "Buenas condiciones" : "Good conditions") : score >= 40 ? (lang === "ja" ? "普通" : lang === "es" ? "Regular" : "Fair") : (lang === "ja" ? "不向き" : lang === "es" ? "Malo" : "Poor")}</span>
         {crowd && crowd.count > 0 && <span style={{ fontSize: "0.75rem", color: crowd.color, fontWeight: 600 }}>{(crowd.label?.[lang] || crowd.label?.en || crowd.label?.ja || "")}</span>}
-        <span style={{ fontSize: "0.75rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : spot.fish}</span>
+        <span style={{ fontSize: "0.75rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? gl(spot.fish, lang) : spot.fish}</span>
       </div>
       <button onClick={() => onAskAI(spot, score)} style={{ width: "100%", padding: "7px", background: "rgba(255,255,255,0.7)", border: `1px solid ${colors.border}`, borderRadius: 8, color: colors.text, cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 600 }}>
         🤖 {lang === "ja" ? "AIに詳しく聞く →" : lang === "es" ? "Preguntarle a IA →" : "Ask AI for details →"}
@@ -1111,7 +1128,7 @@ function PredictionZoneModal({ spot, score, weather, tideData, lang, onClose }) 
       try {
         const prompt = lang === "ja"
           ? `日本の釣り専門家として「${spot.name}」の釣り予測を分析してください。釣り指数:${score}/100、対象魚:${typeof spot.fish === "object" ? spot.fish.ja : spot.fish}、天気:${weather?.desc || "不明"} ${weather?.temp || "?"}°C 風${weather?.wind || "?"}m/s、季節:${new Date().toLocaleDateString("ja-JP",{month:"long"})}、時刻:${new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})}。おすすめの釣り方・時間帯・一言アドバイスを200文字以内で。`
-          : `As a Japanese fishing expert, analyze fishing at "${spot.name}". Score:${score}/100, Target:${typeof spot.fish === "object" ? spot.fish.en : spot.fish}, Weather:${weather?.desc} ${weather?.temp}°C wind ${weather?.wind}m/s, Month:${new Date().toLocaleDateString("en-US",{month:"long"})}. Give best method, timing, and key tip in under 120 words.`;
+          : lang === "es" ? `As a Japanese fishing expert, analyze fishing at "${spot.name}". Score:${score}/100, Target:${typeof spot.fish === "object" ? spot.fish.en : spot.fish}, Weather:${weather?.desc} ${weather?.temp}°C wind ${weather?.wind}m/s, Month:${new Date().toLocaleDateString("en-US",{month:"long"})}. Give best method, timing, and key tip in under 120 words.\n\nResponde íntegramente en español (español de Puerto Rico), conservando los encabezados con emoji.` : `As a Japanese fishing expert, analyze fishing at "${spot.name}". Score:${score}/100, Target:${typeof spot.fish === "object" ? spot.fish.en : spot.fish}, Weather:${weather?.desc} ${weather?.temp}°C wind ${weather?.wind}m/s, Month:${new Date().toLocaleDateString("en-US",{month:"long"})}. Give best method, timing, and key tip in under 120 words.`;
 
         const res = await fetch("/api/claude", {
           method: "POST",
@@ -1119,9 +1136,9 @@ function PredictionZoneModal({ spot, score, weather, tideData, lang, onClose }) 
           body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 300, messages: [{ role: "user", content: prompt }] })
         });
         const data = await res.json();
-        setAdvice(data.content?.[0]?.text || (lang === "ja" ? "取得できませんでした" : "Could not get advice"));
+        setAdvice(data.content?.[0]?.text || (lang === "ja" ? "取得できませんでした" : lang === "es" ? "No se pudo obtener el consejo" : "Could not get advice"));
       } catch (e) {
-        setAdvice(lang === "ja" ? "通信エラー" : "Connection error");
+        setAdvice(lang === "ja" ? "通信エラー" : lang === "es" ? "Error de conexión" : "Connection error");
       } finally {
         setLoading(false);
       }
@@ -1143,7 +1160,7 @@ function PredictionZoneModal({ spot, score, weather, tideData, lang, onClose }) 
           </div>
         </div>
         <div style={{ background: colors.bg, border: `2px solid ${colors.border}`, borderRadius: 12, padding: "12px 14px", marginBottom: 14, fontSize: "0.92rem", color: "#0d7377", lineHeight: 1.7, minHeight: 80 }}>
-          {loading ? <div style={{ textAlign: "center", padding: "20px 0", color: "#5a5a4a" }}>🤖 {lang === "ja" ? "AIが分析中..." : "AI analyzing..."}</div> : advice}
+          {loading ? <div style={{ textAlign: "center", padding: "20px 0", color: "#5a5a4a" }}>🤖 {lang === "ja" ? "AIが分析中..." : lang === "es" ? "IA analizando..." : "AI analyzing..."}</div> : advice}
         </div>
         <button onClick={onClose} style={{ width: "100%", padding: "12px", background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>
           {lang === "ja" ? "閉じる" : lang === "es" ? "Cerrar" : "Close"}
@@ -1289,11 +1306,11 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
   async function submitEntry() {
     if (!submitWeight || !submitSpecies || !tourneyPhoto || !activeTournament) return;
     if (!user) {
-      alert(lang === "ja" ? "提出するにはログインしてください" : "Please log in to submit");
+      alert(lang === "ja" ? "提出するにはログインしてください" : lang === "es" ? "Inicia sesión para participar" : "Please log in to submit");
       return;
     }
     if (!isPro) { onUpgrade?.(); return; }
-    if (!photoCheck?.ok) { alert(lang === "ja" ? "写真の確認が完了していません" : "Photo hasn't passed verification"); return; }
+    if (!photoCheck?.ok) { alert(lang === "ja" ? "写真の確認が完了していません" : lang === "es" ? "La foto no pasó la verificación" : "Photo hasn't passed verification"); return; }
     setSubmitting(true);
     try {
       const weightNum = parseFloat(submitWeight.replace(/[^0-9.]/g, "")) || 0;
@@ -1325,7 +1342,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
       }, 2500);
     } catch (e) {
       console.error("Tournament submit failed:", e);
-      alert((lang === "ja" ? "提出に失敗しました: " : "Submit failed: ") + e.message);
+      alert((lang === "ja" ? "提出に失敗しました: " : lang === "es" ? "Falló el envío: " : "Submit failed: ") + e.message);
     }
     setSubmitting(false);
   }
@@ -1334,12 +1351,12 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
     const t = activeTournament;
     return (
       <div style={{ padding: "14px 14px 80px" }}>
-        <button onClick={() => setActiveTournament(null)} style={{ background: "none", border: "none", color: "#0d7377", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 700, cursor: "pointer", marginBottom: 12, padding: 0 }}>← {lang === "ja" ? "大会一覧" : "All Tournaments"}</button>
+        <button onClick={() => setActiveTournament(null)} style={{ background: "none", border: "none", color: "#0d7377", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 700, cursor: "pointer", marginBottom: 12, padding: 0 }}>← {lang === "ja" ? "大会一覧" : lang === "es" ? "Todos los torneos" : "All Tournaments"}</button>
 
         <div style={{ background: "#0d7377", borderRadius: 16, padding: 16, marginBottom: 12 }}>
           <div style={{ display: "inline-block", background: t.status === "live" ? "#74c69d" : "#555", color: t.status === "live" ? "#1a1a14" : "#74c69d", fontSize: "0.75rem", fontWeight: 800, padding: "3px 10px", borderRadius: 99, marginBottom: 8 }}>
-            {t.status === "live" ? (lang === "ja" ? "🔴 開催中" : "🔴 LIVE") : (lang === "ja" ? "近日開催" : "UPCOMING")}
-            {t.status === "live" && ` · ${lang === "ja" ? `参加者 ${t.participants}名` : `${t.participants} anglers`}`}
+            {t.status === "live" ? (lang === "ja" ? "🔴 開催中" : lang === "es" ? "🔴 EN VIVO" : "🔴 LIVE") : (lang === "ja" ? "近日開催" : lang === "es" ? "PRÓXIMO" : "UPCOMING")}
+            {t.status === "live" && ` · ${lang === "ja" ? `参加者 ${t.participants}名` : lang === "es" ? `${t.participants} pescadores` : `${t.participants} anglers`}`}
           </div>
           <div style={{ fontSize: "1.1rem", fontWeight: 900, color: "#74c69d", marginBottom: 6 }}>{(t.name?.[lang] || t.name?.en || t.name?.ja || "")}</div>
           <div style={{ fontSize: "0.82rem", color: "#aaa", marginBottom: 4 }}>📍 {(t.location?.[lang] || t.location?.en || t.location?.ja || "")} · {(t.period?.[lang] || t.period?.en || t.period?.ja || "")}</div>
@@ -1350,10 +1367,10 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
         {t.status === "live" && !submitted && !isPro && (
           <div style={{ background: "linear-gradient(135deg,rgba(144,96,224,0.14),rgba(72,202,228,0.08))", border: "2px solid #c0a0e0", borderRadius: 14, padding: 16, marginBottom: 12, textAlign: "center" }}>
             <div style={{ fontSize: "2rem" }}>🏆🔒</div>
-            <div style={{ fontWeight: 800, fontSize: "1rem", color: "#6040a0", margin: "4px 0" }}>{lang === "ja" ? "大会へのエントリーはPRO会員限定" : "Tournament entry is PRO-only"}</div>
-            <div style={{ fontSize: "0.85rem", color: "#5a5a4a", marginBottom: 12 }}>{lang === "ja" ? "リーダーボードは誰でも見られます。PROなら大会参加・広告なし・AI無制限。" : "Anyone can view the leaderboard. PRO unlocks entry, no ads and unlimited AI."}</div>
+            <div style={{ fontWeight: 800, fontSize: "1rem", color: "#6040a0", margin: "4px 0" }}>{lang === "ja" ? "大会へのエントリーはPRO会員限定" : lang === "es" ? "Participar en torneos es solo para PRO" : "Tournament entry is PRO-only"}</div>
+            <div style={{ fontSize: "0.85rem", color: "#5a5a4a", marginBottom: 12 }}>{lang === "ja" ? "リーダーボードは誰でも見られます。PROなら大会参加・広告なし・AI無制限。" : lang === "es" ? "Cualquiera puede ver la tabla de posiciones. PRO te deja participar, quita los anuncios y te da IA ilimitada." : "Anyone can view the leaderboard. PRO unlocks entry, no ads and unlimited AI."}</div>
             <button onClick={() => onUpgrade?.()} style={{ width: "100%", padding: 12, background: "#6040a0", color: "#fff", border: "none", borderRadius: 12, fontWeight: 800, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit" }}>
-              👑 {lang === "ja" ? "PROで参加する — ¥480/月" : "Join with PRO — ¥480/mo"}
+              👑 {lang === "ja" ? "PROで参加する — ¥480/月" : lang === "es" ? "Únete con PRO — ¥480/mes" : "Join with PRO — ¥480/mo"}
             </button>
           </div>
         )}
@@ -1361,15 +1378,15 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
         {t.status === "live" && !submitted && isPro && (
           <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 12 }}>
             <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#0d7377", marginBottom: 10 }}>
-              🎣 {lang === "ja" ? "釣果を提出する" : "Submit Your Catch"}
+              🎣 {lang === "ja" ? "釣果を提出する" : lang === "es" ? "Envía tu captura" : "Submit Your Catch"}
             </div>
-            <input value={submitSpecies} onChange={e => setSubmitSpecies(e.target.value)} placeholder={lang === "ja" ? "魚種（例：アユ）" : "Species (e.g. Ayu)"} style={{ width: "100%", marginBottom: 8, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", color: "#1a1a14", fontFamily: "inherit", boxSizing: "border-box" }} />
-            <input value={submitWeight} onChange={e => setSubmitWeight(e.target.value)} placeholder={lang === "ja" ? "重量（例：0.8kg）" : "Weight (e.g. 0.8kg)"} style={{ width: "100%", marginBottom: 10, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", color: "#1a1a14", fontFamily: "inherit", boxSizing: "border-box" }} />
+            <input value={submitSpecies} onChange={e => setSubmitSpecies(e.target.value)} placeholder={lang === "ja" ? "魚種（例：アユ）" : lang === "es" ? "Especie (ej. sábalo)" : "Species (e.g. Ayu)"} style={{ width: "100%", marginBottom: 8, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", color: "#1a1a14", fontFamily: "inherit", boxSizing: "border-box" }} />
+            <input value={submitWeight} onChange={e => setSubmitWeight(e.target.value)} placeholder={lang === "ja" ? "重量（例：0.8kg）" : lang === "es" ? "Peso (ej. 0.8kg)" : "Weight (e.g. 0.8kg)"} style={{ width: "100%", marginBottom: 10, background: "white", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.9rem", color: "#1a1a14", fontFamily: "inherit", boxSizing: "border-box" }} />
             <input ref={tourneyFileRef} type="file" accept="image/*" capture="environment" onChange={handleTourneyPhoto} style={{ display: "none" }} />
             <div style={{ fontSize: "0.78rem", color: "#0d7377", marginBottom: 8, lineHeight: 1.5 }}>
-              {lang === "ja" ? "🛡️ 不正防止：本日・大会エリア内でその場で撮影した写真のみ有効。位置情報をオンにしてください。" : "🛡️ Anti-cheat: only photos taken today, on the spot, inside the tournament area. Location must be on."}
+              {lang === "ja" ? "🛡️ 不正防止：本日・大会エリア内でその場で撮影した写真のみ有効。位置情報をオンにしてください。" : lang === "es" ? "🛡️ Anti-trampa: solo fotos tomadas hoy, en el sitio, dentro del área del torneo. La ubicación debe estar activada." : "🛡️ Anti-cheat: only photos taken today, on the spot, inside the tournament area. Location must be on."}
             </div>
-            {checkingPhoto && <div style={{ fontSize: "0.85rem", color: "#5a5a4a", marginBottom: 8 }}>{lang === "ja" ? "📡 写真と現在地を確認中…" : "📡 Checking photo and location…"}</div>}
+            {checkingPhoto && <div style={{ fontSize: "0.85rem", color: "#5a5a4a", marginBottom: 8 }}>{lang === "ja" ? "📡 写真と現在地を確認中…" : lang === "es" ? "📡 Verificando foto y ubicación…" : "📡 Checking photo and location…"}</div>}
             {photoCheck && (
               <div style={{ background: photoCheck.ok ? "#e8f6ec" : "#fdecea", border: `2px solid ${photoCheck.ok ? "#2d7a3a" : "#b82030"}`, borderRadius: 10, padding: "8px 10px", marginBottom: 10, fontSize: "0.8rem", color: "#1a1a14", lineHeight: 1.6 }}>
                 {photoCheck.msgs.map((m, i) => <div key={i}>{m}</div>)}
@@ -1378,18 +1395,18 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
             {tourneyPhoto ? (
               <div style={{ position: "relative", marginBottom: 10 }}>
                 <img src={tourneyPhoto} alt="catch" style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 8, display: "block" }} />
-                <button onClick={() => setTourneyPhoto(null)} style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.75)", color: "white", border: "none", borderRadius: 6, padding: "5px 12px", cursor: "pointer", fontSize: "0.8rem", fontFamily: "inherit" }}>{lang === "ja" ? "✕ 削除" : "✕ Remove"}</button>
+                <button onClick={() => setTourneyPhoto(null)} style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.75)", color: "white", border: "none", borderRadius: 6, padding: "5px 12px", cursor: "pointer", fontSize: "0.8rem", fontFamily: "inherit" }}>{lang === "ja" ? "✕ 削除" : lang === "es" ? "✕ Quitar" : "✕ Remove"}</button>
               </div>
             ) : (
               <button onClick={() => tourneyFileRef.current && tourneyFileRef.current.click()} style={{ width: "100%", padding: "14px", background: "white", border: "2px dashed #0d7377", borderRadius: 10, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem", fontWeight: 700, marginBottom: 10 }}>
-                📸 {lang === "ja" ? "写真を撮影 / 選択" : "Take or choose a photo"}
+                📸 {lang === "ja" ? "写真を撮影 / 選択" : lang === "es" ? "Toma o elige una foto" : "Take or choose a photo"}
               </button>
             )}
             <button
               disabled={!submitWeight || !submitSpecies || !tourneyPhoto || !photoCheck?.ok || submitting}
               onClick={submitEntry}
               style={{ width: "100%", padding: "11px", background: (submitWeight && submitSpecies && tourneyPhoto && !submitting) ? "#0d7377" : "#aaa", border: "none", borderRadius: 10, color: "white", cursor: (submitWeight && submitSpecies && tourneyPhoto && !submitting) ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 800 }}>
-              {submitting ? (lang === "ja" ? "アップロード中..." : "Uploading...") : (lang === "ja" ? "提出する" : "Submit Entry")}
+              {submitting ? (lang === "ja" ? "アップロード中..." : lang === "es" ? "Subiendo..." : "Uploading...") : (lang === "ja" ? "提出する" : lang === "es" ? "Enviar participación" : "Submit Entry")}
             </button>
           </div>
         )}
@@ -1397,8 +1414,8 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
         {submitted && (
           <div style={{ background: "#0d7377", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 12, textAlign: "center" }}>
             <div style={{ fontSize: "2rem", marginBottom: 8 }}>🎉</div>
-            <div style={{ fontWeight: 800, color: "#74c69d", marginBottom: 4 }}>{lang === "ja" ? "提出完了！" : "Submitted!"}</div>
-            <div style={{ fontSize: "0.82rem", color: "#aaa" }}>{lang === "ja" ? "審査後にリーダーボードに反映されます" : "Will appear on leaderboard after review"}</div>
+            <div style={{ fontWeight: 800, color: "#74c69d", marginBottom: 4 }}>{lang === "ja" ? "提出完了！" : lang === "es" ? "¡Enviado!" : "Submitted!"}</div>
+            <div style={{ fontSize: "0.82rem", color: "#aaa" }}>{lang === "ja" ? "審査後にリーダーボードに反映されます" : lang === "es" ? "Aparecerá en la tabla después de la revisión" : "Will appear on leaderboard after review"}</div>
           </div>
         )}
 
@@ -1406,7 +1423,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
         {submissions.length > 0 && (
           <>
             <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "#0d7377", marginBottom: 8, borderBottom: "2px solid #1a1a14", paddingBottom: 4 }}>
-              🏅 {lang === "ja" ? `現在のランキング (${submissions.length}件)` : `Current Rankings (${submissions.length})`}
+              🏅 {lang === "ja" ? `現在のランキング (${submissions.length}件)` : lang === "es" ? `Posiciones actuales (${submissions.length})` : `Current Rankings (${submissions.length})`}
             </div>
             {submissions.map((entry, i) => (
               <div key={entry.id} style={{ background: i === 0 ? "#e0f2f2" : "white", border: `1.5px solid ${i === 0 ? "#74c69d" : "#e0e0d8"}`, borderRadius: 10, padding: "10px 12px", marginBottom: 6, display: "flex", alignItems: "center", gap: 10 }}>
@@ -1430,7 +1447,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
         {submissions.length === 0 && t.leaderboard.length > 0 && (
           <>
             <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "#0d7377", marginBottom: 8, borderBottom: "2px solid #1a1a14", paddingBottom: 4 }}>
-              🏅 {lang === "ja" ? "現在のランキング" : "Current Rankings"}
+              🏅 {lang === "ja" ? "現在のランキング" : lang === "es" ? "Posiciones actuales" : "Current Rankings"}
             </div>
             {t.leaderboard.map((entry, i) => (
               <div key={i} style={{ background: i === 0 ? "#e0f2f2" : "white", border: `1.5px solid ${i === 0 ? "#74c69d" : "#e0e0d8"}`, borderRadius: 10, padding: "10px 12px", marginBottom: 6, display: "flex", alignItems: "center", gap: 10 }}>
@@ -1454,7 +1471,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
     <div style={{ padding: "14px 14px 80px" }}>
       <div style={{ background: "#0d7377", borderRadius: 14, padding: "12px 16px", marginBottom: 14, textAlign: "center" }}>
         <div style={{ color: "#74c69d", fontWeight: 900, fontSize: "1rem", marginBottom: 2 }}>🏆 Castwise 釣り大会</div>
-        <div style={{ color: "#aaa", fontSize: "0.78rem" }}>{lang === "ja" ? "Castwise 公式オンライン釣り大会（エントリーはPRO会員限定）" : "Official Castwise online tournaments (PRO members enter)"}</div>
+        <div style={{ color: "#aaa", fontSize: "0.78rem" }}>{lang === "ja" ? "Castwise 公式オンライン釣り大会（エントリーはPRO会員限定）" : lang === "es" ? "Torneos oficiales de Castwise en línea (participan los miembros PRO)" : "Official Castwise online tournaments (PRO members enter)"}</div>
       </div>
 
       {TOURNAMENTS.map(t => (
@@ -1475,7 +1492,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
               <div style={{ flex: 1, background: "rgba(255,255,255,0.07)", borderRadius: 10, padding: "8px", textAlign: "center" }}>
                 <div style={{ fontSize: "1.4rem" }}>🇯🇵</div>
                 <div style={{ color: "white", fontWeight: 800, fontSize: "0.88rem" }}>梁井</div>
-                <div style={{ color: "#aaa", fontSize: "0.72rem", marginTop: 2 }}>{lang === "ja" ? "未記録" : "No catch yet"}</div>
+                <div style={{ color: "#aaa", fontSize: "0.72rem", marginTop: 2 }}>{lang === "ja" ? "未記録" : lang === "es" ? "Todavía sin capturas" : "No catch yet"}</div>
               </div>
             </div>
             <div style={{ color: "#aaa", fontSize: "0.75rem", marginBottom: 8 }}>🏆 {(t.prize?.[lang] || t.prize?.en || t.prize?.ja || "")}</div>
@@ -1487,14 +1504,14 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
         <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: t.status === "live" ? "#1a1a14" : "white", border: `2px solid ${t.status === "live" ? "#74c69d" : "#e0e0d8"}`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
             <span style={{ background: t.status === "live" ? "#74c69d" : "#555", color: t.status === "live" ? "#1a1a14" : "#74c69d", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>
-              {t.status === "live" ? (lang === "ja" ? `🔴 開催中 · ${t.participants}名参加` : `🔴 LIVE · ${t.participants} anglers`) : (lang === "ja" ? "近日開催" : "UPCOMING")}
+              {t.status === "live" ? (lang === "ja" ? `🔴 開催中 · ${t.participants}名参加` : lang === "es" ? `🔴 EN VIVO · ${t.participants} pescadores` : `🔴 LIVE · ${t.participants} anglers`) : (lang === "ja" ? "近日開催" : lang === "es" ? "PRÓXIMO" : "UPCOMING")}
             </span>
           </div>
           <div style={{ fontWeight: 800, fontSize: "0.95rem", color: t.status === "live" ? "#74c69d" : "#1a1a14", marginBottom: 4 }}>{(t.name?.[lang] || t.name?.en || t.name?.ja || "")}</div>
           <div style={{ fontSize: "0.78rem", color: t.status === "live" ? "#aaa" : "#888", marginBottom: 4 }}>📍 {(t.location?.[lang] || t.location?.en || t.location?.ja || "")} · {(t.period?.[lang] || t.period?.en || t.period?.ja || "")}</div>
           <div style={{ fontSize: "0.82rem", color: t.status === "live" ? "#74c69d" : "#2d7a3a", fontWeight: 700 }}>{(t.prize?.[lang] || t.prize?.en || t.prize?.ja || "")}</div>
           <div style={{ marginTop: 10, background: t.status === "live" ? "#74c69d" : "#1a1a14", color: t.status === "live" ? "#1a1a14" : "#74c69d", borderRadius: 8, padding: "7px", textAlign: "center", fontSize: "0.85rem", fontWeight: 800 }}>
-            {t.status === "live" ? (lang === "ja" ? "参加・詳細を見る →" : "Join & View Details →") : (lang === "ja" ? "詳細を見る →" : "View Details →")}
+            {t.status === "live" ? (lang === "ja" ? "参加・詳細を見る →" : lang === "es" ? "Participar y ver detalles →" : "Join & View Details →") : (lang === "ja" ? "詳細を見る →" : lang === "es" ? "Ver detalles →" : "View Details →")}
           </div>
         </div>
         )
@@ -1507,7 +1524,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
 function shareToLINE(catch_, lang) {
   const text = lang === "ja"
     ? `🎣 釣れた！\n魚種: ${catch_.fish}\n重量: ${catch_.weight}\n場所: ${catch_.location}\n\n釣りナビPROで記録 → https://castwise-fly.vercel.app`
-    : `🎣 Got one!\nSpecies: ${catch_.fish}\nWeight: ${catch_.weight}\nLocation: ${catch_.location}\n\nLogged on CastWise Japan → https://castwise-fly.vercel.app`;
+    : lang === "es" ? `🎣 ¡Pesqué uno!\nEspecie: ${catch_.fish}\nPeso: ${catch_.weight}\nLugar: ${catch_.location}\n\nRegistrado en Castwise → https://castwise-fly.vercel.app` : `🎣 Got one!\nSpecies: ${catch_.fish}\nWeight: ${catch_.weight}\nLocation: ${catch_.location}\n\nLogged on CastWise Japan → https://castwise-fly.vercel.app`;
   const url = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
   window.open(url, "_blank");
 }
@@ -1515,7 +1532,7 @@ function shareToLINE(catch_, lang) {
 function shareToTwitter(catch_, lang) {
   const text = lang === "ja"
     ? `🎣 ${catch_.fish} ${catch_.weight}を釣りました！📍${catch_.location} #釣りナビPRO #釣り #fishing`
-    : `🎣 Caught a ${catch_.fish} weighing ${catch_.weight} at ${catch_.location}! #CastWiseJapan #fishing #Japan`;
+    : lang === "es" ? `🎣 ¡Pesqué un ${catch_.fish} de ${catch_.weight} en ${catch_.location}! #Castwise #pesca #PuertoRico` : `🎣 Caught a ${catch_.fish} weighing ${catch_.weight} at ${catch_.location}! #CastWiseJapan #fishing #Japan`;
   const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
   window.open(url, "_blank");
 }
@@ -1539,14 +1556,14 @@ function TrophyRoom({ catches, lang, onSelectFish, FISH_DATA }) {
   if (records.length === 0) return (
     <div style={{ textAlign: "center", padding: "40px 20px", color: "#5a5a4a" }}>
       <div style={{ fontSize: "3rem", marginBottom: 12 }}>🏆</div>
-      <div style={{ fontWeight: 700, fontSize: "1.05rem", marginBottom: 8 }}>{lang === "ja" ? lang === "ja" ? lang === "ja" ? "まだ記録がありません" : "No records yet" : "No records yet" : "No records yet"}</div>
-      <div style={{ fontSize: "0.9rem" }}>{lang === "ja" ? lang === "ja" ? lang === "ja" ? "釣果を記録すると自動的に最大記録が更新されます" : "Log catches to build your trophy room" : "Log catches to build your trophy room" : "Log catches to build your trophy room"}</div>
+      <div style={{ fontWeight: 700, fontSize: "1.05rem", marginBottom: 8 }}>{lang === "ja" ? lang === "ja" ? lang === "ja" ? "まだ記録がありません" : lang === "es" ? "Todavía sin récords" : "No records yet" : "No records yet" : "No records yet"}</div>
+      <div style={{ fontSize: "0.9rem" }}>{lang === "ja" ? lang === "ja" ? lang === "ja" ? "釣果を記録すると自動的に最大記録が更新されます" : lang === "es" ? "Registra capturas para llenar tu sala de trofeos" : "Log catches to build your trophy room" : "Log catches to build your trophy room" : "Log catches to build your trophy room"}</div>
     </div>
   );
   return (
     <div>
       <div style={{ fontSize: "0.88rem", color: "#5a5a4a", marginBottom: 12 }}>
-        {lang === "ja" ? lang === "ja" ? lang === "ja" ? `${records.length}魚種の自己記録` : `Personal records for ${records.length} species` : `Personal records for ${records.length} species` : `Personal records for ${records.length} species`}
+        {lang === "ja" ? lang === "ja" ? lang === "ja" ? `${records.length}魚種の自己記録` : lang === "es" ? `Récords personales de ${records.length} especies` : `Personal records for ${records.length} species` : `Personal records for ${records.length} species` : `Personal records for ${records.length} species`}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {records.map((r, i) => {
@@ -1563,7 +1580,7 @@ function TrophyRoom({ catches, lang, onSelectFish, FISH_DATA }) {
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontWeight: 900, fontSize: "1.2rem", color: i === 0 ? "#c06a10" : "#1a1a14" }}>⚖️ {r.weightStr}</div>
-                <div style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? lang === "ja" ? lang === "ja" ? "自己ベスト" : "Personal best" : "Personal best" : "Personal best"}</div>
+                <div style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? lang === "ja" ? lang === "ja" ? "自己ベスト" : lang === "es" ? "Récord personal" : "Personal best" : "Personal best" : "Personal best"}</div>
               </div>
             </div>
           );
@@ -1601,9 +1618,11 @@ function TidalCalendar({ lang, userLocation }) {
 
   const monthNames = {
     ja: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
-    en: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+    en: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    es: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
   };
   const dayNames = {
+    es: ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"],
     ja: ["日","月","火","水","木","金","土"],
     en: ["S","M","T","W","T","F","S"]
   };
@@ -1616,7 +1635,7 @@ function TidalCalendar({ lang, userLocation }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <h3 style={{ margin: 0, fontSize: "1.05rem" }}>🗓️ {monthNames[lang][month]} {year}</h3>
-        <div style={{ fontSize: "0.82rem", color: "#0d7377" }}>{lang === "ja" ? lang === "ja" ? "月齢ベース釣り指数" : "Lunar fishing index" : "Lunar-based fishing index"}</div>
+        <div style={{ fontSize: "0.82rem", color: "#0d7377" }}>{lang === "ja" ? lang === "ja" ? "月齢ベース釣り指数" : lang === "es" ? "Índice lunar de pesca" : "Lunar fishing index" : "Lunar-based fishing index"}</div>
       </div>
 
       {/* Day headers */}
@@ -1647,7 +1666,7 @@ function TidalCalendar({ lang, userLocation }) {
       {/* Best days summary */}
       <div style={{ marginTop: 14, background: "#e0f2f2", border: "2px solid #a0d0a0", borderRadius: 12, padding: "10px 14px" }}>
         <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#2d7a3a", marginBottom: 6 }}>
-          ⭐ {lang === "ja" ? lang === "ja" ? "今月のベスト釣り日" : "Best fishing days this month" : "Best fishing days this month"}
+          ⭐ {lang === "ja" ? lang === "ja" ? "今月のベスト釣り日" : lang === "es" ? "Mejores días de pesca del mes" : "Best fishing days this month" : "Best fishing days this month"}
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {bestDays.sort((a,b)=>a-b).map(d => (
@@ -1659,7 +1678,7 @@ function TidalCalendar({ lang, userLocation }) {
       </div>
 
       <div style={{ marginTop: 8, fontSize: "0.75rem", color: "#9a9a8a", textAlign: "center" }}>
-        {lang === "ja" ? lang === "ja" ? "※月齢・潮汐パターンに基づく推定値" : "Based on lunar & tidal patterns" : "Based on lunar cycle & tidal patterns"}
+        {lang === "ja" ? lang === "ja" ? "※月齢・潮汐パターンに基づく推定値" : lang === "es" ? "Basado en la luna y las mareas" : "Based on lunar & tidal patterns" : "Based on lunar cycle & tidal patterns"}
       </div>
     </div>
   );
@@ -1700,7 +1719,8 @@ const TENKARA_KNOTS = [
 
 const LINE_FORMULA = {
   ja: "ライン長さ = 竿の長さ × 1.0〜1.3（源流は短め、開けた渓流は長め）",
-  en: "Line length = Rod length × 1.0–1.3 (shorter for headwaters, longer for open streams)"
+  en: "Line length = Rod length × 1.0–1.3 (shorter for headwaters, longer for open streams)",
+  es: "Largo de línea = largo de la caña × 1.0–1.3 (más corta en cabeceras, más larga en tramos abiertos)"
 };
 
 
@@ -1940,10 +1960,10 @@ function useFishingAlerts(weather, userLocation, lang) {
       requestNotificationPermission().then(granted => {
         if (granted) {
           sendFishingAlert(
-            lang === "ja" ? "🔥 今が釣り日和！" : "🔥 Prime Fishing Conditions!",
+            lang === "ja" ? "🔥 今が釣り日和！" : lang === "es" ? "🔥 ¡Condiciones óptimas de pesca!" : "🔥 Prime Fishing Conditions!",
             lang === "ja"
               ? `釣り指数 ${weather.fishingIndex}/100 — ${userLocation?.display || "現在地"}周辺が最高の状態です！`
-              : `Fishing index ${weather.fishingIndex}/100 — Conditions are excellent near ${userLocation?.display || "your location"}!`
+              : lang === "es" ? `Índice de pesca ${weather.fishingIndex}/100 — ¡Las condiciones cerca de ${userLocation?.display || "tu ubicación"} están excelentes!` : `Fishing index ${weather.fishingIndex}/100 — Conditions are excellent near ${userLocation?.display || "your location"}!`
           );
         }
       });
@@ -2233,32 +2253,32 @@ const MAP_SPOTS = [
   { id: 54, name: "球磨川・人吉市（本流）", region: "kyushu", pref: "熊本", fish: { ja: "アユ・アマゴ・コイ", en: "Ayu, Amago & Carp" }, rating: 4.8, type: { ja: "急流大河", en: "Rapid River" }, icon: "🐠", lat: 32.21, lng: 130.76, bestSeason: { ja: "6〜9月（アユ）", en: "Jun–Sep (Ayu)" }, access: { ja: "人吉ICから車5分。球磨川ラフティングの聖地でもある", en: "5min from Hitoyoshi IC. Also famous as Japan's top rafting river" }, tip: { ja: "日本三大急流の一つ。アユの遡上量が九州最多クラス。友釣りの名人が集う聖地。川の流れが速いので安全注意。", en: "One of Japan's three great rapid rivers. Among Kyushu's highest ayu migration numbers. Renowned tomozuri destination. Fast current — stay safe." } },
 
   // ── PUERTO RICO ──────────────────────────────────────────────────────────────
-  { id: 55, name: "Lago Dos Bocas", region: "puertorico", pref: "Arecibo", fish: { ja: "バス・ティラピア", en: "Largemouth Bass & Tilapia" }, rating: 4.8, type: { ja: "淡水湖", en: "Freshwater Lake" }, icon: "🐟", lat: 18.35, lng: -66.72, bestSeason: { ja: "通年（春・秋最高）", en: "Year-round (Spring/Fall best)" }, access: { ja: "アレシボから車30分。ボートツアーあり", en: "30min from Arecibo. Boat tours from the dock" }, tip: { ja: "プエルトリコ最高の淡水釣りスポット。バスの魚影が非常に濃い。ボートで奥の入江を狙うのが鉄板。", en: "Puerto Rico's premier freshwater spot. Dense bass populations. Rent a boat and target the back coves." } },
-  { id: 56, name: "Lago Carite", region: "puertorico", pref: "Guayama", fish: { ja: "バス・ティラピア・ブルーギル", en: "Bass, Tilapia & Bluegill" }, rating: 4.6, type: { ja: "山岳湖", en: "Mountain Lake" }, icon: "🐟", lat: 18.07, lng: -66.12, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "グアヤマから車40分。カリテ森林保護区内", en: "40min from Guayama. Inside Carite Forest Reserve" }, tip: { ja: "標高が高く涼しいカリテ湖。早朝のトップウォーターが効果的。", en: "Cool mountain lake with great bass. Early morning topwater is deadly." } },
-  { id: 57, name: "Laguna Tortuguero", region: "puertorico", pref: "Vega Baja", fish: { ja: "タリポン・スノック", en: "Tarpon & Snook" }, rating: 4.9, type: { ja: "ラグーン", en: "Lagoon" }, icon: "🦈", lat: 18.46, lng: -66.47, bestSeason: { ja: "通年（夏タリポン最高）", en: "Year-round (Tarpon peak summer)" }, access: { ja: "ベガバハから車10分", en: "10min from Vega Baja" }, tip: { ja: "タリポン釣りの聖地。マングローブ際のスノックはスリリング。カヤックフィッシングが特におすすめ。", en: "Sacred tarpon territory. Snook around mangrove roots is thrilling. Kayak fishing highly recommended." } },
-  { id: 58, name: "Boca de Cangrejos", region: "puertorico", pref: "San Juan", fish: { ja: "タリポン・スノック・ジャック", en: "Tarpon, Snook & Jack Crevalle" }, rating: 4.7, type: { ja: "河口・ビーチ", en: "Estuary & Beach" }, icon: "🦈", lat: 18.45, lng: -66.02, bestSeason: { ja: "通年（夜釣り最高）", en: "Year-round (night fishing best)" }, access: { ja: "サンファン空港から車10分", en: "10min from SJU airport" }, tip: { ja: "夜の常夜灯周りにタリポンが集まる。シルバーのバブルウォーカーが定番ルアー。", en: "Tarpon gather around night lights. Silver bubble walker lures are the classic choice." } },
-  { id: 59, name: "La Parguera", region: "puertorico", pref: "Lajas", fish: { ja: "マヒマヒ・ワフー・キングフィッシュ", en: "Mahi-Mahi, Wahoo & Kingfish" }, rating: 5.0, type: { ja: "オフショア・礁", en: "Offshore & Reef" }, icon: "🐠", lat: 17.97, lng: -67.04, bestSeason: { ja: "3〜8月", en: "Mar–Aug" }, access: { ja: "ラハスから車5分。チャーターボート多数", en: "5min from Lajas. Many charter boats available" }, tip: { ja: "コルテスウォールで大型マヒマヒが狙える。マングローブカヤックとの組み合わせが最高。", en: "The Cortez Wall holds massive mahi-mahi. Combine with mangrove kayaking for a perfect day." } },
-  { id: 60, name: "Río Grande de Arecibo", region: "puertorico", pref: "Utuado", fish: { ja: "アメリカンシャッド・グアビナ", en: "American Shad & Guabina" }, rating: 4.3, type: { ja: "清流", en: "Clear River" }, icon: "🐡", lat: 18.27, lng: -66.70, bestSeason: { ja: "11〜3月", en: "Nov–Mar" }, access: { ja: "ウトゥアドから車20分", en: "20min from Utuado" }, tip: { ja: "カルスト地形の清流。在来種グアビナを狙うユニークな釣り。", en: "Karst landscape river. Native guabina fishing is a unique experience." } },
-  { id: 61, name: "Culebra Island", region: "puertorico", pref: "Culebra", fish: { ja: "バラクーダ・スナッパー・グルーパー", en: "Barracuda, Snapper & Grouper" }, rating: 5.0, type: { ja: "離島リーフ", en: "Island Reef" }, icon: "🐠", lat: 18.30, lng: -65.30, bestSeason: { ja: "通年（春・秋最高）", en: "Year-round (Spring/Fall best)" }, access: { ja: "セイバ港からフェリー1時間（$2.25）", en: "1hr ferry from Ceiba ($2.25) or 15min flight" }, tip: { ja: "カリブ海最高の透明度。スノーケルしながらリーフフィッシング。スナッパーとグルーパーが定番。", en: "Caribbean's clearest waters. Snorkel and reef fish simultaneously. Snapper and grouper are reliable targets." } },
-  { id: 62, name: "Humacao Nature Reserve", region: "puertorico", pref: "Humacao", fish: { ja: "タリポン・スノック・レッドフィッシュ", en: "Tarpon, Snook & Redfish" }, rating: 4.6, type: { ja: "保護区ラグーン", en: "Nature Reserve Lagoon" }, icon: "🦈", lat: 18.15, lng: -65.77, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "ウマカオから車10分", en: "10min from Humacao" }, tip: { ja: "東PRの隠れた名釣り場。カヤックかウェーディングで朝一番がゴールデンタイム。", en: "Hidden gem in eastern PR. Kayak or wade. First light is the golden hour." } },
+  { id: 55, name: "Lago Dos Bocas", region: "puertorico", pref: "Arecibo", fish: { ja: "バス・ティラピア", en: "Largemouth Bass & Tilapia", es: "Lobina y tilapia" }, rating: 4.8, type: { ja: "淡水湖", en: "Freshwater Lake", es: "Lago de agua dulce" }, icon: "🐟", lat: 18.35, lng: -66.72, bestSeason: { ja: "通年（春・秋最高）", en: "Year-round (Spring/Fall best)", es: "Todo el año (mejor en primavera y otoño)" }, access: { ja: "アレシボから車30分。ボートツアーあり", en: "30min from Arecibo. Boat tours from the dock", es: "A 30 min de Arecibo. Hay paseos en bote desde el muelle" }, tip: { ja: "プエルトリコ最高の淡水釣りスポット。バスの魚影が非常に濃い。ボートで奥の入江を狙うのが鉄板。", en: "Puerto Rico's premier freshwater spot. Dense bass populations. Rent a boat and target the back coves.", es: "El mejor sitio de agua dulce de Puerto Rico. Hay muchísima lobina. Alquila un bote y trabaja las ensenadas del fondo." } },
+  { id: 56, name: "Lago Carite", region: "puertorico", pref: "Guayama", fish: { ja: "バス・ティラピア・ブルーギル", en: "Bass, Tilapia & Bluegill", es: "Lobina, tilapia y bluegill" }, rating: 4.6, type: { ja: "山岳湖", en: "Mountain Lake", es: "Lago de montaña" }, icon: "🐟", lat: 18.07, lng: -66.12, bestSeason: { ja: "通年", en: "Year-round", es: "Todo el año" }, access: { ja: "グアヤマから車40分。カリテ森林保護区内", en: "40min from Guayama. Inside Carite Forest Reserve", es: "A 40 min de Guayama. Dentro del Bosque Estatal de Carite" }, tip: { ja: "標高が高く涼しいカリテ湖。早朝のトップウォーターが効果的。", en: "Cool mountain lake with great bass. Early morning topwater is deadly.", es: "Lago fresco de montaña con buena lobina. De superficie a primera hora de la mañana es mortal." } },
+  { id: 57, name: "Laguna Tortuguero", region: "puertorico", pref: "Vega Baja", fish: { ja: "タリポン・スノック", en: "Tarpon & Snook", es: "Sábalo y róbalo" }, rating: 4.9, type: { ja: "ラグーン", en: "Lagoon", es: "Laguna" }, icon: "🦈", lat: 18.46, lng: -66.47, bestSeason: { ja: "通年（夏タリポン最高）", en: "Year-round (Tarpon peak summer)", es: "Todo el año (el sábalo pica más en verano)" }, access: { ja: "ベガバハから車10分", en: "10min from Vega Baja", es: "A 10 min de Vega Baja" }, tip: { ja: "タリポン釣りの聖地。マングローブ際のスノックはスリリング。カヤックフィッシングが特におすすめ。", en: "Sacred tarpon territory. Snook around mangrove roots is thrilling. Kayak fishing highly recommended.", es: "Territorio sagrado del sábalo. El róbalo entre las raíces del mangle es emocionante. Muy recomendable pescar en kayak." } },
+  { id: 58, name: "Boca de Cangrejos", region: "puertorico", pref: "San Juan", fish: { ja: "タリポン・スノック・ジャック", en: "Tarpon, Snook & Jack Crevalle", es: "Sábalo, róbalo y jurel" }, rating: 4.7, type: { ja: "河口・ビーチ", en: "Estuary & Beach", es: "Estuario y playa" }, icon: "🦈", lat: 18.45, lng: -66.02, bestSeason: { ja: "通年（夜釣り最高）", en: "Year-round (night fishing best)", es: "Todo el año (mejor de noche)" }, access: { ja: "サンファン空港から車10分", en: "10min from SJU airport", es: "A 10 min del aeropuerto SJU" }, tip: { ja: "夜の常夜灯周りにタリポンが集まる。シルバーのバブルウォーカーが定番ルアー。", en: "Tarpon gather around night lights. Silver bubble walker lures are the classic choice.", es: "El sábalo se junta bajo las luces de noche. Los bubble walker plateados son el señuelo clásico." } },
+  { id: 59, name: "La Parguera", region: "puertorico", pref: "Lajas", fish: { ja: "マヒマヒ・ワフー・キングフィッシュ", en: "Mahi-Mahi, Wahoo & Kingfish", es: "Dorado, peto y sierra" }, rating: 5.0, type: { ja: "オフショア・礁", en: "Offshore & Reef", es: "Altamar y arrecife" }, icon: "🐠", lat: 17.97, lng: -67.04, bestSeason: { ja: "3〜8月", en: "Mar–Aug", es: "Marzo–agosto" }, access: { ja: "ラハスから車5分。チャーターボート多数", en: "5min from Lajas. Many charter boats available", es: "A 5 min de Lajas. Hay muchos botes de charter" }, tip: { ja: "コルテスウォールで大型マヒマヒが狙える。マングローブカヤックとの組み合わせが最高。", en: "The Cortez Wall holds massive mahi-mahi. Combine with mangrove kayaking for a perfect day.", es: "La Pared de Cortez guarda dorados enormes. Combínalo con kayak por el mangle para un día perfecto." } },
+  { id: 60, name: "Río Grande de Arecibo", region: "puertorico", pref: "Utuado", fish: { ja: "アメリカンシャッド・グアビナ", en: "American Shad & Guabina", es: "Shad y guabina" }, rating: 4.3, type: { ja: "清流", en: "Clear River", es: "Río de aguas claras" }, icon: "🐡", lat: 18.27, lng: -66.70, bestSeason: { ja: "11〜3月", en: "Nov–Mar", es: "Noviembre–marzo" }, access: { ja: "ウトゥアドから車20分", en: "20min from Utuado", es: "A 20 min de Utuado" }, tip: { ja: "カルスト地形の清流。在来種グアビナを狙うユニークな釣り。", en: "Karst landscape river. Native guabina fishing is a unique experience.", es: "Río de paisaje kárstico. Pescar la guabina nativa es una experiencia única." } },
+  { id: 61, name: "Culebra Island", region: "puertorico", pref: "Culebra", fish: { ja: "バラクーダ・スナッパー・グルーパー", en: "Barracuda, Snapper & Grouper", es: "Picúa, pargo y mero" }, rating: 5.0, type: { ja: "離島リーフ", en: "Island Reef", es: "Arrecife de isla" }, icon: "🐠", lat: 18.30, lng: -65.30, bestSeason: { ja: "通年（春・秋最高）", en: "Year-round (Spring/Fall best)", es: "Todo el año (mejor en primavera y otoño)" }, access: { ja: "セイバ港からフェリー1時間（$2.25）", en: "1hr ferry from Ceiba ($2.25) or 15min flight", es: "Ferry de 1 hora desde Ceiba ($2.25) o vuelo de 15 min" }, tip: { ja: "カリブ海最高の透明度。スノーケルしながらリーフフィッシング。スナッパーとグルーパーが定番。", en: "Caribbean's clearest waters. Snorkel and reef fish simultaneously. Snapper and grouper are reliable targets.", es: "Las aguas más claras del Caribe. Puedes esnorquelear y pescar arrecife a la vez. El pargo y el mero nunca fallan." } },
+  { id: 62, name: "Humacao Nature Reserve", region: "puertorico", pref: "Humacao", fish: { ja: "タリポン・スノック・レッドフィッシュ", en: "Tarpon, Snook & Redfish", es: "Sábalo, róbalo y corvinón" }, rating: 4.6, type: { ja: "保護区ラグーン", en: "Nature Reserve Lagoon", es: "Laguna en reserva natural" }, icon: "🦈", lat: 18.15, lng: -65.77, bestSeason: { ja: "通年", en: "Year-round", es: "Todo el año" }, access: { ja: "ウマカオから車10分", en: "10min from Humacao", es: "A 10 min de Humacao" }, tip: { ja: "東PRの隠れた名釣り場。カヤックかウェーディングで朝一番がゴールデンタイム。", en: "Hidden gem in eastern PR. Kayak or wade. First light is the golden hour.", es: "Joya escondida del este de la isla. En kayak o caminando. La primera luz es la hora dorada." } },
 
   // ── VIEQUES & SURROUNDING ISLANDS ────────────────────────────────────────────
-  { id: 63, name: "Vieques - Red Beach Flats", region: "puertorico", pref: "Vieques", fish: { ja: "タリポン・ボーンフィッシュ・パーミット", en: "Tarpon, Bonefish & Permit" }, rating: 5.0, type: { ja: "フラット・浅瀬", en: "Saltwater Flats" }, icon: "🦈", lat: 18.09, lng: -65.44, bestSeason: { ja: "通年（3〜6月最高）", en: "Year-round (Mar–Jun best)" }, access: { ja: "セイバ港からフェリー1時間またはセスナ15分。レッドビーチ前のフラット", en: "1hr ferry from Ceiba or 15min flight. Flats in front of Red Beach" }, tip: { ja: "カリブ海最高のフラットフィッシング聖地。ボーンフィッシュは朝の干潮時にフラットを泳ぐ姿が見える。タリポンは夜明け前後が勝負。カヤックフライフィッシングが最も効果的。", en: "Caribbean's finest flats fishing. Bonefish visibly feed on flats during morning low tide. Tarpon are best at dawn. Kayak fly fishing is the most effective approach." } },
-  { id: 64, name: "Vieques - Mosquito Pier (旧海軍桟橋)", region: "puertorico", pref: "Vieques", fish: { ja: "タリポン・スナッパー・バラクーダ", en: "Tarpon, Snapper & Barracuda" }, rating: 4.9, type: { ja: "桟橋・夜釣り", en: "Pier Night Fishing" }, icon: "🦈", lat: 18.15, lng: -65.44, bestSeason: { ja: "通年（夜釣り最高）", en: "Year-round (night fishing best)" }, access: { ja: "ビエケス市街から車10分。旧米海軍桟橋跡", en: "10min from Vieques town. Former US Navy pier" }, tip: { ja: "旧海軍桟橋はタリポンの溜まり場。夜に常夜灯周りでポッパーを投げると激しいバイトが楽しめる。地元アングラーが毎晩集う名所。", en: "The old Navy pier is a tarpon magnet. Night fishing with poppers around the lights produces explosive strikes. Local anglers gather here every evening." } },
-  { id: 65, name: "Vieques - Blue Beach (東端)", region: "puertorico", pref: "Vieques", fish: { ja: "ボーンフィッシュ・パーミット・マングローブスナッパー", en: "Bonefish, Permit & Mangrove Snapper" }, rating: 4.9, type: { ja: "フラット・マングローブ", en: "Flats & Mangrove" }, icon: "🐠", lat: 18.103, lng: -65.384, bestSeason: { ja: "11〜5月（ボーンフィッシュ）", en: "Nov–May (Bonefish best)" }, access: { ja: "ビエケス東端。4WD推奨。地元ガイド同行が理想的", en: "Far eastern tip of Vieques. 4WD recommended. Local guide ideal" }, tip: { ja: "ビエケス東端の手つかずのフラット。ボーンフィッシュが群れをなして泳ぐ場面が見られる。フライロッド8番が最適。パーミットは希少だが出ると感動もの。", en: "Pristine untouched flats at the eastern tip. Schools of bonefish visibly feeding. 8-weight fly rod is ideal. Permit are rare but unforgettable when they appear." } },
-  { id: 66, name: "Vieques - Bioluminescent Bay (カヤック釣り)", region: "puertorico", pref: "Vieques", fish: { ja: "スナッパー・タリポン・ジャック", en: "Snapper, Tarpon & Jack" }, rating: 4.7, type: { ja: "生物発光湾・夜釣り", en: "Bioluminescent Bay Night Fishing" }, icon: "✨", lat: 18.09, lng: -65.47, bestSeason: { ja: "通年（新月の夜が最高）", en: "Year-round (new moon nights best)" }, access: { ja: "プエルトモスキートへのカヤックツアーで到達。ガイドツアー推奨（$45〜）", en: "Via kayak tour to Puerto Mosquito. Guided tour recommended ($45+)" }, tip: { ja: "世界最高の生物発光湾での夜釣り体験。発光プランクトンが水中で光る幻想的な環境でスナッパーとジャックが狙える。一生忘れられない体験。釣りとバイオルミネセンスツアーの組み合わせが最高。", en: "Night fishing in the world's brightest bioluminescent bay. Snapper and jack amid glowing plankton. A once-in-a-lifetime experience. Combine with bio bay tour for the ultimate night out." } },
-  { id: 67, name: "Vieques - North Shore Reef", region: "puertorico", pref: "Vieques", fish: { ja: "グルーパー・スナッパー・バラクーダ", en: "Grouper, Snapper & Barracuda" }, rating: 4.8, type: { ja: "リーフ・ボートフィッシング", en: "Reef Boat Fishing" }, icon: "🐠", lat: 18.16, lng: -65.44, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "ビエケス島内レンタルボートまたはチャーターボート（$150〜/日）", en: "Rental boat or charter from Vieques ($150+/day)" }, tip: { ja: "北岸の礁は30〜60フィートの根魚の宝庫。ジギングとボトムフィッシングでグルーパーが狙える。潮の流れが速い場所なので100gジグが有効。", en: "North shore reef holds excellent grouper at 30-60ft. Jigging and bottom fishing are productive. Fast current spots respond well to 100g jigs." } },
-  { id: 68, name: "Vieques - Offshore (カジキ・マヒマヒ)", region: "puertorico", pref: "Vieques", fish: { ja: "カジキ・マヒマヒ・ワフー・イエローフィンツナ", en: "Marlin, Mahi-Mahi, Wahoo & Yellowfin Tuna" }, rating: 5.0, type: { ja: "オフショア（沖釣り）", en: "Offshore Bluewater" }, icon: "🐟", lat: 18.05, lng: -65.20, bestSeason: { ja: "3〜8月（カジキ）", en: "Mar–Aug (Marlin season)" }, access: { ja: "ビエケス南側から15〜30分沖。チャーターボート（$600〜/日）", en: "15-30min offshore from Vieques south. Charter boats ($600+/day)" }, tip: { ja: "ビエケス沖は黒潮の支流が通りカジキの回遊ルート。マヒマヒは年中狙える。イエローフィンツナは春〜夏に50〜100ポンド級が出る。プエルトリコ最高峰のオフショア体験。", en: "Vieques offshore is on the marlin migration route. Mahi-mahi year-round. Yellowfin tuna 50-100lb class in spring-summer. The ultimate PR offshore experience." } },
-  { id: 69, name: "Vieques - Esperanza (夕方タリポン)", region: "puertorico", pref: "Vieques", fish: { ja: "タリポン・スナッパー・スノック", en: "Tarpon, Snapper & Snook" }, rating: 4.8, type: { ja: "ビーチ・マングローブ", en: "Beach & Mangrove" }, icon: "🦈", lat: 18.09, lng: -65.47, bestSeason: { ja: "通年（夕方最高）", en: "Year-round (evenings best)" }, access: { ja: "エスペランサのマレコン（遊歩道）から直接アクセス", en: "Direct access from Esperanza Malecon boardwalk" }, tip: { ja: "エスペランサの桟橋と遊歩道はタリポンの有名スポット。夕方に地元の人たちと並んでキャストする光景は風物詩。ライブベイトでもルアーでも釣れる。レストランで食事しながら夕暮れ釣りが最高。", en: "Esperanza boardwalk is a famous tarpon spot. Evening casting alongside locals is a beloved tradition. Live bait or lures both work. Combine with dinner at a waterfront restaurant." } },
+  { id: 63, name: "Vieques - Red Beach Flats", region: "puertorico", pref: "Vieques", fish: { ja: "タリポン・ボーンフィッシュ・パーミット", en: "Tarpon, Bonefish & Permit", es: "Sábalo, macabí y palometa" }, rating: 5.0, type: { ja: "フラット・浅瀬", en: "Saltwater Flats", es: "Llanuras de agua salada" }, icon: "🦈", lat: 18.09, lng: -65.44, bestSeason: { ja: "通年（3〜6月最高）", en: "Year-round (Mar–Jun best)", es: "Todo el año (mejor de marzo a junio)" }, access: { ja: "セイバ港からフェリー1時間またはセスナ15分。レッドビーチ前のフラット", en: "1hr ferry from Ceiba or 15min flight. Flats in front of Red Beach", es: "Ferry de 1 hora desde Ceiba o vuelo de 15 min. Las llanuras quedan frente a Red Beach" }, tip: { ja: "カリブ海最高のフラットフィッシング聖地。ボーンフィッシュは朝の干潮時にフラットを泳ぐ姿が見える。タリポンは夜明け前後が勝負。カヤックフライフィッシングが最も効果的。", en: "Caribbean's finest flats fishing. Bonefish visibly feed on flats during morning low tide. Tarpon are best at dawn. Kayak fly fishing is the most effective approach.", es: "La mejor pesca de llanura del Caribe. El macabí se ve comiendo en la marea baja de la mañana. El sábalo entra mejor al amanecer. Pescar a mosca desde kayak es lo más efectivo." } },
+  { id: 64, name: "Vieques - Mosquito Pier (旧海軍桟橋)", region: "puertorico", pref: "Vieques", fish: { ja: "タリポン・スナッパー・バラクーダ", en: "Tarpon, Snapper & Barracuda", es: "Sábalo, pargo y picúa" }, rating: 4.9, type: { ja: "桟橋・夜釣り", en: "Pier Night Fishing", es: "Pesca nocturna de muelle" }, icon: "🦈", lat: 18.15, lng: -65.44, bestSeason: { ja: "通年（夜釣り最高）", en: "Year-round (night fishing best)", es: "Todo el año (mejor de noche)" }, access: { ja: "ビエケス市街から車10分。旧米海軍桟橋跡", en: "10min from Vieques town. Former US Navy pier", es: "A 10 min del pueblo de Vieques. Antiguo muelle de la Marina" }, tip: { ja: "旧海軍桟橋はタリポンの溜まり場。夜に常夜灯周りでポッパーを投げると激しいバイトが楽しめる。地元アングラーが毎晩集う名所。", en: "The old Navy pier is a tarpon magnet. Night fishing with poppers around the lights produces explosive strikes. Local anglers gather here every evening.", es: "El viejo muelle de la Marina es un imán de sábalo. De noche, con popper alrededor de las luces, los ataques son explosivos. Los pescadores locales se reúnen aquí todas las tardes." } },
+  { id: 65, name: "Vieques - Blue Beach (東端)", region: "puertorico", pref: "Vieques", fish: { ja: "ボーンフィッシュ・パーミット・マングローブスナッパー", en: "Bonefish, Permit & Mangrove Snapper", es: "Macabí, palometa y pargo prieto" }, rating: 4.9, type: { ja: "フラット・マングローブ", en: "Flats & Mangrove", es: "Llanuras y mangle" }, icon: "🐠", lat: 18.103, lng: -65.384, bestSeason: { ja: "11〜5月（ボーンフィッシュ）", en: "Nov–May (Bonefish best)", es: "Noviembre–mayo (mejor para macabí)" }, access: { ja: "ビエケス東端。4WD推奨。地元ガイド同行が理想的", en: "Far eastern tip of Vieques. 4WD recommended. Local guide ideal", es: "En la punta este de Vieques. Se recomienda 4x4 y, mejor aún, un guía local" }, tip: { ja: "ビエケス東端の手つかずのフラット。ボーンフィッシュが群れをなして泳ぐ場面が見られる。フライロッド8番が最適。パーミットは希少だが出ると感動もの。", en: "Pristine untouched flats at the eastern tip. Schools of bonefish visibly feeding. 8-weight fly rod is ideal. Permit are rare but unforgettable when they appear.", es: "Llanuras vírgenes en la punta este. Se ven cardúmenes de macabí comiendo. La caña de mosca #8 es la ideal. La palometa es rara, pero inolvidable cuando aparece." } },
+  { id: 66, name: "Vieques - Bioluminescent Bay (カヤック釣り)", region: "puertorico", pref: "Vieques", fish: { ja: "スナッパー・タリポン・ジャック", en: "Snapper, Tarpon & Jack", es: "Pargo, sábalo y jurel" }, rating: 4.7, type: { ja: "生物発光湾・夜釣り", en: "Bioluminescent Bay Night Fishing", es: "Pesca nocturna en bahía bioluminiscente" }, icon: "✨", lat: 18.09, lng: -65.47, bestSeason: { ja: "通年（新月の夜が最高）", en: "Year-round (new moon nights best)", es: "Todo el año (mejor en noches de luna nueva)" }, access: { ja: "プエルトモスキートへのカヤックツアーで到達。ガイドツアー推奨（$45〜）", en: "Via kayak tour to Puerto Mosquito. Guided tour recommended ($45+)", es: "En tour de kayak a Puerto Mosquito. Se recomienda ir con guía ($45+)" }, tip: { ja: "世界最高の生物発光湾での夜釣り体験。発光プランクトンが水中で光る幻想的な環境でスナッパーとジャックが狙える。一生忘れられない体験。釣りとバイオルミネセンスツアーの組み合わせが最高。", en: "Night fishing in the world's brightest bioluminescent bay. Snapper and jack amid glowing plankton. A once-in-a-lifetime experience. Combine with bio bay tour for the ultimate night out.", es: "Pesca nocturna en la bahía bioluminiscente más brillante del mundo. Pargo y jurel entre el plancton que brilla. Una experiencia irrepetible. Combínala con el tour de la bahía." } },
+  { id: 67, name: "Vieques - North Shore Reef", region: "puertorico", pref: "Vieques", fish: { ja: "グルーパー・スナッパー・バラクーダ", en: "Grouper, Snapper & Barracuda", es: "Mero, pargo y picúa" }, rating: 4.8, type: { ja: "リーフ・ボートフィッシング", en: "Reef Boat Fishing", es: "Pesca de arrecife en bote" }, icon: "🐠", lat: 18.16, lng: -65.44, bestSeason: { ja: "通年", en: "Year-round", es: "Todo el año" }, access: { ja: "ビエケス島内レンタルボートまたはチャーターボート（$150〜/日）", en: "Rental boat or charter from Vieques ($150+/day)", es: "Bote de alquiler o charter desde Vieques ($150+/día)" }, tip: { ja: "北岸の礁は30〜60フィートの根魚の宝庫。ジギングとボトムフィッシングでグルーパーが狙える。潮の流れが速い場所なので100gジグが有効。", en: "North shore reef holds excellent grouper at 30-60ft. Jigging and bottom fishing are productive. Fast current spots respond well to 100g jigs.", es: "El arrecife de la costa norte guarda meros excelentes entre 30 y 60 pies. El jigging y la pesca de fondo funcionan bien. En los sitios de corriente fuerte, jigs de 100g." } },
+  { id: 68, name: "Vieques - Offshore (カジキ・マヒマヒ)", region: "puertorico", pref: "Vieques", fish: { ja: "カジキ・マヒマヒ・ワフー・イエローフィンツナ", en: "Marlin, Mahi-Mahi, Wahoo & Yellowfin Tuna", es: "Aguja azul, dorado, peto y atún aleta amarilla" }, rating: 5.0, type: { ja: "オフショア（沖釣り）", en: "Offshore Bluewater", es: "Altamar" }, icon: "🐟", lat: 18.05, lng: -65.20, bestSeason: { ja: "3〜8月（カジキ）", en: "Mar–Aug (Marlin season)", es: "Marzo–agosto (temporada de aguja)" }, access: { ja: "ビエケス南側から15〜30分沖。チャーターボート（$600〜/日）", en: "15-30min offshore from Vieques south. Charter boats ($600+/day)", es: "De 15 a 30 min mar afuera desde el sur de Vieques. Charters ($600+/día)" }, tip: { ja: "ビエケス沖は黒潮の支流が通りカジキの回遊ルート。マヒマヒは年中狙える。イエローフィンツナは春〜夏に50〜100ポンド級が出る。プエルトリコ最高峰のオフショア体験。", en: "Vieques offshore is on the marlin migration route. Mahi-mahi year-round. Yellowfin tuna 50-100lb class in spring-summer. The ultimate PR offshore experience.", es: "El altamar de Vieques queda en la ruta migratoria de la aguja azul. Dorado todo el año. Atún aleta amarilla de 50 a 100 libras en primavera y verano. La mejor experiencia de altamar de Puerto Rico." } },
+  { id: 69, name: "Vieques - Esperanza (夕方タリポン)", region: "puertorico", pref: "Vieques", fish: { ja: "タリポン・スナッパー・スノック", en: "Tarpon, Snapper & Snook", es: "Sábalo, pargo y róbalo" }, rating: 4.8, type: { ja: "ビーチ・マングローブ", en: "Beach & Mangrove", es: "Playa y mangle" }, icon: "🦈", lat: 18.09, lng: -65.47, bestSeason: { ja: "通年（夕方最高）", en: "Year-round (evenings best)", es: "Todo el año (mejor al atardecer)" }, access: { ja: "エスペランサのマレコン（遊歩道）から直接アクセス", en: "Direct access from Esperanza Malecon boardwalk", es: "Acceso directo desde el malecón de Esperanza" }, tip: { ja: "エスペランサの桟橋と遊歩道はタリポンの有名スポット。夕方に地元の人たちと並んでキャストする光景は風物詩。ライブベイトでもルアーでも釣れる。レストランで食事しながら夕暮れ釣りが最高。", en: "Esperanza boardwalk is a famous tarpon spot. Evening casting alongside locals is a beloved tradition. Live bait or lures both work. Combine with dinner at a waterfront restaurant.", es: "El malecón de Esperanza es un sitio famoso de sábalo. Tirar al atardecer junto a los locales es una tradición querida. Funciona igual con carnada viva o señuelo. Combínalo con cena frente al mar." } },
 
   // ── CULEBRA (詳細) ────────────────────────────────────────────────────────────
-  { id: 70, name: "Culebra - Flamenco Beach Flats", region: "puertorico", pref: "Culebra", fish: { ja: "ボーンフィッシュ・パーミット", en: "Bonefish & Permit" }, rating: 4.9, type: { ja: "フラット", en: "Saltwater Flats" }, icon: "🐠", lat: 18.34, lng: -65.31, bestSeason: { ja: "11〜5月", en: "Nov–May" }, access: { ja: "フラメンコビーチから徒歩でフラット地帯へ", en: "Walk from Flamenco Beach to the flats area" }, tip: { ja: "フラメンコビーチ横のフラットはボーンフィッシュの宝庫。カリブ海随一の透明度でサイトフィッシングが楽しめる。6番フライロッドとクラブフライが定番。", en: "Flats beside Flamenco Beach hold excellent bonefish. Caribbean-best visibility for sight fishing. 6-weight fly rod with crab fly is standard." } },
-  { id: 71, name: "Culebra - Luis Peña Channel", region: "puertorico", pref: "Culebra", fish: { ja: "グルーパー・スナッパー・バラクーダ・タートル", en: "Grouper, Snapper & Barracuda" }, rating: 4.8, type: { ja: "海峡・リーフ", en: "Channel Reef" }, icon: "🐠", lat: 18.31, lng: -65.34, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "カヤックまたはスノーケルガイドツアーで到達", en: "By kayak or snorkel guide tour" }, tip: { ja: "天然保護区のルイスペーニャチャンネル。スノーケルしながらフィッシングが楽しめる唯一無二のスポット。グルーパーが根際に着いている。", en: "Protected Luis Peña Channel marine reserve. Unique spot to snorkel and fish simultaneously. Grouper holding tight to the reef structure." } },
+  { id: 70, name: "Culebra - Flamenco Beach Flats", region: "puertorico", pref: "Culebra", fish: { ja: "ボーンフィッシュ・パーミット", en: "Bonefish & Permit", es: "Macabí y palometa" }, rating: 4.9, type: { ja: "フラット", en: "Saltwater Flats", es: "Llanuras de agua salada" }, icon: "🐠", lat: 18.34, lng: -65.31, bestSeason: { ja: "11〜5月", en: "Nov–May", es: "Noviembre–mayo" }, access: { ja: "フラメンコビーチから徒歩でフラット地帯へ", en: "Walk from Flamenco Beach to the flats area", es: "Caminando desde Playa Flamenco hasta la zona de llanuras" }, tip: { ja: "フラメンコビーチ横のフラットはボーンフィッシュの宝庫。カリブ海随一の透明度でサイトフィッシングが楽しめる。6番フライロッドとクラブフライが定番。", en: "Flats beside Flamenco Beach hold excellent bonefish. Caribbean-best visibility for sight fishing. 6-weight fly rod with crab fly is standard.", es: "Las llanuras al lado de Playa Flamenco tienen macabí excelente. La mejor visibilidad del Caribe para pescar a la vista. Lo normal es caña de mosca #6 con mosca cangrejo." } },
+  { id: 71, name: "Culebra - Luis Peña Channel", region: "puertorico", pref: "Culebra", fish: { ja: "グルーパー・スナッパー・バラクーダ・タートル", en: "Grouper, Snapper & Barracuda", es: "Mero, pargo y picúa" }, rating: 4.8, type: { ja: "海峡・リーフ", en: "Channel Reef", es: "Arrecife de canal" }, icon: "🐠", lat: 18.31, lng: -65.34, bestSeason: { ja: "通年", en: "Year-round", es: "Todo el año" }, access: { ja: "カヤックまたはスノーケルガイドツアーで到達", en: "By kayak or snorkel guide tour", es: "En kayak o con tour guiado de esnórquel" }, tip: { ja: "天然保護区のルイスペーニャチャンネル。スノーケルしながらフィッシングが楽しめる唯一無二のスポット。グルーパーが根際に着いている。", en: "Protected Luis Peña Channel marine reserve. Unique spot to snorkel and fish simultaneously. Grouper holding tight to the reef structure.", es: "Reserva marina del Canal Luis Peña. Sitio único para esnorquelear y pescar a la vez. El mero se pega a la estructura del arrecife." } },
 
   // ── VIEQUES周辺・セイバ / ファハルド ─────────────────────────────────────────
-  { id: 72, name: "Fajardo - Las Croabas Flats", region: "puertorico", pref: "Fajardo", fish: { ja: "タリポン・スノック・レッドフィッシュ", en: "Tarpon, Snook & Redfish" }, rating: 4.7, type: { ja: "マングローブフラット", en: "Mangrove Flats" }, icon: "🦈", lat: 18.33, lng: -65.63, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "ファハルドのラスクロアバス地区。ビエケス行きフェリー乗り場の近く", en: "Las Croabas area, Fajardo. Near the Vieques ferry terminal" }, tip: { ja: "ビエケス行きフェリーを待つ間にタリポンが狙える。マングローブの根際でスノックをポッパーで狙うと爆発的なバイトが楽しめる。", en: "Fish for tarpon while waiting for the Vieques ferry. Popper fishing for snook around mangrove roots produces explosive strikes." } },
-  { id: 73, name: "Fajardo - Seven Seas Beach", region: "puertorico", pref: "Fajardo", fish: { ja: "ニードルフィッシュ・ジャック・スナッパー", en: "Needlefish, Jack & Snapper" }, rating: 4.3, type: { ja: "ビーチ・礁", en: "Beach & Reef" }, icon: "🐠", lat: 18.37, lng: -65.62, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "ファハルドから車10分。七つの海ビーチ", en: "10min from Fajardo town. Seven Seas Beach" }, tip: { ja: "ファハルド近郊で最もアクセスしやすいビーチ釣りスポット。リーフの際でスナッパーが狙える。スノーケリングと組み合わせると楽しい。", en: "Most accessible beach fishing near Fajardo. Snapper along the reef edge. Great combined with snorkeling." } },
-  { id: 74, name: "Ceiba - Roosevelt Roads (旧米海軍基地)", region: "puertorico", pref: "Ceiba", fish: { ja: "タリポン・スノック・レッドドラム", en: "Tarpon, Snook & Red Drum" }, rating: 4.8, type: { ja: "旧軍港・マングローブ", en: "Former Navy Base & Mangrove" }, icon: "🦈", lat: 18.24, lng: -65.64, bestSeason: { ja: "通年", en: "Year-round" }, access: { ja: "セイバ市内から車10分。旧ルーズベルトロード米海軍基地跡", en: "10min from Ceiba. Former Roosevelt Roads Naval Station" }, tip: { ja: "旧米海軍基地跡の広大なマングローブエリア。タリポンとスノックが豊富でほとんど知られていない穴場。カヤックが最適。夜明けに出発すると最高。", en: "Vast mangrove area of the former Navy base. Excellent tarpon and snook barely known to visitors. Kayak is ideal. Launch at dawn for best results." } },
+  { id: 72, name: "Fajardo - Las Croabas Flats", region: "puertorico", pref: "Fajardo", fish: { ja: "タリポン・スノック・レッドフィッシュ", en: "Tarpon, Snook & Redfish", es: "Sábalo, róbalo y corvinón" }, rating: 4.7, type: { ja: "マングローブフラット", en: "Mangrove Flats", es: "Llanuras de mangle" }, icon: "🦈", lat: 18.33, lng: -65.63, bestSeason: { ja: "通年", en: "Year-round", es: "Todo el año" }, access: { ja: "ファハルドのラスクロアバス地区。ビエケス行きフェリー乗り場の近く", en: "Las Croabas area, Fajardo. Near the Vieques ferry terminal", es: "Zona de Las Croabas, Fajardo. Cerca del terminal del ferry a Vieques" }, tip: { ja: "ビエケス行きフェリーを待つ間にタリポンが狙える。マングローブの根際でスノックをポッパーで狙うと爆発的なバイトが楽しめる。", en: "Fish for tarpon while waiting for the Vieques ferry. Popper fishing for snook around mangrove roots produces explosive strikes.", es: "Pesca sábalo mientras esperas el ferry a Vieques. El róbalo con popper entre las raíces del mangle da ataques explosivos." } },
+  { id: 73, name: "Fajardo - Seven Seas Beach", region: "puertorico", pref: "Fajardo", fish: { ja: "ニードルフィッシュ・ジャック・スナッパー", en: "Needlefish, Jack & Snapper", es: "Agujón, jurel y pargo" }, rating: 4.3, type: { ja: "ビーチ・礁", en: "Beach & Reef", es: "Playa y arrecife" }, icon: "🐠", lat: 18.37, lng: -65.62, bestSeason: { ja: "通年", en: "Year-round", es: "Todo el año" }, access: { ja: "ファハルドから車10分。七つの海ビーチ", en: "10min from Fajardo town. Seven Seas Beach", es: "A 10 min del pueblo de Fajardo. Playa Seven Seas" }, tip: { ja: "ファハルド近郊で最もアクセスしやすいビーチ釣りスポット。リーフの際でスナッパーが狙える。スノーケリングと組み合わせると楽しい。", en: "Most accessible beach fishing near Fajardo. Snapper along the reef edge. Great combined with snorkeling.", es: "La pesca de orilla más accesible cerca de Fajardo. Pargo por el borde del arrecife. Va muy bien combinada con esnórquel." } },
+  { id: 74, name: "Ceiba - Roosevelt Roads (旧米海軍基地)", region: "puertorico", pref: "Ceiba", fish: { ja: "タリポン・スノック・レッドドラム", en: "Tarpon, Snook & Red Drum", es: "Sábalo, róbalo y corvinón ojón" }, rating: 4.8, type: { ja: "旧軍港・マングローブ", en: "Former Navy Base & Mangrove", es: "Antigua base naval y mangle" }, icon: "🦈", lat: 18.24, lng: -65.64, bestSeason: { ja: "通年", en: "Year-round", es: "Todo el año" }, access: { ja: "セイバ市内から車10分。旧ルーズベルトロード米海軍基地跡", en: "10min from Ceiba. Former Roosevelt Roads Naval Station", es: "A 10 min de Ceiba. Antigua Estación Naval Roosevelt Roads" }, tip: { ja: "旧米海軍基地跡の広大なマングローブエリア。タリポンとスノックが豊富でほとんど知られていない穴場。カヤックが最適。夜明けに出発すると最高。", en: "Vast mangrove area of the former Navy base. Excellent tarpon and snook barely known to visitors. Kayak is ideal. Launch at dawn for best results.", es: "La enorme zona de mangle de la antigua base naval. Sábalo y róbalo excelentes que casi ningún visitante conoce. El kayak es lo ideal. Sal al amanecer para los mejores resultados." } },
 ];
 
 // ─── SEASONAL COMPONENTS ─────────────────────────────────────────────────────
@@ -2288,7 +2308,7 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
           <span style={{ fontWeight: 700, fontSize: "0.92rem", color: style.text }}>{(tip.badge?.[lang] || tip.badge?.en || tip.badge?.ja || "")}</span>
           <span style={{ marginLeft: "auto", fontSize: "0.78rem", color: style.text, opacity: 0.7 }}>{monthName}</span>
         </div>
-        <p style={{ margin: "0 0 8px", fontSize: "0.88rem", color: style.text, lineHeight: 1.5 }}>{tip.tip[lang]}</p>
+        <p style={{ margin: "0 0 8px", fontSize: "0.88rem", color: style.text, lineHeight: 1.5 }}>{gl(tip.tip, lang)}</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
           {(tip.hotLures?.[lang] || tip.hotLures?.en || tip.hotLures?.ja || []).map(l => (
             <LureTag key={l} lure={l} lang={lang} />
@@ -2302,14 +2322,14 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
     <div style={{ background: style.bg, border: `2px solid ${style.border}`, borderRadius: 16, padding: "14px 16px", marginBottom: 14, animation: "fadeUp 0.3s ease" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: style.dot, flexShrink: 0, boxShadow: `0 0 10px ${style.dot}88` }} />
-        <span style={{ fontWeight: 700, fontSize: "1rem", color: style.text }}>{lang === "ja" ? "🗓️ 今月の狙い目" : "🗓️ This Month's Insight"}</span>
+        <span style={{ fontWeight: 700, fontSize: "1rem", color: style.text }}>{lang === "ja" ? "🗓️ 今月の狙い目" : lang === "es" ? "🗓️ Consejo del mes" : "🗓️ This Month's Insight"}</span>
         <span style={{ marginLeft: "auto", background: style.border, color: "#fff", borderRadius: 99, padding: "2px 10px", fontSize: "0.78rem", fontWeight: 700 }}>{monthName}</span>
       </div>
       <div style={{ background: "rgba(255,255,255,0.5)", borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
         <div style={{ fontWeight: 700, fontSize: "0.92rem", color: style.text, marginBottom: 4 }}>{(tip.badge?.[lang] || tip.badge?.en || tip.badge?.ja || "")}</div>
-        <p style={{ margin: 0, fontSize: "0.88rem", color: style.text, lineHeight: 1.6 }}>{tip.tip[lang]}</p>
+        <p style={{ margin: 0, fontSize: "0.88rem", color: style.text, lineHeight: 1.6 }}>{gl(tip.tip, lang)}</p>
       </div>
-      <div style={{ fontSize: "0.8rem", color: style.text, fontWeight: 700, marginBottom: 6 }}>{lang === "ja" ? "🎯 今月のホットルアー" : "🎯 Hot Lures Right Now"}</div>
+      <div style={{ fontSize: "0.8rem", color: style.text, fontWeight: 700, marginBottom: 6 }}>{lang === "ja" ? "🎯 今月のホットルアー" : lang === "es" ? "🎯 Señuelos que están picando" : "🎯 Hot Lures Right Now"}</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {(tip.hotLures?.[lang] || tip.hotLures?.en || tip.hotLures?.ja || []).map(l => (
           <LureTag key={l} lure={l} lang={lang} />
@@ -2323,13 +2343,13 @@ function SeasonalAlert({ fishId, lang, compact = false }) {
 function DiffBadge({ level, lang }) {
   const m = { beginner: { ja: "初心者", en: "Beginner", c: "#2d7a3a", bg: "#e0f2f2" }, intermediate: { ja: "中級者", en: "Intermediate", c: "#c06a10", bg: "#f8e8d0" }, advanced: { ja: "上級者", en: "Advanced", c: "#b82030", bg: "#f8d8d8" } };
   const d = m[level] || m.beginner;
-  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{d[lang]}</span>;
+  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{gl(d, lang)}</span>;
 }
 
 function FlyTypeBadge({ type, lang }) {
   const m = { dry: { ja: "ドライ", en: "Dry Fly", c: "#c06a10", bg: "#f8e8d0" }, nymph: { ja: "ニンフ", en: "Nymph", c: "#1565a0", bg: "#d0e4f8" }, streamer: { ja: "ストリーマー", en: "Streamer", c: "#b82030", bg: "#f8d8d8" }, tenkara: { ja: "テンカラ", en: "Tenkara", c: "#2d7a3a", bg: "#e0f2f2" } };
   const d = m[type] || m.dry;
-  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{d[lang]}</span>;
+  return <span style={{ background: d.bg, color: d.c, border: `2px solid ${d.c}`, borderRadius: 99, padding: "3px 12px", fontSize: "0.95rem", fontWeight: 700 }}>{gl(d, lang)}</span>;
 }
 
 function ScoreRing({ score, lang = "ja" }) {
@@ -2343,7 +2363,7 @@ function ScoreRing({ score, lang = "ja" }) {
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
         <span style={{ fontSize: "1.1rem", fontWeight: 900, color, lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: "0.6rem", color: "#4a4a3a", fontWeight: 600 }}>{lang === "ja" ? "釣り指数" : "Fish Index"}</span>
+        <span style={{ fontSize: "0.6rem", color: "#4a4a3a", fontWeight: 600 }}>{lang === "ja" ? "釣り指数" : lang === "es" ? "Índice de pesca" : "Fish Index"}</span>
       </div>
     </div>
   );
@@ -2358,10 +2378,11 @@ function AIModal({ fish, weather, lang, onClose }) {
       const enPrompt = `You are an expert Japanese fishing guide. Give lure and bait advice for catching ${fish.nameEn} today. Conditions: ${weather.temp}℃ air, ${weather.waterTemp}℃ water, ${weather.condition.en}, wind ${weather.wind.en}, fishing index ${weather.fishingIndex}/100. Give TOP 3 lures (with reasons), retrieve technique, a pro tip, and the best time window. Keep it under 200 words with emoji section headers.`;
       const jaFallback = `🥇 本日のルアー診断\n\n🎯 第1位：バイブレーション（ゴールド系）\n水温${weather.waterTemp}℃の条件ではリアクションバイト狙いが◎。底からリフト＆フォール。\n\n🥈 第2位：シンキングペンシル\n流れのある場所でドリフト。橋脚明暗部でスロー引き。\n\n🥉 第3位：ワームリグ（クリア）\nプレッシャー高いポイントはフィネス系。1〜2gジグヘッドでデッドスロー。\n\n🔮 隠し技：カラーローテーション\nナチュラル⇔チャートで即変更。\n\n⏰ 黄金タイム：6〜8時・18〜20時`;
       const enFallback = `🥇 Today's Top Lure\n\n🎯 #1: Vibration plug (gold)\nAt ${weather.waterTemp}℃, trigger reaction bites. Lift-and-drop off the bottom.\n\n🥈 #2: Sinking pencil\nDrift through currents. Slow retrieve past bridge shadows at night.\n\n🥉 #3: Soft plastic (clear)\nFor pressured spots — deadstick a 1–2g jig head ultra-slow.\n\n🔮 Pro tip: Color rotation\nFlip between natural and chartreuse when bites stop.\n\n⏰ Golden window: 6–8am & 6–8pm`;
+      const esFallback = `🥇 Señuelo del día\n\n🎯 #1: Vibración (dorado)\nCon el agua a ${weather.waterTemp}℃, busca la mordida por reacción. Levanta y deja caer desde el fondo.\n\n🥈 #2: Pencil hundido\nDerívalo con la corriente. Recogida lenta por la sombra de los puentes de noche.\n\n🥉 #3: Vinilo (transparente)\nPara sitios muy pescados — cabeza plomada de 1–2g, bien lento, casi parado.\n\n🔮 Consejo pro: rota el color\nCambia entre natural y chartreuse cuando pare la picada.\n\n⏰ Horas de oro: 6–8am y 6–8pm`;
       try {
-        const res = await fetch("/api/claude", { method: "POST", headers: await claudeHeaders(), body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
+        const res = await fetch("/api/claude", { method: "POST", headers: await claudeHeaders(), body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : lang === "es" ? enPrompt + ES_NOTE : enPrompt }] }) });
         const data = await res.json(); setResponse(data.content?.[0]?.text || "");
-      } catch { setResponse(lang === "ja" ? jaFallback : enFallback); }
+      } catch { setResponse(lang === "ja" ? jaFallback : lang === "es" ? esFallback : enFallback); }
       setLoading(false);
     })();
   }, []);
@@ -2369,10 +2390,10 @@ function AIModal({ fish, weather, lang, onClose }) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "flex-end" }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: "#fffdf8", border: "2px solid #70a8b8", borderRadius: "24px 24px 0 0", padding: "24px 20px 44px", width: "100%", maxHeight: "80vh", overflowY: "auto", animation: "slideUp 0.3s ease" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div><div style={{ fontSize: "1rem", fontWeight: 700 }}>🤖 {lang === "ja" ? "AIルアー診断" : "AI Lure Advisor"}</div><div style={{ fontSize: "0.95rem", color: "#0d7377" }}>Claude AI · {fish.name}</div></div>
+          <div><div style={{ fontSize: "1rem", fontWeight: 700 }}>🤖 {lang === "ja" ? "AIルアー診断" : lang === "es" ? "Asesor IA de señuelos" : "AI Lure Advisor"}</div><div style={{ fontSize: "0.95rem", color: "#0d7377" }}>Claude AI · {fish.name}</div></div>
           <button onClick={onClose} style={{ background: "#f0ebe0", border: "none", borderRadius: 8, padding: "6px 12px", color: "#5a5a4a", cursor: "pointer" }}>✕</button>
         </div>
-        {loading ? <div style={{ textAlign: "center", padding: "40px 20px" }}><div style={{ fontSize: "2.5rem", animation: "spin 1s linear infinite", display: "inline-block" }}>🎣</div><p style={{ color: "#5a5a4a", marginTop: 12 }}>{lang === "ja" ? "今日の状況を分析中..." : "Analysing today's conditions..."}</p></div>
+        {loading ? <div style={{ textAlign: "center", padding: "40px 20px" }}><div style={{ fontSize: "2.5rem", animation: "spin 1s linear infinite", display: "inline-block" }}>🎣</div><p style={{ color: "#5a5a4a", marginTop: 12 }}>{lang === "ja" ? "今日の状況を分析中..." : lang === "es" ? "Analizando las condiciones de hoy..." : "Analysing today's conditions..."}</p></div>
           : <div style={{ fontSize: "1rem", lineHeight: 1.8, color: "#3a3a2a", whiteSpace: "pre-wrap" }}>{response}</div>}
       </div>
     </div>
@@ -2387,10 +2408,11 @@ function AIFlyModal({ fish, weather, lang, currentMonth, onClose }) {
       const enPrompt = `You are a Japanese fly fishing expert. Give advice for catching ${fish?.nameEn || "Yamame / Iwana"} fly fishing (or tenkara) in Japanese mountain streams in ${currentMonth}. Conditions: ${weather.temp}℃ air, ${weather.waterTemp}℃ water, ${weather.condition.en}, water clarity: ${weather.waterClarity.en}.\n\nCover: 1) Top 3 fly patterns (with sizes & colours) 2) Presentation technique 3) Hatch prediction & imitation 4) Tenkara vs western fly — which wins today? 5) Best time window and spot selection. Under 250 words, emoji section headers.`;
       const jaFallback = `🪶 本日のフライ診断（${currentMonth}）\n\n🥇 第1位：パラシュートアダムス #14\n水温${weather.waterTemp}℃でBWOのハッチが期待できる。くもりの光条件でパラシュートポストが見やすい。\n\n🥈 第2位：フェザントテールニンフ #14-16（ビーズヘッド）\nハッチ前後にインジケーター付きで深場をドリフト。\n\n🥉 第3位：テンカラ逆さ毛鉤 #10-12\n源流のコンパクトな渓流では竿のコントロールが活きる。テンション＆リリースで誘う。\n\n🌊 ハッチ予測\n気温14℃・水温${weather.waterTemp}℃はBWOとヒゲナガのハッチ好条件。特に夕方のライズに注目。\n\n🎋 テンカラ vs ウェスタン\n水質良好で木が多い源流ではテンカラ有利。開けた区間はウェスタンのメンディングが有効。\n\n⏰ ベストタイム：6〜9時と17〜19時のイブニングハッチを狙え！`;
       const enFallback = `🪶 Fly Fishing Forecast — ${currentMonth}\n\n🥇 #1: Parachute Adams #14\nAt ${weather.waterTemp}℃ water, BWO hatch is likely. White post stays visible in flat light.\n\n🥈 #2: Pheasant Tail Nymph #14-16 (bead head)\nBetween hatches, drift deep under an indicator.\n\n🥉 #3: Tenkara Sakasa Kebari #10-12\nIn tight headwater gorges, rod control beats line management every time.\n\n🌊 Hatch Outlook\n14℃ air, ${weather.waterTemp}℃ water — prime BWO and sedge conditions. Watch for evening rises.\n\n🎋 Tenkara vs Western\nClear water + overhanging trees → tenkara wins. Open runs → western mending has the edge.\n\n⏰ Best windows: 6–9am and the 5–7pm evening hatch.`;
+      const esFallback = `🪶 Pronóstico de mosca — ${currentMonth}\n\n🥇 #1: Parachute Adams #14\nCon el agua a ${weather.waterTemp}℃ es probable una eclosión de BWO. El poste blanco se ve bien con luz plana.\n\n🥈 #2: Pheasant Tail Nymph #14-16 (cabeza de perla)\nEntre eclosiones, derívala profunda bajo indicador.\n\n🥉 #3: Kebari invertida de tenkara #10-12\nEn gargantas cerradas, controlar la caña vale más que manejar línea.\n\n🌊 Eclosión esperada\n14℃ de aire y ${weather.waterTemp}℃ de agua — condiciones ideales para BWO y frigáneas. Atento a las subidas del atardecer.\n\n🎋 Tenkara vs. mosca occidental\nAgua clara y árboles encima → gana el tenkara. Tramos abiertos → el mending occidental tiene ventaja.\n\n⏰ Mejores horas: 6–9am y la eclosión de 5–7pm.`;
       try {
-        const res = await fetch("/api/claude", { method: "POST", headers: await claudeHeaders(), body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] }) });
+        const res = await fetch("/api/claude", { method: "POST", headers: await claudeHeaders(), body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, messages: [{ role: "user", content: lang === "ja" ? jaPrompt : lang === "es" ? enPrompt + ES_NOTE : enPrompt }] }) });
         const data = await res.json(); setResponse(data.content?.[0]?.text || "");
-      } catch { setResponse(lang === "ja" ? jaFallback : enFallback); }
+      } catch { setResponse(lang === "ja" ? jaFallback : lang === "es" ? esFallback : enFallback); }
       setLoading(false);
     })();
   }, []);
@@ -2398,10 +2420,10 @@ function AIFlyModal({ fish, weather, lang, currentMonth, onClose }) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "flex-end" }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: "#f8fff8", border: "2px solid #c8b800", borderRadius: "24px 24px 0 0", padding: "24px 20px 44px", width: "100%", maxHeight: "85vh", overflowY: "auto", animation: "slideUp 0.3s ease" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div><div style={{ fontSize: "1rem", fontWeight: 700 }}>🪰 {lang === "ja" ? "AIフライ診断" : "AI Fly Advisor"}</div><div style={{ fontSize: "0.95rem", color: "#2d7a3a" }}>Claude AI · {fish?.name || (lang === "ja" ? "渓流フライ" : "Stream Fly")} · {currentMonth}</div></div>
+          <div><div style={{ fontSize: "1rem", fontWeight: 700 }}>🪰 {lang === "ja" ? "AIフライ診断" : lang === "es" ? "Asesor IA de moscas" : "AI Fly Advisor"}</div><div style={{ fontSize: "0.95rem", color: "#2d7a3a" }}>Claude AI · {fish?.name || (lang === "ja" ? "渓流フライ" : lang === "es" ? "Mosca de río" : "Stream Fly")} · {currentMonth}</div></div>
           <button onClick={onClose} style={{ background: "#f0ebe0", border: "none", borderRadius: 8, padding: "6px 12px", color: "#5a5a4a", cursor: "pointer" }}>✕</button>
         </div>
-        {loading ? <div style={{ textAlign: "center", padding: "40px 20px" }}><div style={{ fontSize: "2.5rem", animation: "spin 1s linear infinite", display: "inline-block" }}>🪶</div><p style={{ color: "#5a5a4a", marginTop: 12 }}>{lang === "ja" ? "今日のハッチと条件を分析中..." : "Analysing today's hatch and conditions..."}</p></div>
+        {loading ? <div style={{ textAlign: "center", padding: "40px 20px" }}><div style={{ fontSize: "2.5rem", animation: "spin 1s linear infinite", display: "inline-block" }}>🪶</div><p style={{ color: "#5a5a4a", marginTop: 12 }}>{lang === "ja" ? "今日のハッチと条件を分析中..." : lang === "es" ? "Analizando la eclosión y las condiciones de hoy..." : "Analysing today's hatch and conditions..."}</p></div>
           : <div style={{ fontSize: "1rem", lineHeight: 1.8, color: "#3a3a2a", whiteSpace: "pre-wrap" }}>{response}</div>}
       </div>
     </div>
@@ -2486,14 +2508,14 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <div style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: 2 }}>
-              {lang === "ja" ? "🪶 フライフィッシング" : "🪶 Fly Fishing"}
+              {lang === "ja" ? "🪶 フライフィッシング" : lang === "es" ? "🪶 Pesca con mosca" : "🪶 Fly Fishing"}
             </div>
             <div style={{ fontSize: "1.05rem", color: "#5a5a4a", marginBottom: 10 }}>
-              {lang === "ja" ? "日本の渓流・テンカラ・フライパターン" : "Japan streams · Tenkara · Fly patterns"}
+              {lang === "ja" ? "日本の渓流・テンカラ・フライパターン" : lang === "es" ? "Ríos de Japón · Tenkara · Patrones de mosca" : "Japan streams · Tenkara · Fly patterns"}
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <div style={{ background: "#d0eae8", border: "2px solid #c8b800", borderRadius: 10, padding: "6px 12px", fontSize: "1rem", color: "#2d7a3a" }}>
-                {lang === "ja" ? `🦋 ${currentMonth.month.ja} ハッチ活性: ${currentMonth.activity}%` : `🦋 ${currentMonth.month.en} Hatch Activity: ${currentMonth.activity}%`}
+                {lang === "ja" ? `🦋 ${currentMonth.month.ja} ハッチ活性: ${currentMonth.activity}%` : lang === "es" ? `🦋 Eclosión en ${currentMonth.month.en}: ${currentMonth.activity}%` : `🦋 ${currentMonth.month.en} Hatch Activity: ${currentMonth.activity}%`}
               </div>
             </div>
           </div>
@@ -2507,7 +2529,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
       {/* Sub-tabs */}
       <div style={{ display: "flex", gap: 4, marginBottom: 14, overflowX: "auto" }}>
         {flyTabs.map(ft => (
-          <button key={ft.k} onClick={() => setFlyTab(ft.k)} style={{ flex: "0 0 auto", padding: "7px 11px", borderRadius: 10, border: `1px solid ${flyTab === ft.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: flyTab === ft.k ? "rgba(116,198,157,0.15)" : "transparent", color: flyTab === ft.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap", fontWeight: flyTab === ft.k ? 700 : 400 }}>{ft[lang]}</button>
+          <button key={ft.k} onClick={() => setFlyTab(ft.k)} style={{ flex: "0 0 auto", padding: "7px 11px", borderRadius: 10, border: `1px solid ${flyTab === ft.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: flyTab === ft.k ? "rgba(116,198,157,0.15)" : "transparent", color: flyTab === ft.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap", fontWeight: flyTab === ft.k ? 700 : 400 }}>{gl(ft, lang)}</button>
         ))}
       </div>
 
@@ -2515,7 +2537,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
         <div>
           {selPattern ? (
             <div style={{ animation: "fadeUp 0.3s ease" }}>
-              <button onClick={() => setSelPattern(null)} style={{ background: "#e8e3d8", border: "none", borderRadius: 8, padding: "4px 10px", color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", marginBottom: 12 }}>← {lang === "ja" ? "戻る" : "Back"}</button>
+              <button onClick={() => setSelPattern(null)} style={{ background: "#e8e3d8", border: "none", borderRadius: 8, padding: "4px 10px", color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", marginBottom: 12 }}>← {lang === "ja" ? "戻る" : lang === "es" ? "Volver" : "Back"}</button>
               <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.15), rgba(72,202,228,0.08))", border: "2px solid #FFE500", borderRadius: 18, padding: 18, marginBottom: 12 }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
                   <FlyIllustration id={selPattern.id} emoji={selPattern.emoji} width={130} height={82} style={{ flexShrink: 0, animation: "float 3s ease-in-out infinite", background: "#fffdf8", borderRadius: 12 }} />
@@ -2535,26 +2557,26 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                     { la: { ja: "ターゲット", en: "Target" }, v: (selPattern.target?.[lang] || selPattern.target?.en || selPattern.target?.ja || "") },
                   ].map(row => (
                     <div key={row.la.ja} style={{ display: "flex", gap: 12, alignItems: "center", background: "#fffdf8", borderRadius: 10, padding: "9px 12px" }}>
-                      <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 64 }}>{row.la[lang]}</span>
+                      <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 64 }}>{gl(row.la, lang)}</span>
                       <span style={{ fontSize: "0.95rem", fontWeight: 600 }}>{row.v}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: 14, marginBottom: 10 }}>
-                <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 7 }}>{lang === "ja" ? "🎯 プレゼンテーション" : "🎯 Presentation"}</div>
+                <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 7 }}>{lang === "ja" ? "🎯 プレゼンテーション" : lang === "es" ? "🎯 Presentación" : "🎯 Presentation"}</div>
                 <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{(selPattern.technique?.[lang] || selPattern.technique?.en || selPattern.technique?.ja || "")}</p>
               </div>
               <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.12), transparent)", border: "2px solid #FFE500", borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 7 }}>💡 {s("proTip", lang)}</div>
-                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selPattern.tip[lang]}</p>
+                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{gl(selPattern.tip, lang)}</p>
               </div>
             </div>
           ) : (
             <>
               <div style={{ display: "flex", gap: 5, marginBottom: 12, overflowX: "auto", paddingBottom: 2 }}>
                 {typeFilters.map(tf => (
-                  <button key={tf.k} onClick={() => setTypeFilter(tf.k)} style={{ flex: "0 0 auto", padding: "5px 12px", borderRadius: 99, border: `1px solid ${typeFilter === tf.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: typeFilter === tf.k ? "rgba(116,198,157,0.14)" : "transparent", color: typeFilter === tf.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap" }}>{tf[lang]}</button>
+                  <button key={tf.k} onClick={() => setTypeFilter(tf.k)} style={{ flex: "0 0 auto", padding: "5px 12px", borderRadius: 99, border: `1px solid ${typeFilter === tf.k ? "rgba(116,198,157,0.6)" : "#d4cfc4"}`, background: typeFilter === tf.k ? "rgba(116,198,157,0.14)" : "transparent", color: typeFilter === tf.k ? "#74c69d" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap" }}>{gl(tf, lang)}</button>
                 ))}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -2578,10 +2600,10 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
       {flyTab === "hatch" && (
         <div>
           <div style={{ fontSize: "1.05rem", color: "#5a5a4a", marginBottom: 14 }}>
-            {lang === "ja" ? "日本の渓流における月別ハッチ（羽化）ガイド" : "Monthly hatch guide for Japan's mountain streams"}
+            {lang === "ja" ? "日本の渓流における月別ハッチ（羽化）ガイド" : lang === "es" ? "Guía mensual de eclosiones para los ríos de montaña de Japón" : "Monthly hatch guide for Japan's mountain streams"}
           </div>
           <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
-            <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em" }}>{lang === "ja" ? "年間ハッチ活性" : "ANNUAL HATCH ACTIVITY"}</div>
+            <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em" }}>{lang === "ja" ? "年間ハッチ活性" : lang === "es" ? "ACTIVIDAD DE ECLOSIÓN ANUAL" : "ANNUAL HATCH ACTIVITY"}</div>
             <div style={{ display: "flex", gap: 4, alignItems: "flex-end", height: 80 }}>
               {HATCH_CALENDAR.map((m, i) => (
                 <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -2596,7 +2618,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               <div key={i} style={{ background: i === currentMonthIdx ? "rgba(116,198,157,0.1)" : "#fffdf8", border: `1px solid ${i === currentMonthIdx ? "rgba(116,198,157,0.35)" : "#e0dbd0"}`, borderRadius: 14, padding: "12px 14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
                   <div style={{ fontWeight: 700, fontSize: "1.05rem", color: i === currentMonthIdx ? "#74c69d" : "#e8e0d0" }}>
-                    {(m.month?.[lang] || m.month?.en || m.month?.ja || "")} {i === currentMonthIdx && (lang === "ja" ? "← 今月" : "← This Month")}
+                    {(m.month?.[lang] || m.month?.en || m.month?.ja || "")} {i === currentMonthIdx && (lang === "ja" ? "← 今月" : lang === "es" ? "← Este mes" : "← This Month")}
                   </div>
                   <div style={{ fontSize: "1rem", color: m.activity >= 80 ? "#74c69d" : m.activity >= 50 ? "#f4a261" : "#8899aa" }}>
                     {"●".repeat(Math.round(m.activity / 20))}{"○".repeat(5 - Math.round(m.activity / 20))} {m.activity}%
@@ -2617,7 +2639,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
         <div>
           {selTechnique ? (
             <div style={{ animation: "fadeUp 0.3s ease" }}>
-              <button onClick={() => setSelTechnique(null)} style={{ background: "#e8e3d8", border: "none", borderRadius: 8, padding: "4px 10px", color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", marginBottom: 12 }}>← {lang === "ja" ? "戻る" : "Back"}</button>
+              <button onClick={() => setSelTechnique(null)} style={{ background: "#e8e3d8", border: "none", borderRadius: 8, padding: "4px 10px", color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", marginBottom: 12 }}>← {lang === "ja" ? "戻る" : lang === "es" ? "Volver" : "Back"}</button>
               <div style={{ background: "#e8f4ec", border: "2px solid #FFE500", borderRadius: 18, padding: 18, marginBottom: 12 }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
                   <div style={{ fontSize: "2.5rem" }}>{selTechnique.icon}</div>
@@ -2627,7 +2649,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                   </div>
                 </div>
                 <p style={{ margin: "0 0 14px", fontSize: "0.95rem", color: "#3a3a2a", lineHeight: 1.7 }}>{(selTechnique.desc?.[lang] || selTechnique.desc?.en || selTechnique.desc?.ja || "")}</p>
-                <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 8 }}>{lang === "ja" ? "📋 手順" : "📋 Steps"}</div>
+                <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 8 }}>{lang === "ja" ? "📋 手順" : lang === "es" ? "📋 Pasos" : "📋 Steps"}</div>
                 {(selTechnique.steps?.[lang] || selTechnique.steps?.en || selTechnique.steps?.ja || "").map((step, i) => (
                   <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 8 }}>
                     <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#c8e8d0", border: "2px solid #60b080", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.95rem", fontWeight: 700, color: "#2d7a3a", flexShrink: 0 }}>{i + 1}</div>
@@ -2637,13 +2659,13 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               </div>
               <div style={{ background: "linear-gradient(135deg, rgba(116,198,157,0.1), transparent)", border: "2px solid #FFE500", borderRadius: 14, padding: 14 }}>
                 <div style={{ fontSize: "1rem", color: "#2d7a3a", fontWeight: 700, marginBottom: 7 }}>💡 {s("proTip", lang)}</div>
-                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{selTechnique.tip[lang]}</p>
+                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.7, color: "#3a3a2a" }}>{gl(selTechnique.tip, lang)}</p>
               </div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ fontSize: "1.05rem", color: "#5a5a4a", marginBottom: 4 }}>
-                {lang === "ja" ? "フライキャスト技術 — タップして詳細を見る" : "Fly casting techniques — tap for step-by-step guide"}
+                {lang === "ja" ? "フライキャスト技術 — タップして詳細を見る" : lang === "es" ? "Técnicas de lanzado con mosca — toca para la guía paso a paso" : "Fly casting techniques — tap for step-by-step guide"}
               </div>
               {CAST_TECHNIQUES.map((ct, i) => (
                 <div key={ct.id} onClick={() => setSelTechnique(ct)} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: "14px 16px", cursor: "pointer", display: "flex", gap: 12, alignItems: "center", animation: `fadeUp ${0.18 + i * 0.07}s ease both` }}
@@ -2667,27 +2689,27 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
         <div style={{ animation: "fadeUp 0.4s ease" }}>
           <div style={{ background: "linear-gradient(135deg,rgba(45,106,79,0.12),rgba(116,198,157,0.06))", border: "2px solid #FFE500", borderRadius: 18, padding: 16, marginBottom: 14 }}>
             <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: 4 }}>🎋 {lang === "ja" ? "テンカラ道場" : lang === "es" ? "Dojo Tenkara" : "Tenkara Dojo"}</div>
-            <div style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "竿選び・ライン計算・結び方・渓流ガイド" : "Rod selection · Line formula · Knots · Stream guide"}</div>
+            <div style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "竿選び・ライン計算・結び方・渓流ガイド" : lang === "es" ? "Selección de caña · Fórmula de línea · Nudos · Guía de río" : "Rod selection · Line formula · Knots · Stream guide"}</div>
           </div>
 
           {/* Rod selector */}
           <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: 14, marginBottom: 12 }}>
-            <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 10, color: "#2d7a3a" }}>🎋 {lang === "ja" ? "竿の長さガイド" : "Rod Length Guide"}</div>
+            <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 10, color: "#2d7a3a" }}>🎋 {lang === "ja" ? "竿の長さガイド" : lang === "es" ? "Guía de largo de caña" : "Rod Length Guide"}</div>
             {TENKARA_RODS.map(rod => (
               <div key={rod.length} style={{ background: "#f5f0e8", borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
                   <span style={{ fontWeight: 700, fontSize: "1.05rem" }}>🎋 {rod.length}m</span>
-                  <span style={{ fontSize: "0.82rem", color: "#0d7377", background: "#e0f2f2", borderRadius: 99, padding: "2px 8px" }}>{lang === "ja" ? `ライン: ${rod.line}` : `Line: ${rod.line}`}</span>
+                  <span style={{ fontSize: "0.82rem", color: "#0d7377", background: "#e0f2f2", borderRadius: 99, padding: "2px 8px" }}>{lang === "ja" ? `ライン: ${rod.line}` : lang === "es" ? `Línea: ${rod.line}` : `Line: ${rod.line}`}</span>
                 </div>
                 <div style={{ fontSize: "0.88rem", color: "#2d7a3a", fontWeight: 600, marginBottom: 2 }}>📍 {(rod.target?.[lang] || rod.target?.en || rod.target?.ja || "")}</div>
-                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>💡 {rod.tip[lang]}</div>
+                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>💡 {gl(rod.tip, lang)}</div>
               </div>
             ))}
           </div>
 
           {/* Line formula */}
           <div style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 12 }}>
-            <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 8, color: "#2d7a3a" }}>📏 {lang === "ja" ? "ライン長さの公式" : "Line Length Formula"}</div>
+            <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 8, color: "#2d7a3a" }}>📏 {lang === "ja" ? "ライン長さの公式" : lang === "es" ? "Fórmula del largo de línea" : "Line Length Formula"}</div>
             <div style={{ fontSize: "0.88rem", color: "#1a4a22", lineHeight: 1.7, fontWeight: 600 }}>{LINE_FORMULA[lang]}</div>
             <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[3.0, 3.3, 3.6, 3.9, 4.5].map(len => (
@@ -2701,7 +2723,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
 
           {/* Knots */}
           <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: 14, marginBottom: 12 }}>
-            <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 10, color: "#2d7a3a" }}>🪢 {lang === "ja" ? "テンカラの結び方" : "Tenkara Knots"}</div>
+            <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 10, color: "#2d7a3a" }}>🪢 {lang === "ja" ? "テンカラの結び方" : lang === "es" ? "Nudos tenkara" : "Tenkara Knots"}</div>
             {TENKARA_KNOTS.map((knot, ki) => (
               <div key={ki} style={{ background: "#f5f0e8", borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
                 <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: 8 }}>{(knot.name?.[lang] || knot.name?.en || knot.name?.ja || "")}</div>
@@ -2719,11 +2741,11 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
       {flyTab === "tenkara" && (
         <div>
           <div style={{ background: "linear-gradient(135deg, rgba(72,202,228,0.08))", border: "2px solid #FFE500", borderRadius: 18, padding: 18, marginBottom: 14 }}>
-            <div style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 6 }}>🎋 {lang === "ja" ? "テンカラとは" : "What is Tenkara?"}</div>
+            <div style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 6 }}>🎋 {lang === "ja" ? "テンカラとは" : lang === "es" ? "¿Qué es el tenkara?" : "What is Tenkara?"}</div>
             <p style={{ margin: "0 0 12px", fontSize: "0.95rem", color: "#3a3a2a", lineHeight: 1.7 }}>
               {lang === "ja"
                 ? "テンカラは日本発祥の伝統的なフライフィッシング。リールを使わず、竿の長さ分の固定ラインと毛鉤だけのシンプルなシステム。「一竿・一線・一毛鉤」の哲学が世界中で人気を集めている。"
-                : "Tenkara is Japan's ancient form of fly fishing — no reel, just a rod, fixed line, and fly. 'One rod, one line, one fly' philosophy has captivated anglers worldwide for its elegant simplicity."}
+                : lang === "es" ? "El tenkara es la forma antigua japonesa de pescar con mosca: sin carrete, solo caña, línea fija y mosca. La filosofía de 'una caña, una línea, una mosca' ha conquistado a pescadores de todo el mundo por su elegante sencillez." : "Tenkara is Japan's ancient form of fly fishing — no reel, just a rod, fixed line, and fly. 'One rod, one line, one fly' philosophy has captivated anglers worldwide for its elegant simplicity."}
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[
@@ -2731,11 +2753,11 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                 { ja: "📏 固定ライン", en: "📏 Fixed line" },
                 { ja: "🪶 毛鉤のみ", en: "🪶 Single fly" },
                 { ja: "⛰️ 渓流特化", en: "⛰️ Stream-focused" },
-              ].map(b => <span key={b.ja} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "4px 10px", fontSize: "0.95rem", color: "#2d7a3a" }}>{b[lang]}</span>)}
+              ].map(b => <span key={b.ja} style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "4px 10px", fontSize: "0.95rem", color: "#2d7a3a" }}>{gl(b, lang)}</span>)}
             </div>
           </div>
 
-          <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 10, letterSpacing: "0.07em" }}>{lang === "ja" ? "テンカラの名川" : "TOP TENKARA RIVERS IN JAPAN"}</div>
+          <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 10, letterSpacing: "0.07em" }}>{lang === "ja" ? "テンカラの名川" : lang === "es" ? "MEJORES RÍOS DE TENKARA EN JAPÓN" : "TOP TENKARA RIVERS IN JAPAN"}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
             {TENKARA_RIVERS.map((r, i) => (
               <div key={r.name} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: "13px 15px", animation: `fadeUp ${0.18 + i * 0.08}s ease both` }}>
@@ -2745,8 +2767,8 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {[
-                    { icon: "🐟", v: r.fish[lang] },
-                    { icon: "🚃", v: r.access[lang] },
+                    { icon: "🐟", v: gl(r.fish, lang) },
+                    { icon: "🚃", v: gl(r.access, lang) },
                     { icon: "📅", v: (r.season?.[lang] || r.season?.en || r.season?.ja || "") },
                     { icon: "🎫", v: (r.permit?.[lang] || r.permit?.en || r.permit?.ja || "") },
                   ].map(d => <span key={d.v} style={{ fontSize: "0.95rem", color: "#5a5a4a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{d.icon} {d.v}</span>)}
@@ -2756,7 +2778,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
           </div>
 
           <div style={{ background: "rgba(72,202,228,0.06)", border: "2px solid #FFE500", borderRadius: 14, padding: 14 }}>
-            <div style={{ fontSize: "1rem", color: "#0d7377", fontWeight: 700, marginBottom: 8 }}>💡 {lang === "ja" ? "テンカラの基本セット" : "Basic Tenkara Setup"}</div>
+            <div style={{ fontSize: "1rem", color: "#0d7377", fontWeight: 700, marginBottom: 8 }}>💡 {lang === "ja" ? "テンカラの基本セット" : lang === "es" ? "Montaje básico de tenkara" : "Basic Tenkara Setup"}</div>
             {[
               { la: { ja: "竿", en: "Rod" }, v: { ja: "3.3〜4.5m カーボン or 竹竿", en: "3.3–4.5m carbon or bamboo" } },
               { la: { ja: "ライン", en: "Line" }, v: { ja: "フルロロ or フロロ 竿の長さ×1〜1.3", en: "Furled or fluoro, rod-length × 1–1.3" } },
@@ -2764,8 +2786,8 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
               { la: { ja: "毛鉤", en: "Fly" }, v: { ja: "逆さ毛鉤 #10〜14（3〜5本あれば十分）", en: "Sakasa kebari #10–14 (3–5 flies is all you need)" } },
             ].map(row => (
               <div key={row.la.ja} style={{ display: "flex", gap: 10, marginBottom: 6, fontSize: "0.92rem" }}>
-                <span style={{ color: "#5a5a4a", minWidth: 50 }}>{row.la[lang]}</span>
-                <span style={{ color: "#0d7377" }}>{row.v[lang]}</span>
+                <span style={{ color: "#5a5a4a", minWidth: 50 }}>{gl(row.la, lang)}</span>
+                <span style={{ color: "#0d7377" }}>{gl(row.v, lang)}</span>
               </div>
             ))}
           </div>
@@ -2861,7 +2883,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     Object.values(bands).forEach(({ band, river, lines }) => {
       const color = heatColor(band);
       L.polyline(lines, { renderer, color, weight: river ? (z >= 12 ? 6 : 4) : 3.5, opacity: 0.85, lineCap: "round", lineJoin: "round", smoothFactor: 1.5 })
-        .bindPopup(`<div style="font-family:sans-serif"><b>${river ? (lang === "ja" ? "河川" : "River") : (lang === "ja" ? "支流・沢" : "Stream")}</b><br><span style="color:${color};font-weight:700">🔥 ${bandName[band][lang] || bandName[band].en}</span></div>`)
+        .bindPopup(`<div style="font-family:sans-serif"><b>${river ? (lang === "ja" ? "河川" : lang === "es" ? "Río" : "River") : (lang === "ja" ? "支流・沢" : lang === "es" ? "Quebrada" : "Stream")}</b><br><span style="color:${color};font-weight:700">🔥 ${bandName[band][lang] || bandName[band].en}</span></div>`)
         .addTo(layer);
     });
     setRiverStatus(ways.length ? (failed ? "partial" : "") : (failed ? "error" : "none"));
@@ -2910,7 +2932,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     });
     const inJapan = !userLocation || (userLocation.lat > 24 && userLocation.lat < 46 && userLocation.lng > 122 && userLocation.lng < 146);
     (inJapan ? gsi : osm).addTo(map);
-    L.control.layers({ [lang === "ja" ? "地理院地図" : "GSI Japan"]: gsi, "OpenStreetMap": osm }, null, { position: "topright" }).addTo(map);
+    L.control.layers({ [lang === "ja" ? "地理院地図" : lang === "es" ? "GSI Japón" : "GSI Japan"]: gsi, "OpenStreetMap": osm }, null, { position: "topright" }).addTo(map);
 
     leafletRef.current = map;
     map.on("moveend", scheduleRivers);
@@ -2954,8 +2976,8 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
         .bindPopup(`
           <div style="font-family:sans-serif;min-width:160px">
             <div style="font-weight:700;font-size:14px;margin-bottom:4px">${spot.name}</div>
-            <div style="color:#0d7377;font-size:12px">🐟 ${typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")}</div>
-            <div style="color:#5a5a4a;font-size:12px">⭐ ${spot.rating} · ${typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
+            <div style="color:#0d7377;font-size:12px">🐟 ${typeof spot.fish === "object" ? gl(spot.fish, lang) : (spot.fishName || spot.fish || "")}</div>
+            <div style="color:#5a5a4a;font-size:12px">⭐ ${spot.rating} · ${typeof spot.type === "object" ? gl(spot.type, lang) : spot.type}</div>
             ${spot.distKm != null ? `<div style="color:#b8a000;font-weight:700;font-size:12px;margin-top:2px">📏 ${spot.distKm} km</div>` : ""}
             ${crowdText}
           </div>
@@ -2976,7 +2998,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
       });
       const marker = L.marker([user.lat, user.lng], { icon })
         .addTo(map)
-        .bindPopup(`<div style="font-family:sans-serif;font-size:12px;color:#b8a000;font-weight:700">${lang === "ja" ? "🎣 釣り中のアングラー" : "🎣 Angler fishing here"}</div>`);
+        .bindPopup(`<div style="font-family:sans-serif;font-size:12px;color:#b8a000;font-weight:700">${lang === "ja" ? "🎣 釣り中のアングラー" : lang === "es" ? "🎣 Pescador aquí" : "🎣 Angler fishing here"}</div>`);
       markersRef.current.push(marker);
     });
 
@@ -2991,7 +3013,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
       });
       userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
         .addTo(map)
-        .bindPopup(`<div style="font-family:sans-serif;font-weight:700">${lang === "ja" ? "現在地" : "You are here"}<br><span style="font-weight:400;font-size:12px">${userLocation.display || ""}</span></div>`);
+        .bindPopup(`<div style="font-family:sans-serif;font-weight:700">${lang === "ja" ? "現在地" : lang === "es" ? "Estás aquí" : "You are here"}<br><span style="font-weight:400;font-size:12px">${userLocation.display || ""}</span></div>`);
     }
   }
 
@@ -3047,7 +3069,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
         <div style={{ position: "absolute", left: 8, bottom: 8, zIndex: 500, background: "rgba(255,253,248,0.94)", borderRadius: 10, padding: "6px 10px", fontSize: "0.75rem", boxShadow: "0 1px 6px rgba(0,0,0,0.2)", pointerEvents: "none" }}>
           {statusText ? <div style={{ fontWeight: 700, color: "#0d7377" }}>{statusText[lang] || statusText.en}</div> : (
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              {[["#e63946", "75+"], ["#f77f00", "60+"], ["#f6c500", "45+"], ["#3a86ff", lang === "ja" ? "低" : "Low"]].map(([c, t]) => (
+              {[["#e63946", "75+"], ["#f77f00", "60+"], ["#f6c500", "45+"], ["#3a86ff", lang === "ja" ? "低" : lang === "es" ? "Bajo" : "Low"]].map(([c, t]) => (
                 <span key={c} style={{ display: "inline-flex", alignItems: "center", gap: 3 }}><span style={{ width: 14, height: 4, borderRadius: 2, background: c, display: "inline-block" }} />{t}</span>
               ))}
             </div>
@@ -3106,7 +3128,7 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
         }
         setPermission("granted");
       } catch (e) {
-        setCamError(lang === "ja" ? "カメラへのアクセスが拒否されました" : "Camera access denied");
+        setCamError(lang === "ja" ? "カメラへのアクセスが拒否されました" : lang === "es" ? "Acceso a la cámara denegado" : "Camera access denied");
         setPermission("denied");
       }
     }
@@ -3209,7 +3231,7 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
                 📏 {fmtDist(spot.dist)} · ⭐ {spot.rating}
               </div>
               <div style={{ color: typeof spot.fish === "object" ? "white" : "white", fontSize: "0.7rem", opacity: 0.75, marginTop: 2 }}>
-                🐟 {typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")}
+                🐟 {typeof spot.fish === "object" ? gl(spot.fish, lang) : (spot.fishName || spot.fish || "")}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
                 <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 99 }}>
@@ -3230,7 +3252,7 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
         </span>
         {arSpots.length > 0 && (
           <span style={{ color: "#00ff88", fontSize: "0.75rem" }}>
-            · {lang === "ja" ? `${arSpots.length}スポット` : `${arSpots.length} spots`}
+            · {lang === "ja" ? `${arSpots.length}スポット` : lang === "es" ? `${arSpots.length} sitios` : `${arSpots.length} spots`}
           </span>
         )}
       </div>
@@ -3239,10 +3261,10 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
       {permission === "granted" && arSpots.length === 0 && compass !== null && (
         <div style={{ position: "absolute", bottom: 140, left: "50%", transform: "translateX(-50%)", background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 12, padding: "12px 20px", textAlign: "center" }}>
           <div style={{ color: "white", fontSize: "0.88rem", fontWeight: 700 }}>
-            {lang === "ja" ? "📷 周りを見回してください" : "📷 Look around to find spots"}
+            {lang === "ja" ? "📷 周りを見回してください" : lang === "es" ? "📷 Mira alrededor para encontrar sitios" : "📷 Look around to find spots"}
           </div>
           <div style={{ color: "#aaa", fontSize: "0.75rem", marginTop: 4 }}>
-            {lang === "ja" ? "60°以内にスポットが表示されます" : "Spots within 60° will appear"}
+            {lang === "ja" ? "60°以内にスポットが表示されます" : lang === "es" ? "Aparecerán los sitios dentro de 60°" : "Spots within 60° will appear"}
           </div>
         </div>
       )}
@@ -3253,7 +3275,7 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
           <div style={{ fontSize: "3rem" }}>📷</div>
           <div style={{ color: "white", fontWeight: 700, fontSize: "1rem" }}>{camError}</div>
           <div style={{ color: "#aaa", fontSize: "0.82rem" }}>
-            {lang === "ja" ? "設定からカメラを許可してください" : "Please allow camera in settings"}
+            {lang === "ja" ? "設定からカメラを許可してください" : lang === "es" ? "Permite la cámara en los ajustes" : "Please allow camera in settings"}
           </div>
         </div>
       )}
@@ -3276,7 +3298,7 @@ function ARCameraView({ userLocation, spots, lang, onClose, weather }) {
       {/* Bottom bar */}
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "linear-gradient(transparent, rgba(0,0,0,0.8))", padding: "20px 16px 32px", textAlign: "center" }}>
         <div style={{ color: "white", fontSize: "0.78rem", opacity: 0.7 }}>
-          {lang === "ja" ? "🎣 釣りナビ AR — カメラを釣り場に向けてください" : "🎣 CastWise AR — Point camera toward fishing spots"}
+          {lang === "ja" ? "🎣 釣りナビ AR — カメラを釣り場に向けてください" : lang === "es" ? "🎣 CastWise AR — Apunta la cámara hacia los sitios de pesca" : "🎣 CastWise AR — Point camera toward fishing spots"}
         </div>
       </div>
     </div>
@@ -3333,7 +3355,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       {/* Mode toggle */}
       <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
         {[{ k: "spots", ja: "📍 釣り場", en: "📍 Spots" }, { k: "prediction", ja: "🔮 AI予測", en: "🔮 AI Predict" }].map(m => (
-          <button key={m.k} onClick={() => setMapMode(m.k)} style={{ flex: 1, padding: "8px", background: mapMode === m.k ? "#e0f2f2" : "#fffdf8", border: `2px solid ${mapMode === m.k ? "#1a1a14" : "#d4cfc4"}`, borderRadius: 10, color: mapMode === m.k ? "#1a1a14" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: mapMode === m.k ? 700 : 400 }}>{m[lang]}</button>
+          <button key={m.k} onClick={() => setMapMode(m.k)} style={{ flex: 1, padding: "8px", background: mapMode === m.k ? "#e0f2f2" : "#fffdf8", border: `2px solid ${mapMode === m.k ? "#1a1a14" : "#d4cfc4"}`, borderRadius: 10, color: mapMode === m.k ? "#1a1a14" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: mapMode === m.k ? 700 : 400 }}>{gl(m, lang)}</button>
         ))}
       </div>
 
@@ -3342,10 +3364,10 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
         <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 10, padding: "8px 12px", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, fontSize: "0.85rem" }}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2d7a3a", boxShadow: "0 0 8px #b8a000", flexShrink: 0 }} />
           <span style={{ color: "#0d7377", fontWeight: 700 }}>
-            {lang === "ja" ? `今 ${activeUsers.length}人が釣り中` : `${activeUsers.length} anglers fishing now`}
+            {lang === "ja" ? `今 ${activeUsers.length}人が釣り中` : lang === "es" ? `${activeUsers.length} pescando ahora` : `${activeUsers.length} anglers fishing now`}
           </span>
           <span style={{ color: "#5a5a4a", fontSize: "0.78rem" }}>
-            {lang === "ja" ? "🔴混雑 🟠普通 🟢空き" : "🔴Crowded 🟠Moderate 🟢Quiet"}
+            {lang === "ja" ? "🔴混雑 🟠普通 🟢空き" : lang === "es" ? "🔴Lleno 🟠Moderado 🟢Tranquilo" : "🔴Crowded 🟠Moderate 🟢Quiet"}
           </span>
         </div>
       )}
@@ -3368,7 +3390,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
         <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 10, paddingBottom: 2 }}>
           {REGIONS.map(r => (
             <button key={r.key} onClick={() => setRegionFilter(r.key)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 99, border: `2px solid ${regionFilter === r.key ? "#1a1a14" : "#d4cfc4"}`, background: regionFilter === r.key ? "#e0f2f2" : "#f5f0e8", color: regionFilter === r.key ? "#1a1a14" : "#5a5a4a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: regionFilter === r.key ? 700 : 400 }}>
-              {r.emoji} {r[lang]}
+              {r.emoji} {gl(r, lang)}
             </button>
           ))}
         </div>
@@ -3379,16 +3401,16 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
           <span style={{ fontSize: "1rem" }}>📍</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0d7377" }}>{userLocation.display}</div>
-            <div style={{ fontSize: "0.8rem", color: "#5a5a4a" }}>{lang === "ja" ? "タップしてAI近場診断" : "Tap for AI nearby spots"}</div>
+            <div style={{ fontSize: "0.8rem", color: "#5a5a4a" }}>{lang === "ja" ? "タップしてAI近場診断" : lang === "es" ? "Toca para ver sitios cercanos con IA" : "Tap for AI nearby spots"}</div>
           </div>
           <span style={{ color: "#0d7377", fontSize: "1rem" }}>→</span>
         </div>
       ) : (
         <div style={{ padding: "8px 12px", background: "#f5f0e8", border: "2px solid #d4cfc4", borderRadius: 10, marginBottom: 10, fontSize: "0.88rem", color: "#7a7a6a" }}>
-          📍 {lang === "ja" ? "位置情報を許可すると距離順に並びます" : "Allow location to sort by distance"}
+          📍 {lang === "ja" ? "位置情報を許可すると距離順に並びます" : lang === "es" ? "Permite la ubicación para ordenar por distancia" : "Allow location to sort by distance"}
         </div>
       )}
-      <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "ピンをタップして詳細を見る" : "Tap a pin for details"}</p>
+      <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "ピンをタップして詳細を見る" : lang === "es" ? "Toca un punto para ver detalles" : "Tap a pin for details"}</p>
       {/* ── REAL LEAFLET MAP via OSM ── */}
       <LeafletMap spots={spots} userLocation={userLocation} activeSpot={activeSpot} setActiveSpot={setActiveSpot} lang={lang} activeUsers={activeUsers} showHeatmap={showHeatmap} weather={weather} />
       {/* Heatmap overlay */}
@@ -3412,9 +3434,9 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
         <div style={{ background: "#e0f2f2", border: "2px solid #1a1a14", borderRadius: 14, padding: "12px 16px", marginBottom: 14, animation: "fadeUp 0.2s ease" }}>
           <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 4 }}>{activeSpot.icon || "📍"} {activeSpot.name}</div>
           <div style={{ fontSize: "0.88rem", color: "#0d7377" }}>
-            🐟 {typeof activeSpot.fish === "object" ? activeSpot.fish[lang] : (activeSpot.fishName || activeSpot.fish || "")}
+            🐟 {typeof activeSpot.fish === "object" ? gl(activeSpot.fish, lang) : (activeSpot.fishName || activeSpot.fish || "")}
             {" · "}⭐ {activeSpot.rating}
-            {" · "}{typeof activeSpot.type === "object" ? activeSpot.type[lang] : activeSpot.type}
+            {" · "}{typeof activeSpot.type === "object" ? gl(activeSpot.type, lang) : activeSpot.type}
             {activeSpot.distKm != null && ` · 📏 ${activeSpot.distKm} km`}
           </div>
         </div>
@@ -3426,7 +3448,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
         {mapMode === "prediction" && (
           <div style={{ animation: "fadeUp 0.3s ease" }}>
             <div style={{ fontSize: "0.82rem", color: "#5a5a4a", marginBottom: 10, background: "#e0f2f2", borderRadius: 10, padding: "8px 12px" }}>
-              🤖 {lang === "ja" ? `現在の条件（${new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})}）でスポットをAI分析中` : `AI analyzing spots for current conditions (${new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})})`}
+              🤖 {lang === "ja" ? `現在の条件（${new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})}）でスポットをAI分析中` : lang === "es" ? `IA analizando sitios para las condiciones actuales (${new Date().toLocaleTimeString("es-PR",{hour:"2-digit",minute:"2-digit"})})` : `AI analyzing spots for current conditions (${new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})})`}
             </div>
             {[...spots].sort((a, b) => calcSpotScore(b, weather, tideData, activeUsers) - calcSpotScore(a, weather, tideData, activeUsers)).slice(0, 15).map(spot => (
               <PredictionZoneCard key={spot.id} spot={spot} weather={weather} tideData={tideData} activeUsers={activeUsers} lang={lang} onAskAI={async (s, sc) => { if (await incrementAiUsage()) { setPredictionSpot(s); setPredictionScore(sc); } }} />
@@ -3442,7 +3464,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
         {mapMode === "spots" && spots.length === 0 && (
           <div style={{ textAlign: "center", padding: "30px 20px", color: "#7a7a6a" }}>
             <div style={{ fontSize: "2rem", marginBottom: 8 }}>🗺️</div>
-            <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "このエリアのスポットは準備中です" : "Spots for this area coming soon"}</div>
+            <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "このエリアのスポットは準備中です" : lang === "es" ? "Pronto habrá sitios para esta zona" : "Spots for this area coming soon"}</div>
           </div>
         )}
         {mapMode === "spots" && spots.map((spot, i) => {
@@ -3454,24 +3476,24 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
               <div style={{ width: 44, height: 44, borderRadius: 10, background: "#e0f2f2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", flexShrink: 0, boxShadow: crowding ? crowding.glow : "none" }}>{spot.icon || "📍"}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 2 }}>{spot.name}</div>
-                <div style={{ fontSize: "0.85rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? spot.fish[lang] : (spot.fishName || spot.fish || "")} · {typeof spot.type === "object" ? spot.type[lang] : spot.type}</div>
+                <div style={{ fontSize: "0.85rem", color: "#5a5a4a" }}>🐟 {typeof spot.fish === "object" ? gl(spot.fish, lang) : (spot.fishName || spot.fish || "")} · {typeof spot.type === "object" ? gl(spot.type, lang) : spot.type}</div>
                 {spot.pref && <div style={{ fontSize: "0.78rem", color: "#9a9a8a", marginTop: 1 }}>📌 {spot.pref}</div>}
                 {crowding && crowding.count > 0 && (
                   <div style={{ fontSize: "0.75rem", color: crowding.color, fontWeight: 700, marginTop: 2 }}>
-                    {(crowding.label?.[lang] || crowding.label?.en || crowding.label?.ja || "")} · {lang === "ja" ? `${crowding.count}人釣り中` : `${crowding.count} fishing now`}
+                    {(crowding.label?.[lang] || crowding.label?.en || crowding.label?.ja || "")} · {lang === "ja" ? `${crowding.count}人釣り中` : lang === "es" ? `${crowding.count} pescando ahora` : `${crowding.count} fishing now`}
                   </div>
                 )}
               </div>
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{ color: "#c06a10", fontSize: "1rem", fontWeight: 700 }}>⭐ {spot.rating}</div>
                 {spot.distKm != null && <div style={{ color: "#0d7377", fontSize: "0.85rem", fontWeight: 700 }}>📏 {spot.distKm} km</div>}
-                {spot.bestSeason && <div style={{ fontSize: "0.72rem", color: "#7a7a6a" }}>{spot.bestSeason[lang]}</div>}
+                {spot.bestSeason && <div style={{ fontSize: "0.72rem", color: "#7a7a6a" }}>{gl(spot.bestSeason, lang)}</div>}
               </div>
             </div>
             {spot.tip && activeSpot?.id === spot.id && (
               <div style={{ background: "#f5f0e8", borderRadius: 10, padding: "8px 12px", fontSize: "0.85rem", color: "#3a3a2a", lineHeight: 1.6 }}>
-                💡 {spot.tip[lang]}
-                {spot.access && <div style={{ marginTop: 4, fontSize: "0.78rem", color: "#0d7377" }}>🚗 {spot.access[lang]}</div>}
+                💡 {gl(spot.tip, lang)}
+                {spot.access && <div style={{ marginTop: 4, fontSize: "0.78rem", color: "#0d7377" }}>🚗 {gl(spot.access, lang)}</div>}
               </div>
             )}
           </div>
@@ -3496,23 +3518,23 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
   return (
     <div style={{ animation: "fadeUp 0.4s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
-        <h2 style={{ margin: 0, fontSize: "1.2rem" }}>{lang === "ja" ? "釣り天気予報" : "Fishing Weather"}</h2>
+        <h2 style={{ margin: 0, fontSize: "1.2rem" }}>{lang === "ja" ? "釣り天気予報" : lang === "es" ? "Clima de pesca" : "Fishing Weather"}</h2>
         {WEATHER.loaded ? (
           <span style={{ fontSize: "0.78rem", color: "#0d7377", fontWeight: 600 }}>🌐 Open-Meteo · JMA</span>
         ) : (
-          <span style={{ fontSize: "0.78rem", color: "#7a7a6a" }}>⏳ {lang === "ja" ? "位置情報待ち..." : "Waiting for GPS..."}</span>
+          <span style={{ fontSize: "0.78rem", color: "#7a7a6a" }}>⏳ {lang === "ja" ? "位置情報待ち..." : lang === "es" ? "Esperando el GPS..." : "Waiting for GPS..."}</span>
         )}
       </div>
-      <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "現在地のリアル気象データ" : "Live weather at your location"}</p>
+      <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "現在地のリアル気象データ" : lang === "es" ? "Clima en vivo en tu ubicación" : "Live weather at your location"}</p>
 
       {isLoading && (
         <div style={{ background: "#f0f8f8", border: "2px solid #FFE500", borderRadius: 16, padding: 20, marginBottom: 14, textAlign: "center" }}>
           <div style={{ fontSize: "2.5rem", animation: "spin 2s linear infinite", display: "inline-block", marginBottom: 8 }}>🌤️</div>
           <div style={{ fontWeight: 700, color: "#0d7377", marginBottom: 4 }}>
-            {lang === "ja" ? "天気データを取得中..." : "Fetching live weather..."}
+            {lang === "ja" ? "天気データを取得中..." : lang === "es" ? "Buscando el clima en vivo..." : "Fetching live weather..."}
           </div>
           <div style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>
-            {lang === "ja" ? "📍 位置情報を許可してください" : "📍 Please allow location access"}
+            {lang === "ja" ? "📍 位置情報を許可してください" : lang === "es" ? "📍 Permite el acceso a la ubicación" : "📍 Please allow location access"}
           </div>
         </div>
       )}
@@ -3520,9 +3542,9 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <div style={{ fontSize: "2.8rem", lineHeight: 1, fontWeight: 700 }}>{WEATHER.temp}℃</div>
-            <div style={{ fontSize: "0.92rem", color: "#5a5a4a" }}>{lang === "ja" ? `体感${WEATHER.feels}℃` : `Feels ${WEATHER.feels}℃`} · {(WEATHER.condition?.[lang] || WEATHER.condition?.en || WEATHER.condition?.ja || "")}</div>
+            <div style={{ fontSize: "0.92rem", color: "#5a5a4a" }}>{lang === "ja" ? `体感${WEATHER.feels}℃` : lang === "es" ? `Sensación ${WEATHER.feels}℃` : `Feels ${WEATHER.feels}℃`} · {(WEATHER.condition?.[lang] || WEATHER.condition?.en || WEATHER.condition?.ja || "")}</div>
             <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {[{ icon: "💨", v: WEATHER.wind?.[lang] || "－" }, { icon: "💧", v: `${WEATHER.humidity ?? "－"}%` }, { icon: "🌡️", v: WEATHER.waterTemp != null ? `${lang === "ja" ? "水温" : "Water"}: ${WEATHER.waterTemp}℃` : (lang === "ja" ? "水温: 現地確認" : "Water: check locally") }, { icon: "🌙", v: WEATHER.moonPhase?.[lang] || "－" }].map(i => <span key={i.v} style={{ fontSize: "1rem", color: "#3a3a2a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{i.icon} {i.v}</span>)}
+              {[{ icon: "💨", v: WEATHER.wind?.[lang] || "－" }, { icon: "💧", v: `${WEATHER.humidity ?? "－"}%` }, { icon: "🌡️", v: WEATHER.waterTemp != null ? `${lang === "ja" ? "水温" : lang === "es" ? "Agua" : "Water"}: ${WEATHER.waterTemp}℃` : (lang === "ja" ? "水温: 現地確認" : lang === "es" ? "Agua: verifica en el sitio" : "Water: check locally") }, { icon: "🌙", v: WEATHER.moonPhase?.[lang] || "－" }].map(i => <span key={i.v} style={{ fontSize: "1rem", color: "#3a3a2a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{i.icon} {i.v}</span>)}
             </div>
           </div>
           <ScoreRing score={fi} lang={lang} />
@@ -3533,7 +3555,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
         </div>
       </div>
       <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
-        <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em" }}>{lang === "ja" ? "時間別釣り指数" : "HOURLY FISHING INDEX"}</div>
+        <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em" }}>{lang === "ja" ? "時間別釣り指数" : lang === "es" ? "ÍNDICE DE PESCA POR HORA" : "HOURLY FISHING INDEX"}</div>
         <div style={{ display: "flex", gap: 5, overflowX: "auto", paddingBottom: 4 }}>
           {(WEATHER.hourly || []).map(h => (
             <div key={h.time} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, minWidth: 42 }}>
@@ -3550,14 +3572,14 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
         {[
-          { icon: "🌊", la: { ja: "水温", en: "Water Temp" }, v: WEATHER.waterTemp != null ? `${WEATHER.waterTemp}℃` : (lang === "ja" ? "現地確認" : "Check locally"), sub: { ja: "フライ最適: 8-16℃", en: "Fly optimal: 8–16℃" } },
+          { icon: "🌊", la: { ja: "水温", en: "Water Temp" }, v: WEATHER.waterTemp != null ? `${WEATHER.waterTemp}℃` : (lang === "ja" ? "現地確認" : lang === "es" ? "Verifica en el sitio" : "Check locally"), sub: { ja: "フライ最適: 8-16℃", en: "Fly optimal: 8–16℃" } },
           { icon: "👁️", la: { ja: "水質", en: "Clarity" }, v: WEATHER.waterClarity?.[lang] || "－", sub: { ja: "ナチュラル系有効", en: "Natural colors work" } },
           { icon: "💨", la: { ja: "流れ", en: "Current" }, v: WEATHER.flow?.[lang] || "－", sub: { ja: "ドリフト有効", en: "Good for drifting" } },
-          { icon: "🦋", la: { ja: "ハッチ予測", en: "Hatch Outlook" }, v: { ja: "BWO期待大", en: "BWO likely" }[lang], sub: { ja: "夕方のライズに注目", en: "Watch for evening rises" } },
+          { icon: "🦋", la: { ja: "ハッチ予測", en: "Hatch Outlook" }, v: gl({ ja: "BWO期待大", en: "BWO likely", es: "BWO probable" }, lang), sub: { ja: "夕方のライズに注目", en: "Watch for evening rises" } },
         ].map(c => (
           <div key={c.la.ja} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 14, padding: "12px 14px" }}>
             <div style={{ fontSize: "1.1rem", marginBottom: 4 }}>{c.icon}</div>
-            <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{c.la[lang]}</div>
+            <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{gl(c.la, lang)}</div>
             <div style={{ fontWeight: 700, fontSize: "1.05rem", margin: "2px 0" }}>{c.v}</div>
             <div style={{ fontSize: "0.95rem", color: "#0d7377" }}>{(c.sub?.[lang] || c.sub?.en || c.sub?.ja || "")}</div>
           </div>
@@ -3566,15 +3588,15 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       {/* ── TIDE TABLE ── */}
       <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
         <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em", display: "flex", justifyContent: "space-between" }}>
-          <span>{lang === "ja" ? "🌊 本日の潮汐" : "🌊 TODAY'S TIDES"}</span>
-          <span style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? "※推算値" : "Calculated"}</span>
+          <span>{lang === "ja" ? "🌊 本日の潮汐" : lang === "es" ? "🌊 MAREAS DE HOY" : "🌊 TODAY'S TIDES"}</span>
+          <span style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? "※推算値" : lang === "es" ? "Estimado" : "Calculated"}</span>
         </div>
         {tides.length > 0 ? tides.map(td => (
           <div key={td.time} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: td.type === "high" ? "#e0f2f2" : "#f5f0e8", borderRadius: 10, marginBottom: 6, border: `1px solid ${td.type === "high" ? "#74c69d" : "#e0dbd0"}` }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <span style={{ fontSize: "1.2rem" }}>{td.type === "high" ? "🌊" : "🏖️"}</span>
               <div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 700 }}>{td.type === "high" ? (lang === "ja" ? "満潮" : "High Tide") : (lang === "ja" ? "干潮" : "Low Tide")}</div>
+                <div style={{ fontSize: "0.95rem", fontWeight: 700 }}>{td.type === "high" ? (lang === "ja" ? "満潮" : lang === "es" ? "Marea alta" : "High Tide") : (lang === "ja" ? "干潮" : lang === "es" ? "Marea baja" : "Low Tide")}</div>
                 {td.height && <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>{td.height}m</div>}
               </div>
             </div>
@@ -3582,7 +3604,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
           </div>
         )) : (
           <div style={{ textAlign: "center", color: "#9a9a8a", fontSize: "0.88rem", padding: "12px 0" }}>
-            {lang === "ja" ? "📍 位置情報を許可すると潮汐を表示" : "📍 Allow location for tide data"}
+            {lang === "ja" ? "📍 位置情報を許可すると潮汐を表示" : lang === "es" ? "📍 Permite la ubicación para ver las mareas" : "📍 Allow location for tide data"}
           </div>
         )}
       </div>
@@ -3591,7 +3613,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       {forecast.length > 0 && (
         <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
           <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em" }}>
-            {lang === "ja" ? "📅 7日間の釣り指数予報" : "📅 7-DAY FISHING FORECAST"}
+            {lang === "ja" ? "📅 7日間の釣り指数予報" : lang === "es" ? "📅 PRONÓSTICO DE PESCA A 7 DÍAS" : "📅 7-DAY FISHING FORECAST"}
           </div>
           <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
             {forecast.map((day, i) => {
@@ -3618,7 +3640,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
             if (!best || best === forecast[0]) return null;
             return (
               <div style={{ marginTop: 10, background: "#e0f2f2", border: "2px solid #b8a000", borderRadius: 10, padding: "8px 12px", fontSize: "0.88rem", color: "#1a4a22" }}>
-                🏆 {lang === "ja" ? `今週のベストは${best.dayJa}！釣り指数${best.fishingIndex}` : `Best this week: ${best.dayEn} — Fishing index ${best.fishingIndex}`}
+                🏆 {lang === "ja" ? `今週のベストは${best.dayJa}！釣り指数${best.fishingIndex}` : lang === "es" ? `Mejor día de la semana: ${best.dayEn} — Índice ${best.fishingIndex}` : `Best this week: ${best.dayEn} — Fishing index ${best.fishingIndex}`}
               </div>
             );
           })()}
@@ -3629,10 +3651,10 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       {rivers.length > 0 && (
         <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
           <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 4, letterSpacing: "0.07em" }}>
-            {lang === "ja" ? "🏞️ 河川状況" : "🏞️ RIVER CONDITIONS"}
+            {lang === "ja" ? "🏞️ 河川状況" : lang === "es" ? "🏞️ CONDICIONES DEL RÍO" : "🏞️ RIVER CONDITIONS"}
           </div>
           <div style={{ fontSize: "0.78rem", color: "#9a9a8a", marginBottom: 12 }}>
-            {lang === "ja" ? "国土交通省 川の防災情報（模擬データ）" : "Ministry of Land, Infrastructure — River Info (simulated)"}
+            {lang === "ja" ? "国土交通省 川の防災情報（模擬データ）" : lang === "es" ? "Ministerio de Tierras e Infraestructura — Info de ríos (simulado)" : "Ministry of Land, Infrastructure — River Info (simulated)"}
           </div>
           {rivers.map(r => {
             const trendIcon = r.trend === "rising" ? "↑" : r.trend === "falling" ? "↓" : "→";
@@ -3646,16 +3668,16 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
                     <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>🐟 {r.fish.join("・")}</div>
                   </div>
                   <span style={{ background: r.fishable ? "#2d7a3a" : "#c06a10", color: "white", borderRadius: 99, padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
-                    {r.fishable ? (lang === "ja" ? "釣行可" : "Fishable") : (lang === "ja" ? "要確認" : "Check")}
+                    {r.fishable ? (lang === "ja" ? "釣行可" : lang === "es" ? "Pescable" : "Fishable") : (lang === "ja" ? "要確認" : lang === "es" ? "Verificar" : "Check")}
                   </span>
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "水位" : "Level"}</span><br/><span style={{ fontWeight: 700 }}>{r.level}m <span style={{ color: trendColor }}>{trendIcon}</span></span></div>
-                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "水温" : "Temp"}</span><br/><span style={{ fontWeight: 700 }}>{r.temp}℃</span></div>
-                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "透明度" : "Clarity"}</span><br/><span style={{ fontWeight: 700, fontSize: "0.88rem" }}>{clarityLabel[r.clarity]?.[lang] || r.clarity}</span></div>
-                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "適正水位" : "Ideal"}</span><br/><span style={{ fontSize: "0.82rem", color: "#0d7377" }}>{r.idealLevel}</span></div>
+                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "水位" : lang === "es" ? "Nivel" : "Level"}</span><br/><span style={{ fontWeight: 700 }}>{r.level}m <span style={{ color: trendColor }}>{trendIcon}</span></span></div>
+                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "水温" : lang === "es" ? "Temp." : "Temp"}</span><br/><span style={{ fontWeight: 700 }}>{r.temp}℃</span></div>
+                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "透明度" : lang === "es" ? "Claridad" : "Clarity"}</span><br/><span style={{ fontWeight: 700, fontSize: "0.88rem" }}>{clarityLabel[r.clarity]?.[lang] || r.clarity}</span></div>
+                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "適正水位" : lang === "es" ? "Ideal" : "Ideal"}</span><br/><span style={{ fontSize: "0.82rem", color: "#0d7377" }}>{r.idealLevel}</span></div>
                 </div>
-                <div style={{ fontSize: "0.72rem", color: "#9a9a8a", marginTop: 6 }}>🕐 {lang === "ja" ? `${r.updatedAt}更新` : `Updated ${r.updatedAt}`}</div>
+                <div style={{ fontSize: "0.72rem", color: "#9a9a8a", marginTop: 6 }}>🕐 {lang === "ja" ? `${r.updatedAt}更新` : lang === "es" ? `Actualizado ${r.updatedAt}` : `Updated ${r.updatedAt}`}</div>
               </div>
             );
           })}
@@ -3664,14 +3686,14 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
 
       {/* ── NOTIFICATION BUTTON ── */}
       {"Notification" in window && Notification.permission !== "granted" && (
-        <button onClick={() => requestNotificationPermission().then(ok => ok && sendFishingAlert(lang === "ja" ? "🎣 通知テスト" : "🎣 Test Alert", lang === "ja" ? "釣り指数が高い時に通知します！" : "You'll be alerted when conditions peak!"))}
+        <button onClick={() => requestNotificationPermission().then(ok => ok && sendFishingAlert(lang === "ja" ? "🎣 通知テスト" : lang === "es" ? "🎣 Alerta de prueba" : "🎣 Test Alert", lang === "ja" ? "釣り指数が高い時に通知します！" : lang === "es" ? "¡Te avisaremos cuando las condiciones estén óptimas!" : "You'll be alerted when conditions peak!"))}
           style={{ width: "100%", padding: "12px", background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 14, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700, marginBottom: 14 }}>
-          🔔 {lang === "ja" ? "好条件の時に通知を受け取る" : "Get notified when conditions peak"}
+          🔔 {lang === "ja" ? "好条件の時に通知を受け取る" : lang === "es" ? "Recibe aviso cuando las condiciones estén óptimas" : "Get notified when conditions peak"}
         </button>
       )}
       {"Notification" in window && Notification.permission === "granted" && (
         <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 12, padding: "10px 14px", marginBottom: 14, fontSize: "0.88rem", color: "#1a4a22", fontWeight: 600 }}>
-          🔔 {lang === "ja" ? "通知ON — 釣り指数88+で自動アラート" : "Notifications ON — Auto-alert at fishing index 88+"}
+          🔔 {lang === "ja" ? "通知ON — 釣り指数88+で自動アラート" : lang === "es" ? "Notificaciones activadas — Aviso automático con índice 88+" : "Notifications ON — Auto-alert at fishing index 88+"}
         </div>
       )}
     </div>
@@ -3692,11 +3714,11 @@ function LocalAIAdvisor({ userLocation, lang, weather, onClose }) {
   // Get peak fish for current month
   const peakFish = FISH_DATA.map(f => ({ fish: f, tip: getSeasonalTip(f.id) }))
     .filter(x => x.tip && x.tip.urgency === "peak")
-    .map(x => lang === "ja" ? x.fish.name : x.fish.nameEn).join("、");
+    .map(x => fishName(x.fish, lang)).join("、");
 
   useEffect(() => {
     (async () => {
-      const locationStr = userLocation?.display || (lang === "ja" ? "現在地不明" : "unknown location");
+      const locationStr = userLocation?.display || (lang === "ja" ? "現在地不明" : lang === "es" ? "ubicación desconocida" : "unknown location");
       const spotsStr = nearestSpots.map(s => `${s.name}（${s.distKm}km）`).join("、");
       const spotsStrEn = nearestSpots.map(s => `${s.name} (${s.distKm}km)`).join(", ");
       const monthName = (MONTH_NAMES[lang] || MONTH_NAMES.en)[CURRENT_MONTH];
@@ -3732,16 +3754,17 @@ Keep it under 220 words, emoji section headers.`;
       const jaFallback = `📍 ${locationStr}周辺の釣り情報\n\n🎯 今月のおすすめスポット\n最寄りの${nearestSpots[0]?.name || "釣り場"}（${nearestSpots[0]?.distKm || "?"}km）がベスト。${monthName}はシーズン的に最高の時期です。\n\n🐟 狙い目の魚\n${peakFish || "バス・イカ"}が活発。地元の水温・潮を確認してから出発しよう。\n\n💡 地元のコツ\n早朝と夕方の2時間が勝負。天気が変わりやすい時期なので防寒具を忘れずに。\n\n🚗 遠征スポット\n${nearestSpots[1]?.name || "近隣スポット"}（${nearestSpots[1]?.distKm || "?"}km）も狙い目。`;
 
       const enFallback = `📍 Fishing near ${locationStr}\n\n🎯 Top Spot Right Now\n${nearestSpots[0]?.name || "Nearest spot"} (${nearestSpots[0]?.distKm || "?"}km away) is your best bet this ${monthName}.\n\n🐟 Target Species\n${peakFish || "Bass and Squid"} are active. Check local water temps before heading out.\n\n💡 Local Tip\nThe 2-hour windows at dawn and dusk are everything. Weather can shift — bring layers.\n\n🚗 Worth the Drive\n${nearestSpots[1]?.name || "Next nearest"} (${nearestSpots[1]?.distKm || "?"}km) is worth it if conditions are right.`;
+      const esFallback = `📍 Pesca cerca de ${locationStr}\n\n🎯 Mejor sitio ahora\n${nearestSpots[0]?.name || "El sitio más cercano"} (a ${nearestSpots[0]?.distKm || "?"}km) es tu mejor apuesta este ${monthName}.\n\n🐟 Especies activas\n${peakFish || "Lubina y calamar"} están activos. Verifica la temperatura del agua antes de salir.\n\n💡 Consejo local\nLas dos horas del amanecer y del atardecer lo son todo. El tiempo cambia rápido — lleva capas.\n\n🚗 Vale el viaje\n${nearestSpots[1]?.name || "El siguiente más cercano"} (a ${nearestSpots[1]?.distKm || "?"}km) vale la pena si las condiciones acompañan.`;
 
       try {
         const res = await fetch("/api/claude", {
           method: "POST", headers: await claudeHeaders(),
           body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200,
-            messages: [{ role: "user", content: lang === "ja" ? jaPrompt : enPrompt }] })
+            messages: [{ role: "user", content: lang === "ja" ? jaPrompt : lang === "es" ? enPrompt + ES_NOTE : enPrompt }] })
         });
         const data = await res.json();
         setResponse(data.content?.[0]?.text || "");
-      } catch { setResponse(lang === "ja" ? jaFallback : enFallback); }
+      } catch { setResponse(lang === "ja" ? jaFallback : lang === "es" ? esFallback : enFallback); }
       setLoading(false);
     })();
   }, []);
@@ -3754,10 +3777,10 @@ Keep it under 220 words, emoji section headers.`;
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>
             <div style={{ fontWeight: 700, fontSize: "1.15rem", color: "#0d7377" }}>
-              📍 {lang === "ja" ? "近くの釣り場AI診断" : "Nearby Spots AI"}
+              📍 {lang === "ja" ? "近くの釣り場AI診断" : lang === "es" ? "Sitios cercanos con IA" : "Nearby Spots AI"}
             </div>
             <div style={{ fontSize: "0.88rem", color: "#0d7377", marginTop: 3 }}>
-              Claude AI · {userLocation?.display || (lang === "ja" ? "位置情報取得中" : "Getting location...")}
+              Claude AI · {userLocation?.display || (lang === "ja" ? "位置情報取得中" : lang === "es" ? "Obteniendo la ubicación..." : "Getting location...")}
             </div>
           </div>
           <button onClick={onClose} style={{ background: "#f0ebe0", border: "2px solid #d4cfc4", borderRadius: 10, padding: "6px 14px", color: "#5a5a4a", cursor: "pointer", fontWeight: 700, fontSize: "0.9rem" }}>✕</button>
@@ -3780,7 +3803,7 @@ Keep it under 220 words, emoji section headers.`;
           <div style={{ textAlign: "center", padding: "40px 20px" }}>
             <div style={{ fontSize: "2.5rem", animation: "spin 1s linear infinite", display: "inline-block" }}>📍</div>
             <p style={{ color: "#5a5a4a", marginTop: 12, fontSize: "0.95rem" }}>
-              {lang === "ja" ? "あなたの周辺を分析中..." : "Analysing spots near you..."}
+              {lang === "ja" ? "あなたの周辺を分析中..." : lang === "es" ? "Analizando sitios cerca de ti..." : "Analysing spots near you..."}
             </p>
           </div>
         ) : (
@@ -3794,7 +3817,7 @@ Keep it under 220 words, emoji section headers.`;
 // ─── MAIN APP ────────────────────────────────────────────────────────────────
 
 export default function CastWiseJapan() {
-  const [lang, setLang] = useLocalStorage("mabo_lang", "ja");
+  const [lang, setLang] = useLocalStorage("mabo_lang", defaultLang());
   const [tab, setTab] = useState("Explore");
   const [selectedFish, setSelectedFish] = useState(null);
   const [gearTab, setGearTab] = useState("gear");
@@ -3972,10 +3995,10 @@ export default function CastWiseJapan() {
       setAuthPass("");
     } catch (e) {
       setAuthError(e.code === "auth/email-already-in-use" 
-        ? (lang === "ja" ? "メールアドレスは既に登録されています" : "Email already registered")
+        ? (lang === "ja" ? "メールアドレスは既に登録されています" : lang === "es" ? "Ese correo ya está registrado" : "Email already registered")
         : e.code === "auth/weak-password"
-        ? (lang === "ja" ? "パスワードは6文字以上必要です" : "Password must be 6+ characters")
-        : (lang === "ja" ? "エラーが発生しました" : "Error: " + e.message));
+        ? (lang === "ja" ? "パスワードは6文字以上必要です" : lang === "es" ? "La contraseña debe tener 6 caracteres o más" : "Password must be 6+ characters")
+        : (lang === "ja" ? "エラーが発生しました" : lang === "es" ? "Error: " : "Error: " + e.message));
     }
   };
 
@@ -3987,7 +4010,7 @@ export default function CastWiseJapan() {
       setAuthEmail("");
       setAuthPass("");
     } catch (e) {
-      setAuthError(lang === "ja" ? "メールアドレスまたはパスワードが間違っています" : "Invalid email or password");
+      setAuthError(lang === "ja" ? "メールアドレスまたはパスワードが間違っています" : lang === "es" ? "Correo o contraseña incorrectos" : "Invalid email or password");
     }
   };
 
@@ -4007,7 +4030,7 @@ export default function CastWiseJapan() {
     if (!user) { setShowAuth(true); return; }
     const link = STRIPE_LINKS[plan] || STRIPE_LINKS.monthly;
     track("pro_click");
-    if (!link) { alert(lang === "ja" ? "PROは近日公開予定です！" : "PRO is coming soon!"); return; }
+    if (!link) { alert(lang === "ja" ? "PROは近日公開予定です！" : lang === "es" ? "¡PRO llega pronto!" : "PRO is coming soon!"); return; }
     const u = new URL(link);
     u.searchParams.set("client_reference_id", user.uid);
     if (user.email) u.searchParams.set("prefilled_email", user.email);
@@ -4039,7 +4062,7 @@ export default function CastWiseJapan() {
         if (!d.empty && d.docs[0].data().isPro) {
           setIsPro(true);
           window.history.replaceState({}, "", window.location.pathname);
-          alert(lang === "ja" ? "👑 PROへようこそ！" : "👑 Welcome to PRO!");
+          alert(lang === "ja" ? "👑 PROへようこそ！" : lang === "es" ? "👑 ¡Bienvenido a PRO!" : "👑 Welcome to PRO!");
           return;
         }
       } catch (e) { console.warn(e); }
@@ -4062,7 +4085,7 @@ export default function CastWiseJapan() {
     if (currentCount >= 5) {
       alert(lang === "ja" 
         ? "本日のAI利用回数（5回）を使い切りました。PROにアップグレードで無制限になります。" 
-        : "Daily AI limit (5) reached. Upgrade to PRO for unlimited.");
+        : lang === "es" ? "Llegaste al límite diario de IA (5). Hazte PRO para uso ilimitado." : "Daily AI limit (5) reached. Upgrade to PRO for unlimited.");
       return false;
     }
     const newUsage = { count: currentCount + 1, date: today };
@@ -4082,31 +4105,31 @@ export default function CastWiseJapan() {
           <div style={{ fontSize: "2rem", fontWeight: 900, color: "#0d7377" }}>🎣 釣りナビPRO</div>
           <div style={{ fontSize: "0.9rem", color: "#7a7a6a", marginTop: 8 }}>
             {authMode === "login" 
-              ? (lang === "ja" ? "ログイン" : "Login")
-              : (lang === "ja" ? "新規登録" : "Sign Up")}
+              ? (lang === "ja" ? "ログイン" : lang === "es" ? "Iniciar sesión" : "Login")
+              : (lang === "ja" ? "新規登録" : lang === "es" ? "Crear cuenta" : "Sign Up")}
           </div>
         </div>
         <div style={{ background: "white", padding: 20, borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
           <input type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="email@example.com"
             style={{ width: "100%", padding: 12, border: "2px solid #e0d8c8", borderRadius: 8, marginBottom: 12, fontSize: "1rem", fontFamily: "inherit", boxSizing: "border-box" }} />
-          <input type="password" value={authPass} onChange={e => setAuthPass(e.target.value)} placeholder={lang === "ja" ? "パスワード（6文字以上）" : "Password (6+ chars)"}
+          <input type="password" value={authPass} onChange={e => setAuthPass(e.target.value)} placeholder={lang === "ja" ? "パスワード（6文字以上）" : lang === "es" ? "Contraseña (6+ caracteres)" : "Password (6+ chars)"}
             style={{ width: "100%", padding: 12, border: "2px solid #e0d8c8", borderRadius: 8, marginBottom: 12, fontSize: "1rem", fontFamily: "inherit", boxSizing: "border-box" }} />
           {authError && <div style={{ color: "#b82030", fontSize: "0.85rem", marginBottom: 12, padding: 8, background: "#ffeeee", borderRadius: 6 }}>{authError}</div>}
           <button onClick={authMode === "login" ? handleLogin : handleSignup}
             style={{ width: "100%", padding: 14, background: "#0d7377", color: "white", border: "none", borderRadius: 8, fontSize: "1rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: 12 }}>
             {authMode === "login" 
-              ? (lang === "ja" ? "ログイン" : "Login")
-              : (lang === "ja" ? "登録" : "Sign Up")}
+              ? (lang === "ja" ? "ログイン" : lang === "es" ? "Iniciar sesión" : "Login")
+              : (lang === "ja" ? "登録" : lang === "es" ? "Crear cuenta" : "Sign Up")}
           </button>
           <button onClick={() => { setAuthMode(authMode === "login" ? "signup" : "login"); setAuthError(""); }}
             style={{ width: "100%", padding: 8, background: "transparent", color: "#0d7377", border: "none", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>
             {authMode === "login"
-              ? (lang === "ja" ? "アカウントをお持ちでない方はこちら" : "Don't have an account? Sign up")
-              : (lang === "ja" ? "既にアカウントをお持ちの方はこちら" : "Already have an account? Login")}
+              ? (lang === "ja" ? "アカウントをお持ちでない方はこちら" : lang === "es" ? "¿No tienes cuenta? Crea una" : "Don't have an account? Sign up")
+              : (lang === "ja" ? "既にアカウントをお持ちの方はこちら" : lang === "es" ? "¿Ya tienes cuenta? Inicia sesión" : "Already have an account? Login")}
           </button>
           <button onClick={() => setShowAuth(false)}
             style={{ width: "100%", padding: 8, background: "transparent", color: "#7a7a6a", border: "none", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}>
-            {lang === "ja" ? "後で" : "Maybe later"}
+            {lang === "ja" ? "後で" : lang === "es" ? "Quizás después" : "Maybe later"}
           </button>
         </div>
       </div>
@@ -4324,7 +4347,7 @@ If this is NOT a fish or the image is unclear, return:
       id: now,
       fish: newCatch.fish || "",
       weight: newCatch.weight || "",
-      location: newCatch.location || (lang === "ja" ? "場所未入力" : "Location not set"),
+      location: newCatch.location || (lang === "ja" ? "場所未入力" : lang === "es" ? "Ubicación no definida" : "Location not set"),
       notes: newCatch.notes || "",
       method: newCatch.method || "lure",
       photo: newCatch.photo || null,
@@ -4448,9 +4471,9 @@ If this is NOT a fish or the image is unclear, return:
             </div>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => { if (user) { if (confirm(lang === "ja" ? "ログアウトしますか？" : "Log out?")) handleLogout(); } else { setShowAuth(true); } }} style={{ background: user ? "#e0f2f2" : "#fef3c7", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", marginRight: 6, color: user ? "#0d7377" : "#b45309" }}>{user ? (isPro ? "PRO ⭐" : `AI ${5 - aiUsage.count}/5`) : (lang === "ja" ? "ログイン" : "Login")}</button>
-            <button onClick={() => setLang(l => l === "ja" ? "en" : "ja")} style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
-              {lang === "ja" ? "🇯🇵 JP" : "🇺🇸 EN"}
+            <button onClick={() => { if (user) { if (confirm(lang === "ja" ? "ログアウトしますか？" : lang === "es" ? "¿Cerrar sesión?" : "Log out?")) handleLogout(); } else { setShowAuth(true); } }} style={{ background: user ? "#e0f2f2" : "#fef3c7", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", marginRight: 6, color: user ? "#0d7377" : "#b45309" }}>{user ? (isPro ? "PRO ⭐" : `AI ${5 - aiUsage.count}/5`) : (lang === "ja" ? "ログイン" : lang === "es" ? "Iniciar sesión" : "Login")}</button>
+            <button onClick={() => setLang(l => LANGS[(LANGS.indexOf(l) + 1) % LANGS.length])} title="日本語 / English / Español" style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
+              {LANG_LABEL[lang] || LANG_LABEL.en}
             </button>
             {/* Location / AI nearby button */}
             <button onClick={async () => { if (await incrementAiUsage()) setShowLocalAI(true); }} style={{ background: userLocation ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${userLocation ? "#1a1a14" : "#c4bfb4"}`, borderRadius: 8, padding: "6px 10px", color: userLocation ? "#1a1a14" : "#7a7a6a", cursor: "pointer", fontSize: "0.88rem", fontWeight: 700, position: "relative" }}>
@@ -4471,7 +4494,7 @@ If this is NOT a fish or the image is unclear, return:
           {TABS_DATA.map(td => (
             <button key={td.key} onClick={() => switchTab(td.key)} style={{ flex: "0 0 auto", padding: "10px 12px 12px", border: "none", background: tab === td.key ? "#fffdf8" : "transparent", color: tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#1a1a14") : "#7a7a6a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: tab === td.key ? 700 : 500, whiteSpace: "nowrap", borderBottom: `3px solid ${tab === td.key ? (td.key === "FlyFishing" ? "#2d7a3a" : "#1a1a14") : "transparent"}`, minHeight: 48 }}>
               <div style={{ fontSize: "1.1rem", marginBottom: 3 }}>{td.icon}</div>
-              {td[lang]}
+              {gl(td, lang)}
             </button>
           ))}
         </div>
@@ -4481,7 +4504,7 @@ If this is NOT a fish or the image is unclear, return:
       {!isOnline && (
         <div style={{ background: "#f8e8d0", border: "2px solid #c06a10", padding: "8px 16px", display: "flex", alignItems: "center", gap: 8, fontSize: "0.88rem", color: "#7a4000" }}>
           <span>📵</span>
-          <span style={{ fontWeight: 700 }}>{lang === "ja" ? "オフライン — キャッシュデータを表示中" : "Offline — showing cached data"}</span>
+          <span style={{ fontWeight: 700 }}>{lang === "ja" ? "オフライン — キャッシュデータを表示中" : lang === "es" ? "Sin conexión — mostrando datos guardados" : "Offline — showing cached data"}</span>
         </div>
       )}
 
@@ -4513,18 +4536,18 @@ If this is NOT a fish or the image is unclear, return:
                       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
                         <span style={{ width: 8, height: 8, borderRadius: "50%", background: sty.dot, boxShadow: `0 0 8px ${sty.dot}88`, flexShrink: 0 }} />
                         <span style={{ fontWeight: 700, fontSize: "0.85rem", color: sty.text }}>
-                          {lang === "ja" ? "🗓️ 今が旬！" : "🗓️ In Season Now!"}
+                          {lang === "ja" ? "🗓️ 今が旬！" : lang === "es" ? "🗓️ ¡En temporada ahora!" : "🗓️ In Season Now!"}
                         </span>
                         <span style={{ marginLeft: "auto", background: sty.border, color: "#fff", borderRadius: 99, padding: "2px 9px", fontSize: "0.75rem", fontWeight: 700, flexShrink: 0 }}>
                           {(MONTH_NAMES[lang] || MONTH_NAMES.en)[CURRENT_MONTH]}
                         </span>
                       </div>
                       <div style={{ fontWeight: 700, fontSize: "1.05rem", color: sty.text, marginBottom: 3 }}>
-                        {lang === "ja" ? fish.name : fish.nameEn}
+                        {fishName(fish, lang)}
                         <span style={{ marginLeft: 7, fontSize: "0.85rem", opacity: 0.85 }}>{(tip.badge?.[lang] || tip.badge?.en || tip.badge?.ja || "")}</span>
                       </div>
                       <div style={{ fontSize: "0.85rem", color: sty.text, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                        {tip.tip[lang]}
+                        {gl(tip.tip, lang)}
                       </div>
                     </div>
                     <span style={{ fontSize: "1.2rem", color: sty.text, opacity: 0.5, flexShrink: 0 }}>→</span>
@@ -4544,7 +4567,7 @@ If this is NOT a fish or the image is unclear, return:
                 <span style={{ fontSize: "1.3rem" }}>⛅</span>
                 <div>
                   <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>{WEATHER.temp}℃ · {(WEATHER.condition?.[lang] || WEATHER.condition?.en || WEATHER.condition?.ja || "")}</div>
-                  <div style={{ fontSize: "0.95rem", color: "#2d7a3a" }}>🔥 {lang === "ja" ? `釣り指数${WEATHER.fishingIndex}/100 — 最高の釣り日和！` : `Index ${WEATHER.fishingIndex}/100 — Excellent!`}</div>
+                  <div style={{ fontSize: "0.95rem", color: "#2d7a3a" }}>🔥 {lang === "ja" ? `釣り指数${WEATHER.fishingIndex}/100 — 最高の釣り日和！` : lang === "es" ? `Índice ${WEATHER.fishingIndex}/100 — ¡Excelente!` : `Index ${WEATHER.fishingIndex}/100 — Excellent!`}</div>
                 </div>
               </div>
               <div style={{ color: "#0d7377" }}>→</div>
@@ -4552,14 +4575,14 @@ If this is NOT a fish or the image is unclear, return:
             <div style={{ display: "flex", gap: 7, marginBottom: 10 }}>
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder={s("search", lang)} style={{ flex: 1, background: "#f8f4ec", border: "2px solid #FFE500", borderRadius: 9, padding: "9px 12px", color: "#0d7377", fontSize: "0.95rem" }} />
               <select value={filterDiff} onChange={e => setFilterDiff(e.target.value)} style={{ background: "#f8f4ec", border: "2px solid #FFE500", borderRadius: 9, padding: "9px", color: "#0d7377", fontSize: "1rem", cursor: "pointer" }}>
-                {Object.entries(diffMap).map(([k, v]) => <option key={k} value={k} style={{ background: "#f5f0e8" }}>{v[lang]}</option>)}
+                {Object.entries(diffMap).map(([k, v]) => <option key={k} value={k} style={{ background: "#f5f0e8" }}>{gl(v, lang)}</option>)}
               </select>
             </div>
             {/* Category filter chips */}
             <div style={{ display: "flex", gap: 5, marginBottom: 10, overflowX: "auto", paddingBottom: 2 }}>
               {Object.entries(catMap).map(([k, v]) => (
                 <button key={k} onClick={() => setFilterCat(k)} style={{ flex: "0 0 auto", padding: "5px 12px", borderRadius: 99, border: `1px solid ${filterCat === k ? "rgba(72,202,228,0.6)" : "#d4cfc4"}`, background: filterCat === k ? "rgba(72,202,228,0.14)" : "transparent", color: filterCat === k ? "#1a1a14" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", whiteSpace: "nowrap" }}>
-                  {k === "freshwater" ? "🏞️" : k === "saltwater" ? "🌊" : k === "shore" ? "🪨" : "🐟"} {v[lang]}
+                  {k === "freshwater" ? "🏞️" : k === "saltwater" ? "🌊" : k === "shore" ? "🪨" : "🐟"} {gl(v, lang)}
                 </button>
               ))}
             </div>
@@ -4572,10 +4595,10 @@ If this is NOT a fish or the image is unclear, return:
                 <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px 20px", color: "#5a5a4a" }}>
                   <div style={{ fontSize: "2.5rem", marginBottom: 8 }}>🔍</div>
                   <p style={{ fontStyle: "italic", margin: "0 0 10px", fontSize: "0.95rem" }}>
-                    {lang === "ja" ? "条件に合う魚が見つかりません" : "No fish match your filters"}
+                    {lang === "ja" ? "条件に合う魚が見つかりません" : lang === "es" ? "Ningún pez coincide con tus filtros" : "No fish match your filters"}
                   </p>
                   <button onClick={() => { setFilterDiff("all"); setFilterCat("all"); setFilterFly(false); setSearch(""); }} style={{ background: "#e0f2f2", border: "2px solid #70a8b8", borderRadius: 10, padding: "8px 18px", color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem" }}>
-                    {lang === "ja" ? "フィルターをリセット" : "Reset filters"}
+                    {lang === "ja" ? "フィルターをリセット" : lang === "es" ? "Borrar filtros" : "Reset filters"}
                   </button>
                 </div>
               )}
@@ -4598,7 +4621,7 @@ If this is NOT a fish or the image is unclear, return:
                   {fish.flyFriendly && <div style={{ position: "absolute", top: 8, right: 8, fontSize: "1.05rem", background: "#c8e8d0", border: "2px solid #60b080", borderRadius: 6, padding: "1px 5px" }}>🪶</div>}
                   <div style={{ marginBottom: 6, animation: "float 3s ease-in-out infinite", animationDelay: `${i * 0.4}s` }}><FishIllustration fishId={fish.id} spriteId={fish.spriteId} size={64} /></div>
                   <div style={{ fontWeight: 700, fontSize: "1rem", lineHeight: 1.3, marginBottom: 3 }}>{fish.name}</div>
-                  <div style={{ fontSize: "0.8rem", color: "#5a5a4a", marginBottom: 5 }}>{fish.nameEn}</div>
+                  <div style={{ fontSize: "0.8rem", color: "#5a5a4a", marginBottom: 5 }}>{fishName(fish, lang)}</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 5 }}>
                     <DiffBadge level={fish.difficulty} lang={lang} />
                     {fish.flyFriendly && <span style={{ background: "#e0f0e8", border: "2px solid #FFE500", borderRadius: 99, padding: "2px 8px", fontSize: "0.78rem", color: "#2d7a3a", fontWeight: 700 }}>🪶</span>}
@@ -4618,7 +4641,7 @@ If this is NOT a fish or the image is unclear, return:
             {!selectedFish ? (
               <div style={{ textAlign: "center", padding: "60px 16px", color: "#5a5a4a" }}>
                 <div style={{ fontSize: "3rem", animation: "float 2s ease-in-out infinite" }}>🎣</div>
-                <p style={{ fontStyle: "italic", marginTop: 12 }}>{lang === "ja" ? "「探す」から魚を選んでください" : "Select a fish from Explore"}</p>
+                <p style={{ fontStyle: "italic", marginTop: 12 }}>{lang === "ja" ? "「探す」から魚を選んでください" : lang === "es" ? "Elige un pez en Explorar" : "Select a fish from Explore"}</p>
                 <button onClick={() => switchTab("Explore")} style={{ background: "#d8f0f0", border: "2px solid #90c0d0", borderRadius: 10, padding: "10px 22px", color: "#0d7377", cursor: "pointer", fontFamily: "inherit", marginTop: 10 }}>{s("browsefish", lang)}</button>
               </div>
             ) : (
@@ -4629,10 +4652,10 @@ If this is NOT a fish or the image is unclear, return:
                     <div style={{ animation: "float 3s ease-in-out infinite" }}><FishIllustration fishId={selectedFish.id} spriteId={selectedFish.spriteId} size={80} /></div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700, fontSize: "1.2rem", lineHeight: 1.2 }}>{selectedFish.name}</div>
-                      <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 6 }}>{selectedFish.nameEn}</div>
+                      <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 6 }}>{fishName(selectedFish, lang)}</div>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 7 }}>
                         <DiffBadge level={selectedFish.difficulty} lang={lang} />
-                        {selectedFish.flyFriendly && <span style={{ background: "#c8e8d0", border: "2px solid #60b080", borderRadius: 99, padding: "2px 9px", fontSize: "0.67rem", color: "#2d7a3a" }}>🪶 {lang === "ja" ? "フライ対応" : "Fly-friendly"}</span>}
+                        {selectedFish.flyFriendly && <span style={{ background: "#c8e8d0", border: "2px solid #60b080", borderRadius: 99, padding: "2px 9px", fontSize: "0.67rem", color: "#2d7a3a" }}>🪶 {lang === "ja" ? "フライ対応" : lang === "es" ? "Apto para mosca" : "Fly-friendly"}</span>}
                       </div>
                       <p style={{ margin: 0, fontSize: "0.92rem", color: "#3a3a2a", lineHeight: 1.6 }}>{(selectedFish.description?.[lang] || selectedFish.description?.en || selectedFish.description?.ja || "")}</p>
                     </div>
@@ -4649,14 +4672,14 @@ If this is NOT a fish or the image is unclear, return:
 
                 {/* AI buttons */}
                 <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                  <button onClick={async () => { if (await incrementAiUsage()) setShowAI(true); }} style={{ flex: 1, padding: "11px", background: "#e0f2f2", border: "2px solid #70a8b8", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🤖 AI {lang === "ja" ? "ルアー診断" : "Lure AI"}</button>
-                  {selectedFish.flyFriendly && <button onClick={async () => { if (await incrementAiUsage()) { setFlyAIFish(selectedFish); setShowFlyAI(true); } }} style={{ flex: 1, padding: "11px", background: "#e0f0e8", border: "2px solid #c8b800", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🪶 AI {lang === "ja" ? "フライ診断" : "Fly AI"}</button>}
+                  <button onClick={async () => { if (await incrementAiUsage()) setShowAI(true); }} style={{ flex: 1, padding: "11px", background: "#e0f2f2", border: "2px solid #70a8b8", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🤖 AI {lang === "ja" ? "ルアー診断" : lang === "es" ? "IA de señuelos" : "Lure AI"}</button>
+                  {selectedFish.flyFriendly && <button onClick={async () => { if (await incrementAiUsage()) { setFlyAIFish(selectedFish); setShowFlyAI(true); } }} style={{ flex: 1, padding: "11px", background: "#e0f0e8", border: "2px solid #c8b800", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "1.05rem", fontWeight: 700 }}>🪶 AI {lang === "ja" ? "フライ診断" : lang === "es" ? "IA de moscas" : "Fly AI"}</button>}
                 </div>
                 {!isPremium && <BannerAd lang={lang} isPremium={isPremium} />}
 
                 <div style={{ display: "flex", gap: 5, marginBottom: 12 }}>
                   {[{ k: "gear", ja: "🎣 タックル", en: "🎣 Gear" }, { k: "spots", ja: "📍 釣り場", en: "📍 Spots" }, { k: "map", ja: "🗺️ マップ", en: "🗺️ Map" }].map(tt => (
-                    <button key={tt.k} onClick={() => setGearTab(tt.k)} style={{ flex: 1, padding: "8px 4px", borderRadius: 9, border: `1px solid ${gearTab === tt.k ? selectedFish.accent + "88" : "#d4cfc4"}`, background: gearTab === tt.k ? selectedFish.color + "44" : "transparent", color: gearTab === tt.k ? selectedFish.accent : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: gearTab === tt.k ? 700 : 400 }}>{tt[lang]}</button>
+                    <button key={tt.k} onClick={() => setGearTab(tt.k)} style={{ flex: 1, padding: "8px 4px", borderRadius: 9, border: `1px solid ${gearTab === tt.k ? selectedFish.accent + "88" : "#d4cfc4"}`, background: gearTab === tt.k ? selectedFish.color + "44" : "transparent", color: gearTab === tt.k ? selectedFish.accent : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: gearTab === tt.k ? 700 : 400 }}>{gl(tt, lang)}</button>
                   ))}
                 </div>
 
@@ -4664,25 +4687,25 @@ If this is NOT a fish or the image is unclear, return:
                   <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                     {[{ la: { ja: "🎋 ロッド", en: "🎋 Rod" }, v: selectedFish.gear.rod }, { la: { ja: "🔧 リール", en: "🔧 Reel" }, v: selectedFish.gear.reel }, { la: { ja: "🧵 ライン", en: "🧵 Line" }, v: selectedFish.gear.line }, { la: { ja: "🪝 フック", en: "🪝 Hook" }, v: selectedFish.gear.hooks }].map(row => (
                       <div key={row.la.ja} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 11, padding: "10px 13px", display: "flex", gap: 11, alignItems: "center" }}>
-                        <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 68 }}>{row.la[lang]}</span>
+                        <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 68 }}>{gl(row.la, lang)}</span>
                         <span style={{ fontSize: "0.83rem", fontWeight: 600 }}>{row.v?.[lang] || row.v}</span>
                       </div>
                     ))}
                     <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 11, padding: 13 }}>
-                      <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 7 }}>🎯 {lang === "ja" ? "ルアー・エサ — タップしてAmazonで確認" : "Lures & Bait — tap to shop on Amazon"}</div>
+                      <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 7 }}>🎯 {lang === "ja" ? "ルアー・エサ — タップしてAmazonで確認" : lang === "es" ? "Señuelos y carnada — toca para comprar en Amazon" : "Lures & Bait — tap to shop on Amazon"}</div>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                         {selectedFish.gear.lures.map(l => <LureTag key={l} lure={l} lang={lang} />)}
                       </div>
                     </div>
                     <div style={{ background: "linear-gradient(135deg,rgba(13,115,119,0.08),transparent)", border: "2px solid #FFE500", borderRadius: 12, padding: 14, marginTop: 4 }}>
-                      <div style={{ fontSize: "0.88rem", color: "#0d7377", fontWeight: 700, marginBottom: 8 }}>⚖️ {lang === "ja" ? "釣り規制・遊漁情報" : "Fishing Regulations"}</div>
+                      <div style={{ fontSize: "0.88rem", color: "#0d7377", fontWeight: 700, marginBottom: 8 }}>⚖️ {lang === "ja" ? "釣り規制・遊漁情報" : lang === "es" ? "Reglamento de pesca" : "Fishing Regulations"}</div>
                       {(() => {
                         const reg = getRegulation(selectedFish.name);
                         return (
                           <>
                             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 8 }}>
-                              {reg.minSize && <div style={{ background: "#f8e8d0", border: "2px solid #c06a10", borderRadius: 8, padding: "4px 10px", fontSize: "0.82rem", color: "#7a4000", fontWeight: 700 }}>📏 {lang === "ja" ? `最小キープサイズ: ${reg.minSize}cm` : `Min size: ${reg.minSize}cm`}</div>}
-                              <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 8, padding: "4px 10px", fontSize: "0.82rem", color: "#0d4a50", fontWeight: 700 }}>📅 {lang === "ja" ? `釣り期間: ${reg.seasons === "year-round" ? "通年" : reg.seasons}` : `Season: ${reg.seasons}`}</div>
+                              {reg.minSize && <div style={{ background: "#f8e8d0", border: "2px solid #c06a10", borderRadius: 8, padding: "4px 10px", fontSize: "0.82rem", color: "#7a4000", fontWeight: 700 }}>📏 {lang === "ja" ? `最小キープサイズ: ${reg.minSize}cm` : lang === "es" ? `Talla mínima: ${reg.minSize}cm` : `Min size: ${reg.minSize}cm`}</div>}
+                              <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 8, padding: "4px 10px", fontSize: "0.82rem", color: "#0d4a50", fontWeight: 700 }}>📅 {lang === "ja" ? `釣り期間: ${reg.seasons === "year-round" ? "通年" : reg.seasons}` : lang === "es" ? `Temporada: ${reg.seasons}` : `Season: ${reg.seasons}`}</div>
                             </div>
                             <div style={{ fontSize: "0.85rem", color: "#3a3a2a", lineHeight: 1.6 }}>{(reg.note?.[lang] || reg.note?.en || reg.note?.ja || "")}</div>
                           </>
@@ -4691,7 +4714,7 @@ If this is NOT a fish or the image is unclear, return:
                     </div>
                     {selectedFish.howTo && (
                       <div style={{ background: "#fffdf8", border: "2px solid #0d7377", borderRadius: 12, padding: 14 }}>
-                        <div style={{ fontSize: "0.92rem", color: "#0d7377", fontWeight: 800, marginBottom: 10 }}>📘 {lang === "ja" ? `${selectedFish.name}の釣り方ステップ` : `How to catch ${selectedFish.nameEn}`}</div>
+                        <div style={{ fontSize: "0.92rem", color: "#0d7377", fontWeight: 800, marginBottom: 10 }}>📘 {lang === "ja" ? `${selectedFish.name}の釣り方ステップ` : lang === "es" ? `Cómo pescar ${fishName(selectedFish, lang)}` : `How to catch ${selectedFish.nameEn}`}</div>
                         {selectedFish.howTo.map((h, i) => (
                           <div key={i} style={{ marginBottom: i < selectedFish.howTo.length - 1 ? 12 : 0 }}>
                             <div style={{ fontWeight: 800, fontSize: "0.9rem", marginBottom: 4 }}>{(h.t?.[lang] || h.t?.en || h.t?.ja || "")}</div>
@@ -4713,7 +4736,7 @@ If this is NOT a fish or the image is unclear, return:
                         <div style={{ width: 28, height: 28, borderRadius: "50%", background: selectedFish.color + "66", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.05rem", fontWeight: 700, color: selectedFish.accent }}>#{i + 1}</div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 600, fontSize: "1rem" }}>📍 {spot.name}</div>
-                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginTop: 2 }}>🗺️ {spot.type[lang]} · ⭐ {spot.rating}</div>
+                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginTop: 2 }}>🗺️ {gl(spot.type, lang)} · ⭐ {spot.rating}</div>
                         </div>
                       </div>
                     ))}
@@ -4743,27 +4766,27 @@ If this is NOT a fish or the image is unclear, return:
           <div style={{ animation: "fadeUp 0.4s ease" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 12 }}>
               <div>
-                <h2 style={{ margin: "0 0 2px", fontSize: "1.2rem" }}>{lang === "ja" ? "みんなの釣果" : "Community Catches"}</h2>
-                <p style={{ margin: 0, color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "世界中の釣り人の釣果に評価やコメントを" : "Rate and comment on catches worldwide"}</p>
+                <h2 style={{ margin: "0 0 2px", fontSize: "1.2rem" }}>{lang === "ja" ? "みんなの釣果" : lang === "es" ? "Capturas de la comunidad" : "Community Catches"}</h2>
+                <p style={{ margin: 0, color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "世界中の釣り人の釣果に評価やコメントを" : lang === "es" ? "Califica y comenta capturas de todo el mundo" : "Rate and comment on catches worldwide"}</p>
               </div>
-              <button onClick={() => { switchTab("Profile"); setProfileTab("catches"); }} style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 99, padding: "6px 10px", color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>+{lang === "ja" ? "投稿" : "Share"}</button>
+              <button onClick={() => { switchTab("Profile"); setProfileTab("catches"); }} style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 99, padding: "6px 10px", color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>+{lang === "ja" ? "投稿" : lang === "es" ? "Publicar" : "Share"}</button>
             </div>
             <div onClick={() => { switchTab("Profile"); setProfileTab("leaderboard"); }} style={{ background: "linear-gradient(135deg,rgba(244,162,97,0.12),rgba(244,162,97,0.04))", border: "2px solid #d0b090", borderRadius: 13, padding: "10px 13px", marginBottom: 12, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: "0.83rem" }}>🏆 {lang === "ja" ? "シーズンランキング" : "Season Leaderboard"}</div>
-                <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginTop: 2 }}>{lang === "ja" ? "テンカラ師が15,600ptでトップ · あなたは#8" : "テンカラ師 leads 15,600pts · You're #8"}</div>
+                <div style={{ fontWeight: 700, fontSize: "0.83rem" }}>🏆 {lang === "ja" ? "シーズンランキング" : lang === "es" ? "Tabla de la temporada" : "Season Leaderboard"}</div>
+                <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginTop: 2 }}>{lang === "ja" ? "テンカラ師が15,600ptでトップ · あなたは#8" : lang === "es" ? "テンカラ師 lidera con 15,600pts · Tú vas #8" : "テンカラ師 leads 15,600pts · You're #8"}</div>
               </div>
               <div style={{ color: "#c06a10" }}>→</div>
             </div>
             {catchesLoading ? (
               <div style={{ textAlign: "center", padding: "40px 20px", color: "#5a5a4a" }}>
                 <div style={{ fontSize: "2rem", animation: "spin 1s linear infinite", display: "inline-block", marginBottom: 8 }}>🎣</div>
-                <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "釣果を読み込み中..." : "Loading catches..."}</div>
+                <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "釣果を読み込み中..." : lang === "es" ? "Cargando capturas..." : "Loading catches..."}</div>
               </div>
             ) : catches.length === 0 ? (
               <div style={{ textAlign: "center", padding: "40px 20px", color: "#5a5a4a" }}>
                 <div style={{ fontSize: "2rem", marginBottom: 8 }}>🐟</div>
-                <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "まだ釣果がありません" : "No catches yet — be the first!"}</div>
+                <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? "まだ釣果がありません" : lang === "es" ? "Todavía no hay capturas — ¡sé el primero!" : "No catches yet — be the first!"}</div>
               </div>
             ) : null}
             {catches.map((c, i) => (
@@ -4792,7 +4815,7 @@ If this is NOT a fish or the image is unclear, return:
                   {c.comments.length > 0 && (
                     <div style={{ background: "#fffdf8", borderRadius: 9, padding: "6px 10px", marginBottom: 8 }}>
                       {c.comments.slice(0, 2).map((cm, ci) => <div key={ci} style={{ fontSize: "0.74rem", color: "#5a5a4a", marginBottom: ci < 1 && c.comments.length > 1 ? 3 : 0 }}><span style={{ color: "#0d7377" }}>●</span> {cm}</div>)}
-                      {c.comments.length > 2 && <div style={{ fontSize: "0.95rem", color: "#7a7a6a", marginTop: 3 }}>+{c.comments.length - 2}{lang === "ja" ? "件" : " more"}</div>}
+                      {c.comments.length > 2 && <div style={{ fontSize: "0.95rem", color: "#7a7a6a", marginTop: 3 }}>+{c.comments.length - 2}{lang === "ja" ? "件" : lang === "es" ? " más" : " more"}</div>}
                     </div>
                   )}
                   <div style={{ display: "flex", gap: 6 }}>
@@ -4839,30 +4862,30 @@ If this is NOT a fish or the image is unclear, return:
                 ].map((st, i) => (
                   <div key={st.la.ja} style={{ flex: 1, textAlign: "center", borderLeft: i > 0 ? "1px solid #e0dbd0" : "none" }}>
                     <div style={{ fontWeight: 700, fontSize: "1rem", color: "#0d7377" }}>{st.v}</div>
-                    <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{st.la[lang]}</div>
+                    <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{gl(st.la, lang)}</div>
                   </div>
                 ))}
               </div>
               <div style={{ background: "#f8ece0", border: "2px solid #d0b090", borderRadius: 10, padding: "8px 12px", display: "flex", justifyContent: "space-between" }}>
-                <div style={{ fontSize: "1.05rem" }}>🏆 {lang === "ja" ? "シーズンランク" : "Season rank"}: <strong style={{ color: "#c06a10" }}>{myRank ? `#${myRank}` : (lang === "ja" ? "釣果を投稿してランクイン" : "Post a catch to rank")}</strong></div>
+                <div style={{ fontSize: "1.05rem" }}>🏆 {lang === "ja" ? "シーズンランク" : lang === "es" ? "Puesto de la temporada" : "Season rank"}: <strong style={{ color: "#c06a10" }}>{myRank ? `#${myRank}` : (lang === "ja" ? "釣果を投稿してランクイン" : lang === "es" ? "Publica una captura para entrar al ranking" : "Post a catch to rank")}</strong></div>
                 <div style={{ fontSize: "1.05rem", color: "#c06a10", fontWeight: 700 }}>{seasonPts.toLocaleString()} pt</div>
               </div>
               {!isPremium && (
                 <button onClick={() => startCheckout("monthly")} style={{ width: "100%", marginTop: 10, padding: "10px", background: "linear-gradient(135deg,rgba(144,96,224,0.2),rgba(72,202,228,0.1))", border: "2px solid #a080d0", borderRadius: 12, color: "#6040a0", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700 }}>
-                  👑 {lang === "ja" ? "PROにアップグレード — 広告なし ¥480/月" : "Upgrade to PRO — Ad-free ¥480/month"}
+                  👑 {lang === "ja" ? "PROにアップグレード — 広告なし ¥480/月" : lang === "es" ? "Hazte PRO — Sin anuncios ¥480/mes" : "Upgrade to PRO — Ad-free ¥480/month"}
                 </button>
               )}
               {isPremium && (
                 <div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(144,96,224,0.1)", border: "2px solid #c0a0e0", borderRadius: 10, fontSize: "1.05rem", color: "#6040a0", textAlign: "center" }}>
-                  👑 {lang === "ja" ? "PROメンバー — 広告なしでお楽しみください" : "PRO Member — Enjoy ad-free fishing!"}
-                  {STRIPE_PORTAL && <div><a href={STRIPE_PORTAL} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.85rem", color: "#6040a0" }}>{lang === "ja" ? "サブスクリプション管理" : "Manage subscription"}</a></div>}
+                  👑 {lang === "ja" ? "PROメンバー — 広告なしでお楽しみください" : lang === "es" ? "Miembro PRO — ¡Pesca sin anuncios!" : "PRO Member — Enjoy ad-free fishing!"}
+                  {STRIPE_PORTAL && <div><a href={STRIPE_PORTAL} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.85rem", color: "#6040a0" }}>{lang === "ja" ? "サブスクリプション管理" : lang === "es" ? "Gestionar suscripción" : "Manage subscription"}</a></div>}
                 </div>
               )}
             </div>
 
             <div style={{ display: "flex", gap: 5, marginBottom: 13 }}>
               {[{ k: "catches", ja: "🎣 釣果記録", en: "🎣 My Catches" }, { k: "trophy", ja: "🏆 記録", en: "🏆 Records" }, { k: "calendar", ja: "🗓️ 釣り暦", en: "🗓️ Calendar" }, { k: "journal", ja: "📓 日誌", en: "📓 Journal" }, { k: "leaderboard", ja: "👑 ランク", en: "👑 Rank" }, { k: "pro", ja: "💎 PRO", en: "💎 PRO" }].map(pt => (
-                <button key={pt.k} onClick={() => setProfileTab(pt.k)} style={{ flex: 1, padding: "8px", borderRadius: 9, border: `1px solid ${profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.6)" : "#1a1a14") : "#d4cfc4"}`, background: profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.15)" : "rgba(72,202,228,0.1)") : "transparent", color: profileTab === pt.k ? (pt.k === "pro" ? "#9060e0" : "#1a1a14") : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: profileTab === pt.k ? 700 : 400 }}>{pt[lang]}</button>
+                <button key={pt.k} onClick={() => setProfileTab(pt.k)} style={{ flex: 1, padding: "8px", borderRadius: 9, border: `1px solid ${profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.6)" : "#1a1a14") : "#d4cfc4"}`, background: profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.15)" : "rgba(72,202,228,0.1)") : "transparent", color: profileTab === pt.k ? (pt.k === "pro" ? "#9060e0" : "#1a1a14") : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: profileTab === pt.k ? 700 : 400 }}>{gl(pt, lang)}</button>
               ))}
             </div>
 
@@ -4871,7 +4894,7 @@ If this is NOT a fish or the image is unclear, return:
                 <button onClick={() => setLogOpen(!logOpen)} style={{ width: "100%", padding: "12px", marginBottom: 11, background: "linear-gradient(135deg,rgba(72,202,228,0.15),rgba(72,202,228,0.05))", border: "2px solid #80b8c8", borderRadius: 12, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: 700 }}>{s("logCatch", lang)}</button>
                 {logOpen && (
                   <div style={{ background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 15, padding: 13, marginBottom: 11, animation: "fadeUp 0.3s ease" }}>
-                    <div style={{ fontWeight: 700, marginBottom: 10, color: "#0d7377", fontSize: "1rem" }}>🎣 {lang === "ja" ? "釣果を記録" : "Record Your Catch"}</div>
+                    <div style={{ fontWeight: 700, marginBottom: 10, color: "#0d7377", fontSize: "1rem" }}>🎣 {lang === "ja" ? "釣果を記録" : lang === "es" ? "Registra tu captura" : "Record Your Catch"}</div>
                     <div onClick={() => !photoPreview && fileRef.current.click()}
                       style={{ minHeight: 110, border: "2px dashed #FFE500", borderRadius: 11, marginBottom: 9, cursor: photoPreview ? "default" : "pointer", background: photoPreview ? "transparent" : "#f0f8f8", overflow: "hidden", position: "relative" }}>
                       {photoPreview ? (
@@ -4879,17 +4902,17 @@ If this is NOT a fish or the image is unclear, return:
                           <img src={photoPreview} alt="" style={{ width: "100%", maxHeight: 160, objectFit: "cover", display: "block" }} />
                           <button onClick={(e) => { e.stopPropagation(); setPhotoPreview(null); setFishIDResult(null); setNewCatch(p => ({ ...p, photo: null })); fileRef.current.click(); }}
                             style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.6)", border: "none", borderRadius: 8, padding: "4px 10px", color: "white", cursor: "pointer", fontSize: "0.82rem" }}>
-                            {lang === "ja" ? "📷 変更" : "📷 Change"}
+                            {lang === "ja" ? "📷 変更" : lang === "es" ? "📷 Cambiar" : "📷 Change"}
                           </button>
                         </>
                       ) : (
                         <div style={{ textAlign: "center", padding: "24px 16px", color: "#5a5a4a" }}>
                           <div style={{ fontSize: "2rem", marginBottom: 6 }}>📸</div>
                           <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: 4 }}>
-                            {lang === "ja" ? "写真を撮影・選択" : "Take or choose a photo"}
+                            {lang === "ja" ? "写真を撮影・選択" : lang === "es" ? "Toma o elige una foto" : "Take or choose a photo"}
                           </div>
                           <div style={{ fontSize: "0.82rem", color: "#0d7377" }}>
-                            🤖 {lang === "ja" ? "AIが魚種を自動識別します" : "AI will auto-identify the species"}
+                            🤖 {lang === "ja" ? "AIが魚種を自動識別します" : lang === "es" ? "La IA identificará la especie automáticamente" : "AI will auto-identify the species"}
                           </div>
                         </div>
                       )}
@@ -4900,8 +4923,8 @@ If this is NOT a fish or the image is unclear, return:
                       <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 12, padding: "14px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 12, animation: "fadeUp 0.3s ease" }}>
                         <div style={{ fontSize: "1.8rem", animation: "spin 1s linear infinite" }}>🔍</div>
                         <div>
-                          <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#0d7377" }}>{lang === "ja" ? "AIが魚を識別中..." : "AI identifying fish..."}</div>
-                          <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>{lang === "ja" ? "種類・サイズ・規制を確認しています" : "Checking species, size & regulations"}</div>
+                          <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#0d7377" }}>{lang === "ja" ? "AIが魚を識別中..." : lang === "es" ? "IA identificando el pez..." : "AI identifying fish..."}</div>
+                          <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>{lang === "ja" ? "種類・サイズ・規制を確認しています" : lang === "es" ? "Verificando especie, tamaño y reglamento" : "Checking species, size & regulations"}</div>
                         </div>
                       </div>
                     )}
@@ -4918,14 +4941,14 @@ If this is NOT a fish or the image is unclear, return:
                                   <div style={{ fontSize: "0.82rem", color: "#5a5a4a", marginTop: 2 }}>{fishIDResult.species?.[lang === "ja" ? "en" : "ja"]}</div>
                                 </div>
                                 <span style={{ background: fishIDResult.confidence === "high" ? "#2d7a3a" : fishIDResult.confidence === "medium" ? "#c06a10" : "#b82030", color: "white", borderRadius: 99, padding: "3px 10px", fontSize: "0.75rem", fontWeight: 700 }}>
-                                  {fishIDResult.confidence === "high" ? (lang === "ja" ? "高精度" : "High") : fishIDResult.confidence === "medium" ? (lang === "ja" ? "中精度" : "Medium") : (lang === "ja" ? "低精度" : "Low")}
+                                  {fishIDResult.confidence === "high" ? (lang === "ja" ? "高精度" : lang === "es" ? "Alta" : "High") : fishIDResult.confidence === "medium" ? (lang === "ja" ? "中精度" : lang === "es" ? "Media" : "Medium") : (lang === "ja" ? "低精度" : lang === "es" ? "Bajo" : "Low")}
                                 </span>
                               </div>
                             </div>
                             <div style={{ background: "#fffdf8", padding: "10px 14px", display: "flex", gap: 16, flexWrap: "wrap" }}>
-                              {fishIDResult.estimatedLength && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "推定サイズ" : "Est. Length"}</div><div style={{ fontWeight: 700 }}>📏 {fishIDResult.estimatedLength}</div></div>}
-                              {fishIDResult.estimatedWeight && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "推定重量" : "Est. Weight"}</div><div style={{ fontWeight: 700 }}>⚖️ {fishIDResult.estimatedWeight}</div></div>}
-                              {fishIDResult.condition && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "状態" : "Condition"}</div><div style={{ fontWeight: 700, fontSize: "0.88rem" }}>{fishIDResult.condition?.[lang]}</div></div>}
+                              {fishIDResult.estimatedLength && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "推定サイズ" : lang === "es" ? "Largo est." : "Est. Length"}</div><div style={{ fontWeight: 700 }}>📏 {fishIDResult.estimatedLength}</div></div>}
+                              {fishIDResult.estimatedWeight && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "推定重量" : lang === "es" ? "Peso est." : "Est. Weight"}</div><div style={{ fontWeight: 700 }}>⚖️ {fishIDResult.estimatedWeight}</div></div>}
+                              {fishIDResult.condition && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "状態" : lang === "es" ? "Condición" : "Condition"}</div><div style={{ fontWeight: 700, fontSize: "0.88rem" }}>{fishIDResult.condition?.[lang]}</div></div>}
                             </div>
                             {fishIDResult.description?.[lang] && (
                               <div style={{ background: "#f8f4ec", padding: "10px 14px", fontSize: "0.88rem", color: "#3a3a2a", lineHeight: 1.6 }}>{(fishIDResult.description?.[lang] || fishIDResult.description?.en || fishIDResult.description?.ja || "")}</div>
@@ -4933,15 +4956,15 @@ If this is NOT a fish or the image is unclear, return:
                             {fishIDResult.regulations && (
                               <div style={{ background: fishIDResult.isKeepable ? "#e0f2f2" : "#f8e8d0", padding: "10px 14px", borderTop: "1px solid #e0dbd0" }}>
                                 <div style={{ fontWeight: 700, fontSize: "0.88rem", marginBottom: 4, color: fishIDResult.isKeepable ? "#2d7a3a" : "#c06a10" }}>
-                                  {fishIDResult.isKeepable ? "✅" : "⚠️"} {lang === "ja" ? "規制情報" : "Regulations"}
-                                  {fishIDResult.regulations.minSize && <span style={{ marginLeft: 8, fontWeight: 400, fontSize: "0.82rem" }}>{lang === "ja" ? `最小キープサイズ: ${fishIDResult.regulations.minSize}cm` : `Min keep: ${fishIDResult.regulations.minSize}cm`}</span>}
+                                  {fishIDResult.isKeepable ? "✅" : "⚠️"} {lang === "ja" ? "規制情報" : lang === "es" ? "Reglamento" : "Regulations"}
+                                  {fishIDResult.regulations.minSize && <span style={{ marginLeft: 8, fontWeight: 400, fontSize: "0.82rem" }}>{lang === "ja" ? `最小キープサイズ: ${fishIDResult.regulations.minSize}cm` : lang === "es" ? `Talla mínima: ${fishIDResult.regulations.minSize}cm` : `Min keep: ${fishIDResult.regulations.minSize}cm`}</span>}
                                 </div>
                                 <div style={{ fontSize: "0.85rem", color: "#3a3a2a" }}>{fishIDResult.regulations.note?.[lang]}</div>
                               </div>
                             )}
                             {fishIDResult.confidence !== "low" && (
                               <div style={{ background: "#e0f2f2", padding: "8px 14px", fontSize: "0.82rem", color: "#0d7377", fontWeight: 600 }}>
-                                ✓ {lang === "ja" ? "魚種・重量を自動入力しました" : "Species & weight auto-filled below"}
+                                ✓ {lang === "ja" ? "魚種・重量を自動入力しました" : lang === "es" ? "Especie y peso rellenados abajo" : "Species & weight auto-filled below"}
                               </div>
                             )}
                           </>
@@ -4957,17 +4980,17 @@ If this is NOT a fish or the image is unclear, return:
                     {/* Method toggle */}
                     <div style={{ display: "flex", gap: 6, marginBottom: 9 }}>
                       {[{ k: "lure", ja: "🎣 ルアー", en: "🎣 Lure" }, { k: "fly", ja: "🪶 フライ", en: "🪶 Fly" }, { k: "bait", ja: "🪱 エサ", en: "🪱 Bait" }].map(m => (
-                        <button key={m.k} onClick={() => setNewCatch(p => ({ ...p, method: m.k }))} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${newCatch.method === m.k ? "rgba(72,202,228,0.5)" : "#d4cfc4"}`, background: newCatch.method === m.k ? "rgba(72,202,228,0.12)" : "transparent", color: newCatch.method === m.k ? "#1a1a14" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{m[lang]}</button>
+                        <button key={m.k} onClick={() => setNewCatch(p => ({ ...p, method: m.k }))} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${newCatch.method === m.k ? "rgba(72,202,228,0.5)" : "#d4cfc4"}`, background: newCatch.method === m.k ? "rgba(72,202,228,0.12)" : "transparent", color: newCatch.method === m.k ? "#1a1a14" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{gl(m, lang)}</button>
                       ))}
                     </div>
                     {/* Location sharing opt-in */}
                     <div style={{ display: "flex", alignItems: "center", gap: 10, background: locationSharing ? "#e0f2f2" : "#f5f0e8", border: `2px solid ${locationSharing ? "#1a1a14" : "#d4cfc4"}`, borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 700, fontSize: "0.88rem", color: locationSharing ? "#1a1a14" : "#5a5a4a" }}>
-                          📍 {lang === "ja" ? "釣り場所をマップに共有" : "Share catch location on map"}
+                          📍 {lang === "ja" ? "釣り場所をマップに共有" : lang === "es" ? "Compartir la ubicación en el mapa" : "Share catch location on map"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>
-                          {lang === "ja" ? "他のユーザーにこのスポットが見えます" : "Other users will see this spot"}
+                          {lang === "ja" ? "他のユーザーにこのスポットが見えます" : lang === "es" ? "Otros usuarios verán este sitio" : "Other users will see this spot"}
                         </div>
                       </div>
                       <button onClick={() => setLocationSharing(!locationSharing)}
@@ -4976,16 +4999,16 @@ If this is NOT a fish or the image is unclear, return:
                       </button>
                     </div>
                     {[{ k: "fish", ph: { ja: "魚種（例：ヤマメ）", en: "Species (e.g. Yamame)" } }, { k: "weight", ph: { ja: "重さ（例：0.4 kg）", en: "Weight (e.g. 0.4 kg)" } }, { k: "location", ph: { ja: "釣り場所", en: "Location" } }].map(f => (
-                      <input key={f.k} value={newCatch[f.k]} onChange={e => setNewCatch(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.ph[lang]} style={{ width: "100%", marginBottom: 8, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem" }} />
+                      <input key={f.k} value={newCatch[f.k]} onChange={e => setNewCatch(p => ({ ...p, [f.k]: e.target.value }))} placeholder={gl(f.ph, lang)} style={{ width: "100%", marginBottom: 8, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem" }} />
                     ))}
-                    <textarea value={newCatch.notes} onChange={e => setNewCatch(p => ({ ...p, notes: e.target.value }))} placeholder={lang === "ja" ? "メモ（フライパターン・状況・テクニック）" : "Notes (fly pattern, conditions, technique)"} rows={3} style={{ width: "100%", marginBottom: 10, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem", resize: "vertical" }} />
+                    <textarea value={newCatch.notes} onChange={e => setNewCatch(p => ({ ...p, notes: e.target.value }))} placeholder={lang === "ja" ? "メモ（フライパターン・状況・テクニック）" : lang === "es" ? "Notas (patrón de mosca, condiciones, técnica)" : "Notes (fly pattern, conditions, technique)"} rows={3} style={{ width: "100%", marginBottom: 10, background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", color: "#0d7377", fontSize: "0.92rem", resize: "vertical" }} />
                     <div style={{ display: "flex", gap: 6 }}>
                       <button onClick={submitCatch} style={{ flex: 2, padding: "10px", background: newCatch.fish ? "#d0eae8" : "#e8e3d8", border: `2px solid ${newCatch.fish ? "#80b0c8" : "#c4bfb4"}`, borderRadius: 9, color: newCatch.fish ? "#1a1a14" : "#9a9a8a", cursor: newCatch.fish ? "pointer" : "not-allowed", fontFamily: "inherit", fontWeight: 700 }}>{s("saveshare", lang)}</button>
                       <button onClick={() => { setLogOpen(false); setPhotoPreview(null); setFishIDResult(null); }} style={{ flex: 1, padding: "10px", background: "#fffdf8", border: "2px solid #d4cfc4", borderRadius: 9, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit" }}>{s("cancel", lang)}</button>
                     </div>
                   </div>
                 )}
-                <div style={{ fontSize: "0.66rem", color: "#5a5a4a", marginBottom: 9, letterSpacing: "0.07em" }}>{lang === "ja" ? "あなたの釣果ログ" : "YOUR CATCH LOG"}</div>
+                <div style={{ fontSize: "0.66rem", color: "#5a5a4a", marginBottom: 9, letterSpacing: "0.07em" }}>{lang === "ja" ? "あなたの釣果ログ" : lang === "es" ? "TU BITÁCORA DE CAPTURAS" : "YOUR CATCH LOG"}</div>
                 {myCatches.length === 0
                   ? <div style={{ textAlign: "center", padding: "36px 14px", color: "#5a5a4a", background: "#f8f4ec", borderRadius: 15, border: "2px dashed #d4cfc4" }}><div style={{ fontSize: "2.2rem", marginBottom: 7, animation: "float 2s ease-in-out infinite" }}>🪶</div><p style={{ fontStyle: "italic", margin: 0, fontSize: "0.92rem", whiteSpace: "pre-line" }}>{s("noCatchYet", lang)}</p></div>
                   : <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -5009,7 +5032,7 @@ If this is NOT a fish or the image is unclear, return:
 
             {profileTab === "trophy" && (
               <div style={{ animation: "fadeUp 0.4s ease" }}>
-                <h3 style={{ margin: "0 0 12px", fontSize: "1.1rem" }}>🏆 {lang === "ja" ? "魚種別自己記録" : "Personal Best Records"}</h3>
+                <h3 style={{ margin: "0 0 12px", fontSize: "1.1rem" }}>🏆 {lang === "ja" ? "魚種別自己記録" : lang === "es" ? "Récords personales" : "Personal Best Records"}</h3>
                 <TrophyRoom catches={[...myCatches, ...catches.filter(c => c.user === profile.name)]} lang={lang} FISH_DATA={FISH_DATA} />
               </div>
             )}
@@ -5023,30 +5046,30 @@ If this is NOT a fish or the image is unclear, return:
             {profileTab === "journal" && (
               <div style={{ animation: "fadeUp 0.4s ease" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <h3 style={{ margin: 0, fontSize: "1.1rem" }}>📓 {lang === "ja" ? "釣り日誌" : "Fishing Journal"}</h3>
+                  <h3 style={{ margin: 0, fontSize: "1.1rem" }}>📓 {lang === "ja" ? "釣り日誌" : lang === "es" ? "Diario de pesca" : "Fishing Journal"}</h3>
                   <button onClick={() => setJournalOpen(!journalOpen)} style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 10, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 700 }}>
-                    + {lang === "ja" ? lang === "ja" ? "新しい日誌" : "New Entry" : "New Entry"}
+                    + {lang === "ja" ? lang === "ja" ? "新しい日誌" : lang === "es" ? "Nueva entrada" : "New Entry" : "New Entry"}
                   </button>
                 </div>
 
                 {journalOpen && (
                   <div style={{ background: "#fffdf8", border: "2px solid #FFE500", borderRadius: 14, padding: 14, marginBottom: 14, animation: "fadeUp 0.3s ease" }}>
-                    <input value={journalEntry.title} onChange={e => setJournalEntry(p => ({...p, title: e.target.value}))} placeholder={lang === "ja" ? "タイトル（例：矢部川 朝の部）" : "Title (e.g. Yabeji River morning session)"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                    <input value={journalEntry.title} onChange={e => setJournalEntry(p => ({...p, title: e.target.value}))} placeholder={lang === "ja" ? "タイトル（例：矢部川 朝の部）" : lang === "es" ? "Título (ej. mañana en el río Yabe)" : "Title (e.g. Yabeji River morning session)"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
                     <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                       <input value={journalEntry.weather} onChange={e => setJournalEntry(p => ({...p, weather: e.target.value}))} placeholder={lang === "ja" ? "天気" : lang === "es" ? "Clima" : "Weather"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
-                      <input value={journalEntry.water} onChange={e => setJournalEntry(p => ({...p, water: e.target.value}))} placeholder={lang === "ja" ? "水温・水量" : "Water temp/level"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                      <input value={journalEntry.water} onChange={e => setJournalEntry(p => ({...p, water: e.target.value}))} placeholder={lang === "ja" ? "水温・水量" : lang === "es" ? "Temp./nivel del agua" : "Water temp/level"} style={{ flex: 1, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
                     </div>
-                    <input value={journalEntry.flies} onChange={e => setJournalEntry(p => ({...p, flies: e.target.value}))} placeholder={lang === "ja" ? "使用フライ・ルアー" : "Flies/lures used"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
-                    <textarea value={journalEntry.notes} onChange={e => setJournalEntry(p => ({...p, notes: e.target.value}))} placeholder={lang === "ja" ? "メモ・観察・気づき..." : "Notes, observations, insights..."} rows={4} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem", resize: "vertical" }} />
+                    <input value={journalEntry.flies} onChange={e => setJournalEntry(p => ({...p, flies: e.target.value}))} placeholder={lang === "ja" ? "使用フライ・ルアー" : lang === "es" ? "Moscas/señuelos usados" : "Flies/lures used"} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem" }} />
+                    <textarea value={journalEntry.notes} onChange={e => setJournalEntry(p => ({...p, notes: e.target.value}))} placeholder={lang === "ja" ? "メモ・観察・気づき..." : lang === "es" ? "Notas, observaciones, ideas..." : "Notes, observations, insights..."} rows={4} style={{ width: "100%", marginBottom: 8, background: "#f5f0e8", border: "2px solid #FFE500", borderRadius: 8, padding: "9px 12px", fontSize: "0.92rem", resize: "vertical" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                      <span style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "評価:" : "Rating:"}</span>
+                      <span style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{lang === "ja" ? "評価:" : lang === "es" ? "Puntuación:" : "Rating:"}</span>
                       {[1,2,3,4,5].map(s => (
                         <button key={s} onClick={() => setJournalEntry(p => ({...p, rating: s}))} style={{ fontSize: "1.3rem", background: "none", border: "none", cursor: "pointer", opacity: s <= journalEntry.rating ? 1 : 0.3 }}>⭐</button>
                       ))}
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
-                      <button onClick={() => { if (journalEntry.title) { addEntry(journalEntry); setJournalEntry({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 }); setJournalOpen(false); } }} style={{ flex: 2, padding: "10px", background: "#d0eae8", border: "2px solid #c8b800", borderRadius: 9, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>{lang === "ja" ? "保存" : "Save"}</button>
-                      <button onClick={() => setJournalOpen(false)} style={{ flex: 1, padding: "10px", background: "#fffdf8", border: "2px solid #d4cfc4", borderRadius: 9, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit" }}>{lang === "ja" ? "キャンセル" : "Cancel"}</button>
+                      <button onClick={() => { if (journalEntry.title) { addEntry(journalEntry); setJournalEntry({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 }); setJournalOpen(false); } }} style={{ flex: 2, padding: "10px", background: "#d0eae8", border: "2px solid #c8b800", borderRadius: 9, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>{lang === "ja" ? "保存" : lang === "es" ? "Guardar" : "Save"}</button>
+                      <button onClick={() => setJournalOpen(false)} style={{ flex: 1, padding: "10px", background: "#fffdf8", border: "2px solid #d4cfc4", borderRadius: 9, color: "#5a5a4a", cursor: "pointer", fontFamily: "inherit" }}>{lang === "ja" ? "キャンセル" : lang === "es" ? "Cancelar" : "Cancel"}</button>
                     </div>
                   </div>
                 )}
@@ -5054,7 +5077,7 @@ If this is NOT a fish or the image is unclear, return:
                 {journal.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "40px 20px", color: "#5a5a4a", background: "#f8f4ec", borderRadius: 14, border: "2px dashed #d4cfc4" }}>
                     <div style={{ fontSize: "2.5rem", marginBottom: 8 }}>📓</div>
-                    <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? lang === "ja" ? "まだ日誌がありません" : "No journal entries yet" : "No journal entries yet"}</div>
+                    <div style={{ fontSize: "0.95rem" }}>{lang === "ja" ? lang === "ja" ? "まだ日誌がありません" : lang === "es" ? "Todavía no hay entradas en el diario" : "No journal entries yet" : "No journal entries yet"}</div>
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -5072,7 +5095,7 @@ If this is NOT a fish or the image is unclear, return:
                         {entry.notes && <div style={{ fontSize: "0.88rem", color: "#3a3a2a", lineHeight: 1.6, marginBottom: 8 }}>{entry.notes}</div>}
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <div>{"⭐".repeat(entry.rating)}{"☆".repeat(5 - entry.rating)}</div>
-                          <div style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{new Date(entry.createdAt).toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US")}</div>
+                          <div style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{new Date(entry.createdAt).toLocaleDateString(lang === "ja" ? "ja-JP" : lang === "es" ? "es-PR" : "en-US")}</div>
                         </div>
                       </div>
                     ))}
@@ -5084,7 +5107,7 @@ If this is NOT a fish or the image is unclear, return:
               <div>
                 <div style={{ display: "flex", gap: 5, marginBottom: 11 }}>
                   {[{ k: "points", ja: "ポイント", en: "Points" }, { k: "catches", ja: "釣果数", en: "Catches" }, { k: "streak", ja: "連続日数", en: "Streak" }].map(f => (
-                    <button key={f.k} onClick={() => setLeaderFilter(f.k)} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${leaderFilter === f.k ? "#c06a10" : "#d4cfc4"}`, background: leaderFilter === f.k ? "rgba(244,162,97,0.1)" : "transparent", color: leaderFilter === f.k ? "#f4a261" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{f[lang]}</button>
+                    <button key={f.k} onClick={() => setLeaderFilter(f.k)} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${leaderFilter === f.k ? "#c06a10" : "#d4cfc4"}`, background: leaderFilter === f.k ? "rgba(244,162,97,0.1)" : "transparent", color: leaderFilter === f.k ? "#f4a261" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{gl(f, lang)}</button>
                   ))}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
@@ -5094,11 +5117,11 @@ If this is NOT a fish or the image is unclear, return:
                       <div style={{ fontSize: "1.2rem" }}>{u.avatar}</div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 700, fontSize: "1rem" }}>{u.user}</div>
-                        <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>🐟 {(u.topFish?.[lang] || u.topFish?.en || u.topFish?.ja || "")} · 🔥 {u.streak}{lang === "ja" ? "日" : "d"}</div>
+                        <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>🐟 {(u.topFish?.[lang] || u.topFish?.en || u.topFish?.ja || "")} · 🔥 {u.streak}{lang === "ja" ? "日" : lang === "es" ? "d" : "d"}</div>
                       </div>
                       <div style={{ textAlign: "right" }}>
-                        <div style={{ fontWeight: 700, color: "#c06a10", fontSize: "1rem" }}>{leaderFilter === "points" ? u.points.toLocaleString() : leaderFilter === "catches" ? u.catches : `${u.streak}${lang === "ja" ? "日" : "d"}`}</div>
-                        <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{leaderFilter === "points" ? "pt" : leaderFilter === "catches" ? (lang === "ja" ? "釣果" : "catches") : (lang === "ja" ? "連続" : "streak")}</div>
+                        <div style={{ fontWeight: 700, color: "#c06a10", fontSize: "1rem" }}>{leaderFilter === "points" ? u.points.toLocaleString() : leaderFilter === "catches" ? u.catches : `${u.streak}${lang === "ja" ? "日" : lang === "es" ? "d" : "d"}`}</div>
+                        <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{leaderFilter === "points" ? "pt" : leaderFilter === "catches" ? (lang === "ja" ? "釣果" : lang === "es" ? "capturas" : "catches") : (lang === "ja" ? "連続" : lang === "es" ? "racha" : "streak")}</div>
                       </div>
                     </div>
                   ))}
@@ -5106,7 +5129,7 @@ If this is NOT a fish or the image is unclear, return:
                     <div style={{ fontSize: "1.05rem", minWidth: 26, textAlign: "center", fontWeight: 700, color: "#0d7377" }}>#8</div>
                     <div style={{ fontSize: "1.2rem" }}>{profile.avatar}</div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: "1rem" }}>{profile.name} <span style={{ fontSize: "0.95rem", color: "#0d7377" }}>({lang === "ja" ? "あなた" : "You"})</span></div>
+                      <div style={{ fontWeight: 700, fontSize: "1rem" }}>{profile.name} <span style={{ fontSize: "0.95rem", color: "#0d7377" }}>({lang === "ja" ? "あなた" : lang === "es" ? "Tú" : "You"})</span></div>
                       <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{s("keepFishing", lang)}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
@@ -5125,12 +5148,12 @@ If this is NOT a fish or the image is unclear, return:
             {isPremium ? (
               <div style={{ textAlign: "center", padding: "30px 20px" }}>
                 <div style={{ fontSize: "4rem", marginBottom: 12, animation: "float 2s ease-in-out infinite" }}>👑</div>
-                <div style={{ fontWeight: 700, fontSize: "1.3rem", color: "#6040a0", marginBottom: 8 }}>{lang === "ja" ? "PROメンバー！" : "PRO Member!"}</div>
-                <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 20 }}>{lang === "ja" ? "すべてのプレミアム機能をお楽しみください" : "Enjoy all premium features"}</div>
+                <div style={{ fontWeight: 700, fontSize: "1.3rem", color: "#6040a0", marginBottom: 8 }}>{lang === "ja" ? "PROメンバー！" : lang === "es" ? "¡Miembro PRO!" : "PRO Member!"}</div>
+                <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 20 }}>{lang === "ja" ? "すべてのプレミアム機能をお楽しみください" : lang === "es" ? "Disfruta todas las funciones premium" : "Enjoy all premium features"}</div>
                 {[{ icon: "🚫", text: { ja: "全広告非表示", en: "All ads removed" } }, { icon: "🤖", text: { ja: "AI診断 無制限", en: "Unlimited AI advice" } }, { icon: "🪶", text: { ja: "プレミアムフライパターン", en: "Premium fly patterns" } }, { icon: "📊", text: { ja: "詳細釣果分析", en: "Detailed catch analytics" } }, { icon: "🗺️", text: { ja: "オフラインマップ", en: "Offline maps" } }].map((f, i) => (
                   <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", padding: "10px 14px", background: "#f4f0f8", border: "2px solid #d0b8e8", borderRadius: 12, marginBottom: 8 }}>
                     <span style={{ fontSize: "1.3rem" }}>{f.icon}</span>
-                    <span style={{ fontSize: "0.95rem", color: "#6040a0" }}>{f.text[lang]}</span>
+                    <span style={{ fontSize: "0.95rem", color: "#6040a0" }}>{gl(f.text, lang)}</span>
                     <span style={{ marginLeft: "auto", color: "#6040a0", fontSize: "1.05rem" }}>✓</span>
                   </div>
                 ))}
@@ -5139,8 +5162,8 @@ If this is NOT a fish or the image is unclear, return:
               <>
                 <div style={{ background: "linear-gradient(135deg,rgba(144,96,224,0.15),rgba(72,202,228,0.08))", border: "2px solid #c0a0e0", borderRadius: 18, padding: 18, marginBottom: 16, textAlign: "center" }}>
                   <div style={{ fontSize: "2.5rem", marginBottom: 8 }}>👑</div>
-                  <div style={{ fontWeight: 700, fontSize: "1.15rem", marginBottom: 6 }}>{lang === "ja" ? "釣りナビ PRO" : "Castwise PRO"}</div>
-                  <div style={{ fontSize: "0.92rem", color: "#5a5a4a", lineHeight: 1.6 }}>{lang === "ja" ? "広告なしで、より多くの機能を楽しもう" : "More features, zero ads"}</div>
+                  <div style={{ fontWeight: 700, fontSize: "1.15rem", marginBottom: 6 }}>{lang === "ja" ? "釣りナビ PRO" : lang === "es" ? "Castwise PRO" : "Castwise PRO"}</div>
+                  <div style={{ fontSize: "0.92rem", color: "#5a5a4a", lineHeight: 1.6 }}>{lang === "ja" ? "広告なしで、より多くの機能を楽しもう" : lang === "es" ? "Más funciones, cero anuncios" : "More features, zero ads"}</div>
                 </div>
                 {[
                   { id: "monthly", label: { ja: "月額プラン", en: "Monthly" }, price: "¥480", period: { ja: "/月", en: "/mo" }, badge: null },
@@ -5152,7 +5175,7 @@ If this is NOT a fish or the image is unclear, return:
                         <span style={{ fontWeight: 700, fontSize: "1.05rem" }}>{(plan.label?.[lang] || plan.label?.en || plan.label?.ja || "")}</span>
                         {plan.badge && <span style={{ background: "#9060e0", color: "white", borderRadius: 99, padding: "1px 8px", fontSize: "0.95rem", fontWeight: 700 }}>{(plan.badge?.[lang] || plan.badge?.en || plan.badge?.ja || "")}</span>}
                       </div>
-                      <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{lang === "ja" ? "いつでもキャンセル可" : "Cancel anytime"}</div>
+                      <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{lang === "ja" ? "いつでもキャンセル可" : lang === "es" ? "Cancela cuando quieras" : "Cancel anytime"}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontWeight: 700, fontSize: "1.2rem", color: "#6040a0" }}>{plan.price}</div>
@@ -5161,7 +5184,7 @@ If this is NOT a fish or the image is unclear, return:
                   </div>
                 ))}
                 <div style={{ marginTop: 14 }}>
-                  <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 10, letterSpacing: "0.07em" }}>{lang === "ja" ? "PROの特典" : "WHAT YOU GET"}</div>
+                  <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 10, letterSpacing: "0.07em" }}>{lang === "ja" ? "PROの特典" : lang === "es" ? "LO QUE INCLUYE" : "WHAT YOU GET"}</div>
                   {[
                     { icon: "🚫", free: { ja: "広告あり", en: "Ads shown" }, pro: { ja: "完全広告なし", en: "Ad-free" } },
                     { icon: "🤖", free: { ja: "AI診断 3回/日", en: "3 AI/day" }, pro: { ja: "AI診断 無制限", en: "Unlimited AI" } },
@@ -5181,9 +5204,9 @@ If this is NOT a fish or the image is unclear, return:
                   ))}
                 </div>
                 <div style={{ marginTop: 16, background: "#e8f4ec", border: "2px solid #FFE500", borderRadius: 14, padding: 14, textAlign: "center" }}>
-                  <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 8 }}>{lang === "ja" ? "まず試してみる？" : "Try before subscribing?"}</div>
+                  <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 8 }}>{lang === "ja" ? "まず試してみる？" : lang === "es" ? "¿Probar antes de suscribirte?" : "Try before subscribing?"}</div>
                   <button onClick={() => setShowRewarded(true)} style={{ padding: "10px 24px", background: "#d0eae8", border: "2px solid #c8b800", borderRadius: 12, color: "#2d7a3a", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700 }}>
-                    🎁 {lang === "ja" ? "動画を見て1日PRO体験" : "Watch an ad for 1-day trial"}
+                    🎁 {lang === "ja" ? "動画を見て1日PRO体験" : lang === "es" ? "Mira un anuncio y prueba 1 día" : "Watch an ad for 1-day trial"}
                   </button>
                 </div>
               </>
@@ -5196,13 +5219,13 @@ If this is NOT a fish or the image is unclear, return:
         <div onClick={() => setJustLogged(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 320, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 360, background: "#fffdf8", borderRadius: 22, padding: 22, textAlign: "center", animation: "fadeUp 0.3s ease" }}>
             <div style={{ fontSize: "2.6rem" }}>🎉</div>
-            <div style={{ fontWeight: 800, fontSize: "1.15rem", margin: "6px 0" }}>{lang === "ja" ? "釣果を記録しました！" : "Catch logged!"}</div>
-            <div style={{ fontSize: "0.92rem", color: "#5a5a4a", marginBottom: 16 }}>{lang === "ja" ? "釣果カードを作ってインスタ・Xでシェアしよう" : "Make a catch card and share it on Instagram or X"}</div>
+            <div style={{ fontWeight: 800, fontSize: "1.15rem", margin: "6px 0" }}>{lang === "ja" ? "釣果を記録しました！" : lang === "es" ? "¡Captura registrada!" : "Catch logged!"}</div>
+            <div style={{ fontSize: "0.92rem", color: "#5a5a4a", marginBottom: 16 }}>{lang === "ja" ? "釣果カードを作ってインスタ・Xでシェアしよう" : lang === "es" ? "Crea una tarjeta de captura y compártela en Instagram o X" : "Make a catch card and share it on Instagram or X"}</div>
             <button onClick={async () => { await shareCatchCard({ catchData: justLogged, fish: FISH_DATA.find(f => f.name === justLogged.fish || f.nameEn === justLogged.fish), lang }); setJustLogged(null); }}
               style={{ width: "100%", padding: 14, background: "#0d7377", color: "#fff", border: "none", borderRadius: 14, fontWeight: 800, fontSize: "1.05rem", cursor: "pointer", fontFamily: "inherit" }}>
-              📸 {lang === "ja" ? "釣果カードをシェア" : "Share catch card"}
+              📸 {lang === "ja" ? "釣果カードをシェア" : lang === "es" ? "Compartir tarjeta de captura" : "Share catch card"}
             </button>
-            <button onClick={() => setJustLogged(null)} style={{ marginTop: 10, background: "none", border: "none", color: "#7a7a6a", cursor: "pointer", fontFamily: "inherit" }}>{lang === "ja" ? "あとで" : "Later"}</button>
+            <button onClick={() => setJustLogged(null)} style={{ marginTop: 10, background: "none", border: "none", color: "#7a7a6a", cursor: "pointer", fontFamily: "inherit" }}>{lang === "ja" ? "あとで" : lang === "es" ? "Después" : "Later"}</button>
           </div>
         </div>
       )}
@@ -5218,7 +5241,7 @@ If this is NOT a fish or the image is unclear, return:
         <span>·</span>
         <a href="/legal.html#terms" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "利用規約" : lang === "es" ? "Términos" : "Terms"}</a>
         <span>·</span>
-        <a href="/legal.html#tokushoho" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "特定商取引法" : "Commercial Law"}</a>
+        <a href="/legal.html#tokushoho" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "特定商取引法" : lang === "es" ? "Aviso legal comercial" : "Commercial Law"}</a>
         <span>·</span>
         <a href="/legal.html#affiliate" target="_blank" style={{ color: "#9a9a8a", textDecoration: "none" }}>{lang === "ja" ? "広告について" : lang === "es" ? "Publicidad" : "Advertising"}</a>
       </div>

@@ -37,15 +37,21 @@ table{width:100%;border-collapse:collapse;background:#fffdf8;border-radius:12px;
 .en{color:#5a5a4a;font-size:.95rem}ul.grid{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}ul.grid a{display:block;background:#fffdf8;border:1px solid #e0dbd0;border-radius:10px;padding:8px 10px;color:#0d7377;text-decoration:none;font-weight:700}
 footer{text-align:center;font-size:.8rem;color:#7a7a6a;padding:20px}footer a{color:#0d7377}`;
 
-const shell = ({ title, desc, url, body, ld, image }) => `<!doctype html><html lang="ja"><head><meta charset="utf-8">
+const CHROME = {
+  ja: { home: "🎣 Castwise 釣りナビPRO", nav: [["/zukan/", "魚図鑑"], ["/spots/", "釣り場"]], open: "アプリを開く", legal: "法的情報" },
+  en: { home: "🎣 Castwise", nav: [["/zukan/", "Fish guide"], ["/spots/puerto-rico", "Spots"]], open: "Open the app", legal: "Legal" },
+  es: { home: "🎣 Castwise", nav: [["/es/spots/puerto-rico", "Sitios de pesca"], ["/", "Abrir la app"]], open: "Abrir la app", legal: "Aviso legal" },
+};
+const shell = ({ title, desc, url, body, ld, image, lang = "ja", alts }) => `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}"><link rel="canonical" href="${url}">
+${(alts || []).map(a => `<link rel="alternate" hreflang="${a.l}" href="${a.u}">`).join("")}
 <meta property="og:type" content="article"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${url}"><meta property="og:image" content="${SITE}${image || "/icon-512.png"}"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.ico"><meta name="theme-color" content="#0a2837"><style>${css}</style>
 ${ld ? `<script type="application/ld+json">${JSON.stringify(ld)}</script>` : ""}</head>
-<body><header><a href="/">🎣 Castwise 釣りナビPRO</a><span style="opacity:.7">/</span><a href="/zukan/" style="color:#fff">魚図鑑</a><a href="/spots/" style="color:#fff">釣り場</a><a href="/tsuki/${new Date().getMonth()+1}" style="color:#fff">今月</a></header>
-<main>${body}</main><footer><a href="/">アプリを開く</a> · <a href="/zukan/">魚図鑑</a> · <a href="/legal.html">法的情報</a><br>© Shigematsu Tech</footer></body></html>`;
+<body><header><a href="/">${CHROME[lang].home}</a>${CHROME[lang].nav.map(([h, n]) => `<span style="opacity:.7">/</span><a href="${h}" style="color:#fff">${n}</a>`).join("")}</header>
+<main>${body}</main><footer><a href="/">${CHROME[lang].open}</a> · <a href="/legal.html">${CHROME[lang].legal}</a><br>© Shigematsu Tech</footer></body></html>`;
 
 const out = "dist/zukan";
 fs.mkdirSync(out, { recursive: true });
@@ -122,9 +128,13 @@ for (const sp of SPOTS.filter(x => x.name)) {
 ${near.length ? `<h2>${pr ? "More spots in Puerto Rico" : `${esc(sp.pref)}のほかの釣り場`}</h2><ul class="grid">${near.map(o => `<li><a href="/spots/${spotSlug(o)}">${esc(o.name)}</a></li>`).join("")}</ul>` : ""}
 <p><a href="/spots/${prefSlug(sp)}">${pr ? "All Puerto Rico spots →" : `${esc(sp.pref)}の釣り場一覧 →`}</a></p>`;
   const ld = { "@context": "https://schema.org", "@type": "TouristAttraction", name: sp.name, description: desc, geo: { "@type": "GeoCoordinates", latitude: sp.lat, longitude: sp.lng }, touristType: "Anglers" };
-  let html = shell({ title, desc, url: `${SITE}/spots/${spotSlug(sp)}`, body, ld });
-  if (pr) html = html.replace('<html lang="ja">', '<html lang="en">');
-  fs.writeFileSync(`dist/spots/${spotSlug(sp)}.html`, html);
+  const alts = pr ? [
+    { l: "en", u: `${SITE}/spots/${spotSlug(sp)}` },
+    { l: "es", u: `${SITE}/es/spots/${spotSlug(sp)}` },
+    { l: "x-default", u: `${SITE}/spots/${spotSlug(sp)}` },
+  ] : null;
+  fs.writeFileSync(`dist/spots/${spotSlug(sp)}.html`,
+    shell({ title, desc, url: `${SITE}/spots/${spotSlug(sp)}`, body, ld, lang: pr ? "en" : "ja", alts }));
 }
 // prefecture hubs
 const prefGroups = {};
@@ -134,15 +144,60 @@ for (const [ps, list] of Object.entries(prefGroups)) {
   const title = pr ? `Puerto Rico Fishing Spots — ${list.length} spots (tarpon, snook, bonefish) | Castwise` : `${name}の釣り場${list.length}選｜釣れる魚・時期・アクセス｜Castwise`;
   const desc = pr ? `The ${list.length} best fishing spots in Puerto Rico: Vieques, Culebra, Fajardo, San Juan lagoons and lakes. Species, seasons and access.` : `${name}のおすすめ釣り場${list.length}か所。釣れる魚、ベストシーズン、アクセス、遊漁券情報をまとめました。`;
   const body = `<h1>${pr ? "Puerto Rico fishing spots" : `${esc(name)}の釣り場`}</h1><p>${esc(desc)}</p><ul class="grid">${list.sort((a, b) => b.rating - a.rating).map(sp => `<li><a href="/spots/${spotSlug(sp)}">${esc(sp.icon || "")} ${esc(sp.name)}<br><span class="en">${esc(t(sp.fish, pr ? "en" : "ja"))}</span></a></li>`).join("")}</ul><a class="cta" href="/">${pr ? "🎣 Open the app" : "🎣 アプリで今日の釣り予報を見る"}</a>`;
-  let html = shell({ title, desc, url: `${SITE}/spots/${ps}`, body });
-  if (pr) html = html.replace('<html lang="ja">', '<html lang="en">');
-  fs.writeFileSync(`dist/spots/${ps}.html`, html);
+  fs.writeFileSync(`dist/spots/${ps}.html`, shell({
+    title, desc, url: `${SITE}/spots/${ps}`, body, lang: pr ? "en" : "ja",
+    alts: pr ? [{ l: "en", u: `${SITE}/spots/puerto-rico` }, { l: "es", u: `${SITE}/es/spots/puerto-rico` }, { l: "x-default", u: `${SITE}/spots/puerto-rico` }] : null,
+  }));
 }
 // spots index
 fs.writeFileSync("dist/spots/index.html", shell({
   title: "釣り場ガイド｜九州・全国・プエルトリコ｜Castwise", desc: "九州を中心とした釣り場ガイド。都道府県別に釣れる魚・時期・アクセスを掲載。", url: `${SITE}/spots/`,
   body: `<h1>釣り場ガイド <span class="en">Fishing spots</span></h1><ul class="grid">${Object.entries(prefGroups).map(([ps, l]) => `<li><a href="/spots/${ps}">${esc(prefName(l[0]))}（${l.length}）</a></li>`).join("")}</ul>`,
 }));
+
+
+// ─── SPANISH PUERTO RICO PAGES (/es/spots/…) ─────────────────────────────────
+// Spanish is the working language of Puerto Rican anglers; these are the pages
+// that answer searches like "pesca en Vieques" or "donde pescar sabalo en PR".
+{
+  const PR = SPOTS.filter(x => x.name && isPR(x));
+  fs.mkdirSync("dist/es/spots", { recursive: true });
+  for (const sp of PR) {
+    const fishEs = t(sp.fish, "es"), tipEs = t(sp.tip, "es");
+    const title = `Pesca en ${sp.name} — ${fishEs} | Puerto Rico | Castwise`;
+    const desc = `${sp.name} (${sp.pref}, Puerto Rico): ${fishEs}. Mejor temporada: ${t(sp.bestSeason, "es")}. ${tipEs}`.slice(0, 155);
+    const near = PR.filter(o => o.id !== sp.id).slice(0, 10);
+    const body = `
+<h1>${esc(sp.icon || "🎣")} ${esc(sp.name)}<br><span class="en">Guía de pesca · ${esc(sp.pref)}, Puerto Rico</span></h1>
+<div class="tags"><span>${esc(t(sp.type, "es"))}</span><span>★ ${sp.rating}</span></div>
+<table>
+<tr><th>Especies</th><td>${esc(fishEs)}</td></tr>
+<tr><th>Mejor temporada</th><td>${esc(t(sp.bestSeason, "es"))}</td></tr>
+<tr><th>Cómo llegar</th><td>${esc(t(sp.access, "es"))}</td></tr>
+</table>
+<h2>Consejo local</h2><p>${esc(tipEs)}</p>
+<p><a href="https://www.google.com/maps/search/?api=1&query=${sp.lat},${sp.lng}" target="_blank" rel="noopener">📍 Abrir en Google Maps</a></p>
+<a class="cta" href="/?spot=${sp.id}&lang=es">🌤️ Pronóstico de pesca de hoy para este sitio (gratis)</a>
+${near.length ? `<h2>Más sitios en Puerto Rico</h2><ul class="grid">${near.map(o => `<li><a href="/es/spots/${spotSlug(o)}">${esc(o.name)}</a></li>`).join("")}</ul>` : ""}
+<p><a href="/es/spots/puerto-rico">Todos los sitios de Puerto Rico →</a></p>`;
+    const ld = { "@context": "https://schema.org", "@type": "TouristAttraction", name: sp.name, description: desc, geo: { "@type": "GeoCoordinates", latitude: sp.lat, longitude: sp.lng }, touristType: "Pescadores" };
+    fs.writeFileSync(`dist/es/spots/${spotSlug(sp)}.html`, shell({
+      title, desc, url: `${SITE}/es/spots/${spotSlug(sp)}`, body, ld, lang: "es",
+      alts: [{ l: "en", u: `${SITE}/spots/${spotSlug(sp)}` }, { l: "es", u: `${SITE}/es/spots/${spotSlug(sp)}` }, { l: "x-default", u: `${SITE}/spots/${spotSlug(sp)}` }],
+    }));
+  }
+  const hubTitle = `Pesca en Puerto Rico — ${PR.length} sitios (sábalo, macabí, róbalo) | Castwise`;
+  const hubDesc = `Los ${PR.length} mejores sitios de pesca de Puerto Rico: Vieques, Culebra, Fajardo, las lagunas de San Juan y los lagos. Especies, temporadas y cómo llegar.`;
+  const hubBody = `<h1>Sitios de pesca en Puerto Rico</h1><p>${esc(hubDesc)}</p><ul class="grid">${PR.slice().sort((a, b) => b.rating - a.rating).map(sp => `<li><a href="/es/spots/${spotSlug(sp)}">${esc(sp.icon || "")} ${esc(sp.name)}<br><span class="en">${esc(t(sp.fish, "es"))}</span></a></li>`).join("")}</ul><a class="cta" href="/">🎣 Abrir la app</a>`;
+  fs.writeFileSync("dist/es/spots/puerto-rico.html", shell({
+    title: hubTitle, desc: hubDesc, url: `${SITE}/es/spots/puerto-rico`, body: hubBody, lang: "es",
+    alts: [{ l: "en", u: `${SITE}/spots/puerto-rico` }, { l: "es", u: `${SITE}/es/spots/puerto-rico` }, { l: "x-default", u: `${SITE}/spots/puerto-rico` }],
+  }));
+  fs.writeFileSync("dist/es/spots/index.html", shell({
+    title: hubTitle, desc: hubDesc, url: `${SITE}/es/spots/`, body: hubBody, lang: "es",
+  }));
+  globalThis.__ES_URLS = [`${SITE}/es/spots/puerto-rico`, ...PR.map(sp => `${SITE}/es/spots/${spotSlug(sp)}`)];
+}
 
 // ─── MONTHLY PAGES: 「◯月に釣れる魚・フライのハッチ」 ─────────────────────────
 fs.mkdirSync("dist/tsuki", { recursive: true });
@@ -169,6 +224,7 @@ ${rest.length ? `<h2>${mj}に狙えるそのほかの魚</h2>${rest.map(({ f, ti
 const today = new Date().toISOString().slice(0, 10);
 const urls = [`${SITE}/`, `${SITE}/zukan/`, ...FISH.map(f => `${SITE}/zukan/${slug(f)}`),
   `${SITE}/spots/`, ...Object.keys(prefGroups).map(p => `${SITE}/spots/${p}`), ...SPOTS.filter(x => x.name).map(sp => `${SITE}/spots/${spotSlug(sp)}`),
-  ...Array.from({ length: 12 }, (_, i) => `${SITE}/tsuki/${i + 1}`), `${SITE}/legal.html`];
+  ...Array.from({ length: 12 }, (_, i) => `${SITE}/tsuki/${i + 1}`), `${SITE}/legal.html`,
+  ...(globalThis.__ES_URLS || [])];
 fs.writeFileSync("dist/sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
-console.log(`pages: ${FISH.length} species, ${SPOTS.length} spots, ${Object.keys(prefGroups).length} areas, 12 months — sitemap ${urls.length} urls`);
+console.log(`pages: ${FISH.length} species, ${SPOTS.length} spots, ${Object.keys(prefGroups).length} areas, 12 months, ${(globalThis.__ES_URLS || []).length} es — sitemap ${urls.length} urls`);
