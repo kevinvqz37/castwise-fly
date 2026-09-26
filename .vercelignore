@@ -1,0 +1,6 @@
+marketing/
+Claude outputs/
+*.MOV
+*.mov
+*.mp4
+*.py
