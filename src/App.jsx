@@ -490,9 +490,13 @@ const SPRITE_DATA = {
   kanpachi:        { col: 2, row: 3 },
 };
 
+// Species with their own painted file at public/fish/<id>.webp. An explicit set,
+// not a range: 202/205/206/207 are Caribbean-sheet sprites and have no file.
+const FISH_WEBP = new Set([101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115,
+  201, 203, 204, 208, 209, 210]);
+
 function FishIllustration({ fishId, spriteId, size = 80, style = {} }) {
-  // Hand-drawn illustrations for added species (public/fish/<id>.webp — 101-114 so far)
-  if (fishId >= 101 && fishId <= 115) {
+  if (FISH_WEBP.has(fishId)) {
     return (
       <img src={`/fish/${fishId}.webp`} alt="" loading="lazy" draggable={false}
         style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }} />
