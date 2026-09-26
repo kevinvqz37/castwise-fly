@@ -21,18 +21,38 @@ export default function OwnerDashboard({ lang = "ja" }) {
 
   async function load() {
     try {
-      const t = await getAuth().currentUser?.getIdToken();
-      const r = await fetch("/api/stats", { headers: { Authorization: `Bearer ${t}` } });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || r.status);
+      const user = getAuth().currentUser;
+      if (!user) throw new Error(L("ログインしてください", "Please sign in"));
+      const t = await user.getIdToken();
+      const r = await fetch("/api/stats", { headers: { Authorization: `Bearer ${t}` }, cache: "no-store" });
+
+      // Never JSON.parse blindly: a crashed function returns an HTML/text error
+      // page, and the parse failure then hides the actual problem.
+      const body = await r.text();
+      let j = null;
+      try { j = JSON.parse(body); } catch { /* not JSON */ }
+
+      if (!r.ok) {
+        const detail = j ? [j.error, j.detail].filter(Boolean).join(" — ") : body.trim().split("\n")[0];
+        throw new Error(`${r.status} ${detail || r.statusText}`);
+      }
+      if (!j) throw new Error(L("サーバーの応答が不正です", "Server sent a non-JSON response"));
       setD(j); setErr(null);
-    } catch (e) { setErr(e.message); }
+    } catch (e) { setErr(e.message || String(e)); }
     setLoading(false);
   }
   useEffect(() => { load(); const i = setInterval(load, 60000); return () => clearInterval(i); }, []);
 
   if (loading) return <div style={{ padding: 20, color: MUTED }}>📊 {L("読み込み中…", "Loading…")}</div>;
-  if (err) return <div style={{ padding: 20, color: "#b82030" }}>⚠️ {err}</div>;
+  if (err) return (
+    <div style={{ padding: 20, color: "#b82030", lineHeight: 1.6 }}>
+      <div>⚠️ {err}</div>
+      <button onClick={() => { setLoading(true); load(); }}
+        style={{ marginTop: 12, padding: "6px 14px", borderRadius: 8, border: "1px solid #b82030", background: "transparent", color: "#b82030", cursor: "pointer" }}>
+        {L("再読み込み", "Retry")}
+      </button>
+    </div>
+  );
 
   const days = d.days || [];
   const max = Math.max(1, ...days.map(x => x.visits));
