@@ -7,13 +7,25 @@ let DB = null, SID = null, REF = "direct", LANG = "ja", beat = null;
 const jstDay = (d = new Date()) => new Date(d.getTime() + 9 * 3600e3).toISOString().slice(0, 10);
 const safe = p => p.catch(e => console.warn("analytics:", e?.message));
 
+// Referrer hostname, or "" — never throws. Safari's URL parser rejects strings
+// Chrome accepts, and an uncaught throw here killed initAnalytics().
+function refHost() {
+  try {
+    const r = document.referrer;
+    if (!r) return "";
+    const h = new URL(r).hostname.replace(/^www\./, "");
+    if (!h || h === window.location.hostname) return "";
+    return h.slice(0, 40);
+  } catch { return ""; }
+}
+
 export function initAnalytics(db, lang = "ja") {
   if (DB) return;
   DB = db; LANG = lang;
   try {
     const q = new URLSearchParams(window.location.search).get("ref");
     if (q) localStorage.setItem("cw_ref", q.slice(0, 24).replace(/[^a-zA-Z0-9_-]/g, ""));
-    REF = localStorage.getItem("cw_ref") || (document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, "").slice(0, 40) : "direct");
+    REF = localStorage.getItem("cw_ref") || refHost() || "direct";
     SID = sessionStorage.getItem("cw_sid");
     if (!SID) {
       SID = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -36,8 +48,10 @@ function heartbeat() {
 export function track(name, extra = {}) {
   if (!DB) return;
   const day = jstDay();
+  // Firestore map keys: no dots/slashes, or the refs breakdown silently vanishes.
+  const key = (REF || "direct").replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40) || "direct";
   const payload = { [name]: increment(1), day, updatedAt: serverTimestamp() };
-  if (name === "visit") payload[`refs.${REF}`] = increment(1);
+  if (name === "visit") payload.refs = { [key]: increment(1) };
   safe(setDoc(doc(DB, "stats", day), payload, { merge: true }));
   safe(setDoc(doc(DB, "events", `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`),
     { name, ref: REF, lang: LANG, t: Date.now(), ...extra }));
