@@ -146,7 +146,14 @@ function AdsterraBanner() {
 }
 
 const fishName = (f, lang) => !f ? "" : (lang === "ja" ? (f.name || f.nameEn) : ((lang === "es" && f.nameEs) || f.nameEn || f.name));
-function gl(obj, lang) { if (!obj) return ""; return obj[lang] || obj.en || obj.ja || ""; }
+// Language lookup that always yields something renderable: es falls back to
+// en, then ja. Returns plain strings untouched and never returns an object —
+// handing React a {ja,en} object is a hard crash (React error #31).
+function gl(obj, lang) {
+  if (obj == null) return "";
+  if (typeof obj !== "object") return obj;
+  return obj[lang] || obj.en || obj.ja || "";
+}
 
 // Set when you create a 300x250 unit in Adsterra (Websites → Add ad unit → Banner 300x250)
 const ADSTERRA_KEY_300 = "";
@@ -880,19 +887,19 @@ function calcFishingIndex(wmoCode, windspeed, temp, isDay) {
 // Estimate moon phase emoji from date
 function moonPhaseEmoji(lang) {
   const phases = [
-    { ja: "新月 🌑", en: "New Moon 🌑" },
-    { ja: "三日月 🌒", en: "Waxing Crescent 🌒" },
-    { ja: "上弦の月 🌓", en: "First Quarter 🌓" },
-    { ja: "十三夜 🌔", en: "Waxing Gibbous 🌔" },
-    { ja: "満月 🌕", en: "Full Moon 🌕" },
-    { ja: "十六夜 🌖", en: "Waning Gibbous 🌖" },
-    { ja: "下弦の月 🌗", en: "Last Quarter 🌗" },
-    { ja: "有明月 🌘", en: "Waning Crescent 🌘" },
+    { ja: "新月 🌑", en: "New Moon 🌑", es: "Luna nueva 🌑" },
+    { ja: "三日月 🌒", en: "Waxing Crescent 🌒", es: "Creciente 🌒" },
+    { ja: "上弦の月 🌓", en: "First Quarter 🌓", es: "Cuarto creciente 🌓" },
+    { ja: "十三夜 🌔", en: "Waxing Gibbous 🌔", es: "Gibosa creciente 🌔" },
+    { ja: "満月 🌕", en: "Full Moon 🌕", es: "Luna llena 🌕" },
+    { ja: "十六夜 🌖", en: "Waning Gibbous 🌖", es: "Gibosa menguante 🌖" },
+    { ja: "下弦の月 🌗", en: "Last Quarter 🌗", es: "Cuarto menguante 🌗" },
+    { ja: "有明月 🌘", en: "Waning Crescent 🌘", es: "Menguante 🌘" },
   ];
   const epoch = new Date("2000-01-06").getTime(); // known new moon
   const cycle = 29.53 * 24 * 60 * 60 * 1000;
   const phase = Math.floor(((Date.now() - epoch) % cycle) / cycle * 8);
-  return phases[phase][lang];
+  return gl(phases[phase], lang);
 }
 
 // Build hourly data from Open-Meteo hourly arrays for today only
@@ -1579,7 +1586,7 @@ function TrophyRoom({ catches, lang, onSelectFish, FISH_DATA }) {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, fontSize: "1rem" }}>{r.fish}</div>
-                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>📅 {r.date?.[lang] || r.date}</div>
+                <div style={{ fontSize: "0.82rem", color: "#5a5a4a" }}>📅 {gl(r.date, lang)}</div>
                 {r.location && <div style={{ fontSize: "0.78rem", color: "#7a7a6a" }}>📍 {r.location}</div>}
               </div>
               <div style={{ textAlign: "right" }}>
@@ -4692,7 +4699,7 @@ If this is NOT a fish or the image is unclear, return:
                     {[{ la: { ja: "🎋 ロッド", en: "🎋 Rod" }, v: selectedFish.gear.rod }, { la: { ja: "🔧 リール", en: "🔧 Reel" }, v: selectedFish.gear.reel }, { la: { ja: "🧵 ライン", en: "🧵 Line" }, v: selectedFish.gear.line }, { la: { ja: "🪝 フック", en: "🪝 Hook" }, v: selectedFish.gear.hooks }].map(row => (
                       <div key={row.la.ja} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 11, padding: "10px 13px", display: "flex", gap: 11, alignItems: "center" }}>
                         <span style={{ fontSize: "1rem", color: "#5a5a4a", minWidth: 68 }}>{gl(row.la, lang)}</span>
-                        <span style={{ fontSize: "0.83rem", fontWeight: 600 }}>{row.v?.[lang] || row.v}</span>
+                        <span style={{ fontSize: "0.83rem", fontWeight: 600 }}>{gl(row.v, lang)}</span>
                       </div>
                     ))}
                     <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 11, padding: 13 }}>
@@ -4809,7 +4816,7 @@ If this is NOT a fish or the image is unclear, return:
                       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2 }}>
                         <span style={{ fontSize: "1.05rem" }}>{c.avatar}</span>
                         <span style={{ fontWeight: 700, fontSize: "0.83rem" }}>{c.user}</span>
-                        <span style={{ color: "#5a5a4a", fontSize: "0.95rem" }}>· {c.date?.[lang] || c.date}</span>
+                        <span style={{ color: "#5a5a4a", fontSize: "0.95rem" }}>· {gl(c.date, lang)}</span>
                       </div>
                       <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "#0d7377" }}>{c.fish}</div>
                       <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>📍 {c.location}</div>
@@ -4941,7 +4948,7 @@ If this is NOT a fish or the image is unclear, return:
                             <div style={{ background: fishIDResult.isKeepable ? "#e0f2f2" : "#f8e8d0", padding: "12px 14px" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                                 <div>
-                                  <div style={{ fontWeight: 900, fontSize: "1.15rem" }}>{fishIDResult.species?.[lang]}</div>
+                                  <div style={{ fontWeight: 900, fontSize: "1.15rem" }}>{gl(fishIDResult.species, lang)}</div>
                                   <div style={{ fontSize: "0.82rem", color: "#5a5a4a", marginTop: 2 }}>{fishIDResult.species?.[lang === "ja" ? "en" : "ja"]}</div>
                                 </div>
                                 <span style={{ background: fishIDResult.confidence === "high" ? "#2d7a3a" : fishIDResult.confidence === "medium" ? "#c06a10" : "#b82030", color: "white", borderRadius: 99, padding: "3px 10px", fontSize: "0.75rem", fontWeight: 700 }}>
@@ -4952,9 +4959,9 @@ If this is NOT a fish or the image is unclear, return:
                             <div style={{ background: "#fffdf8", padding: "10px 14px", display: "flex", gap: 16, flexWrap: "wrap" }}>
                               {fishIDResult.estimatedLength && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "推定サイズ" : lang === "es" ? "Largo est." : "Est. Length"}</div><div style={{ fontWeight: 700 }}>📏 {fishIDResult.estimatedLength}</div></div>}
                               {fishIDResult.estimatedWeight && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "推定重量" : lang === "es" ? "Peso est." : "Est. Weight"}</div><div style={{ fontWeight: 700 }}>⚖️ {fishIDResult.estimatedWeight}</div></div>}
-                              {fishIDResult.condition && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "状態" : lang === "es" ? "Condición" : "Condition"}</div><div style={{ fontWeight: 700, fontSize: "0.88rem" }}>{fishIDResult.condition?.[lang]}</div></div>}
+                              {fishIDResult.condition && <div><div style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "状態" : lang === "es" ? "Condición" : "Condition"}</div><div style={{ fontWeight: 700, fontSize: "0.88rem" }}>{gl(fishIDResult.condition, lang)}</div></div>}
                             </div>
-                            {fishIDResult.description?.[lang] && (
+                            {gl(fishIDResult.description, lang) && (
                               <div style={{ background: "#f8f4ec", padding: "10px 14px", fontSize: "0.88rem", color: "#3a3a2a", lineHeight: 1.6 }}>{(fishIDResult.description?.[lang] || fishIDResult.description?.en || fishIDResult.description?.ja || "")}</div>
                             )}
                             {fishIDResult.regulations && (
@@ -4963,7 +4970,7 @@ If this is NOT a fish or the image is unclear, return:
                                   {fishIDResult.isKeepable ? "✅" : "⚠️"} {lang === "ja" ? "規制情報" : lang === "es" ? "Reglamento" : "Regulations"}
                                   {fishIDResult.regulations.minSize && <span style={{ marginLeft: 8, fontWeight: 400, fontSize: "0.82rem" }}>{lang === "ja" ? `最小キープサイズ: ${fishIDResult.regulations.minSize}cm` : lang === "es" ? `Talla mínima: ${fishIDResult.regulations.minSize}cm` : `Min keep: ${fishIDResult.regulations.minSize}cm`}</span>}
                                 </div>
-                                <div style={{ fontSize: "0.85rem", color: "#3a3a2a" }}>{fishIDResult.regulations.note?.[lang]}</div>
+                                <div style={{ fontSize: "0.85rem", color: "#3a3a2a" }}>{gl(fishIDResult.regulations.note, lang)}</div>
                               </div>
                             )}
                             {fishIDResult.confidence !== "low" && (
@@ -4975,7 +4982,7 @@ If this is NOT a fish or the image is unclear, return:
                         ) : (
                           <div style={{ background: "#f8f4ec", padding: "14px", display: "flex", gap: 10, alignItems: "center" }}>
                             <div style={{ fontSize: "1.5rem" }}>🤷</div>
-                            <div style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{fishIDResult.message?.[lang]}</div>
+                            <div style={{ fontSize: "0.88rem", color: "#5a5a4a" }}>{gl(fishIDResult.message, lang)}</div>
                           </div>
                         )}
                       </div>
@@ -5026,7 +5033,7 @@ If this is NOT a fish or the image is unclear, return:
                             <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>⚖️ {c.weight} · 📍 {c.location}</div>
                             {c.notes && <div style={{ fontSize: "0.95rem", color: "#5a5a4a", fontStyle: "italic", marginTop: 2 }}>{c.notes}</div>}
                           </div>
-                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{ c.date?.[lang] || c.date}</div>
+                          <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{ gl(c.date, lang)}</div>
                         </div>
                       </div>
                     ))}
