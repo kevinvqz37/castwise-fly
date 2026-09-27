@@ -1,6 +1,6 @@
 // Service Worker — 釣りナビ PRO offline support
 // Network-first for pages (so new deploys show up immediately), cache-first for hashed build assets.
-const CACHE = "castwise-v2";
+const CACHE = "castwise-v3";
 const PRECACHE = ["/", "/index.html"];
 
 self.addEventListener("install", e => {

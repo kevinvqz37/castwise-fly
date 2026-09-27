@@ -1928,14 +1928,41 @@ function useOfflineMode() {
     window.addEventListener("online",  handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    // Register service worker for offline caching
+    // Register the service worker, and make sure it actually updates.
+    // Without this a phone can keep serving an old build for days: iOS is
+    // slow to re-check sw.js on its own, and a home-screen app almost never
+    // gets a hard reload. updateViaCache:"none" stops the worker script
+    // itself being served from HTTP cache; we then re-check on load, on
+    // return to the tab, and hourly, and reload once when a new worker
+    // takes over.
+    let swReg = null, reloading = false;
+    const checkForUpdate = () => { swReg?.update?.().catch(() => {}); };
+    let updateTimer = null;
+    const onVisible = () => { if (document.visibilityState === "visible") checkForUpdate(); };
+    const onControllerChange = () => {
+      if (reloading) return;           // guard: controllerchange can fire twice
+      reloading = true;
+      window.location.reload();
+    };
+
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
+      navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" })
+        .then(reg => {
+          swReg = reg;
+          checkForUpdate();
+          updateTimer = setInterval(checkForUpdate, 3600e3);
+          document.addEventListener("visibilitychange", onVisible);
+          navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+        })
+        .catch(() => {});
     }
 
     return () => {
       window.removeEventListener("online",  handleOnline);
       window.removeEventListener("offline", handleOffline);
+      if (updateTimer) clearInterval(updateTimer);
+      document.removeEventListener("visibilitychange", onVisible);
+      navigator.serviceWorker?.removeEventListener?.("controllerchange", onControllerChange);
     };
   }, []);
 
