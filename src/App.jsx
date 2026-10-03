@@ -2849,6 +2849,12 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
   const riverAbortRef = useRef(null);
   const riverTimerRef = useRef(null);
   const riverRendererRef = useRef(null);
+  // Ocean/lake heat halos: for spots that aren't on a mapped river/stream
+  // (ocean, reef, flats, bay, lagoon, lake, pier, offshore, estuary, channel —
+  // this covers the Atlantic and Caribbean coasts and PR's lakes), the line-based
+  // river heatmap above has nothing to draw, so we render a radial activity glow
+  // centered on the spot instead, using the same score/color scale.
+  const oceanLayerRef = useRef(null);
   const liveRef = useRef({});
   liveRef.current = { spots, weather, activeUsers, showHeatmap, lang, userLocation };
   const [riverStatus, setRiverStatus] = useState("");
@@ -2867,6 +2873,42 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     return Math.round(best || 30);
   }
   const heatColor = sc => sc >= 75 ? "#e63946" : sc >= 60 ? "#f77f00" : sc >= 45 ? "#f6c500" : "#3a86ff";
+
+  // True rivers/streams/creeks are already drawn as traced lines by loadRivers();
+  // everything else (ocean, reef, flats, bay, lagoon, lake, pier, offshore,
+  // estuary, channel) gets a halo instead, since there's no waterway line to trace.
+  function isWaterLine(spot) {
+    const t = typeof spot.type === "object" ? (spot.type.en || spot.type.ja || spot.type.es || "") : (spot.type || "");
+    return /river|stream|creek|清流|渓流|河川/i.test(t);
+  }
+
+  function drawOceanHeat() {
+    const L = window.L, map = leafletRef.current;
+    if (!L || !map) return;
+    if (!oceanLayerRef.current) oceanLayerRef.current = L.layerGroup().addTo(map);
+    const layer = oceanLayerRef.current;
+    layer.clearLayers();
+    const { spots, weather, activeUsers, showHeatmap, lang } = liveRef.current;
+    if (!showHeatmap) return;
+    if (!riverRendererRef.current) riverRendererRef.current = L.canvas({ padding: 0.2 });
+    const renderer = riverRendererRef.current;
+    const bandName = { 75: { ja: "高活性", en: "High activity", es: "Muy activo" }, 60: { ja: "やや高い", en: "Good", es: "Bueno" }, 45: { ja: "普通", en: "Fair", es: "Regular" }, 0: { ja: "低い", en: "Low", es: "Bajo" } };
+    for (const spot of spots) {
+      if (isWaterLine(spot)) continue;
+      const c = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
+      if (!c) continue;
+      const score = calcSpotScore(spot, weather, [], activeUsers);
+      const band = score >= 75 ? 75 : score >= 60 ? 60 : score >= 45 ? 45 : 0;
+      const color = heatColor(score);
+      const popup = `<div style="font-family:sans-serif"><b>${spot.icon || "\uD83C\uDF0A"} ${spot.name}</b><br><span style="color:${color};font-weight:700">\uD83D\uDD25 ${(bandName[band][lang] || bandName[band].en)}</span></div>`;
+      // Three concentric rings approximate a radial glow without a true heat-grid.
+      [[2800, 0.08], [1700, 0.14], [800, 0.22]].forEach(([radius, opacity]) => {
+        L.circle([c.lat, c.lng], { radius, renderer, color, weight: 0, fillColor: color, fillOpacity: opacity, interactive: radius === 800 })
+          .bindPopup(popup)
+          .addTo(layer);
+      });
+    }
+  }
 
   async function loadRivers() {
     const L = window.L, map = leafletRef.current;
@@ -2928,7 +2970,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
   }
   function scheduleRivers() {
     clearTimeout(riverTimerRef.current);
-    riverTimerRef.current = setTimeout(loadRivers, 500);
+    riverTimerRef.current = setTimeout(() => { loadRivers(); drawOceanHeat(); }, 500);
   }
 
   // Load Leaflet CSS + JS once
@@ -2976,6 +3018,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     map.on("moveend", scheduleRivers);
     renderMarkers();
     scheduleRivers();
+    drawOceanHeat();
   }
 
   function renderMarkers() {
@@ -3072,7 +3115,8 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
       return; // moveend triggers the load
     }
     scheduleRivers();
-  }, [showHeatmap, spots, weather]);
+    drawOceanHeat();
+  }, [showHeatmap, spots, weather, activeUsers]);
 
   // Init map if Leaflet was already loaded
   useEffect(() => {
