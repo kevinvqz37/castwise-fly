@@ -8,6 +8,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { EXTRA_FISH, EXTRA_FISH_EMOJI } from "./fishDataExtra";
 import { FLY_SVG } from "./flyArt";
 import { shareCatchCard } from "./shareCard";
+import { buildCollection, makeSpeciesMatcher, shareCollectorCard } from "./catchCards";
 import exifr from "exifr";
 import { initAnalytics, track } from "./analytics";
 import OwnerDashboard from "./OwnerDashboard";
@@ -1546,6 +1547,110 @@ function shareToTwitter(catch_, lang) {
     : lang === "es" ? `🎣 ¡Pesqué un ${catch_.fish} de ${catch_.weight} en ${catch_.location}! #Castwise #pesca #PuertoRico` : `🎣 Caught a ${catch_.fish} weighing ${catch_.weight} at ${catch_.location}! #CastWiseJapan #fishing #Japan`;
   const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
   window.open(url, "_blank");
+}
+
+// ─── CATCH CARD COLLECTION (釣りカード図鑑) ──────────────────────────────────────
+// Art for the shareable card image (canvas): a painted file, a sprite-sheet cell, or an emoji.
+function fishArtSpec(fish) {
+  if (FISH_WEBP.has(fish.id)) return { src: `/fish/${fish.id}.webp` };
+  const cs = fish.spriteId ? CARIBBEAN_SPRITE_DATA[fish.spriteId] : null;
+  if (CARIBBEAN_SPRITE_URL && cs) return { src: CARIBBEAN_SPRITE_URL, col: cs.col, row: cs.row, cols: CARIBBEAN_COLS, rows: CARIBBEAN_ROWS };
+  const k = APP_ID_TO_SPRITE[fish.id], sp = k ? SPRITE_DATA[k] : null;
+  if (SPRITE_SHEET_URL && sp) return { src: SPRITE_SHEET_URL, col: sp.col, row: sp.row, cols: SPRITE_COLS, rows: SPRITE_ROWS };
+  return { emoji: k ? (SPRITE_EMOJI[k] || "🐟") : (EXTRA_FISH_EMOJI[fish.id] || fish.emoji || "🐟") };
+}
+
+function CatchCards({ myCatches, profileName, lang, FISH_DATA }) {
+  const [remote, setRemote] = useState([]);
+  const [region, setRegion] = useState(lang === "es" ? "caribbean" : "japan");
+  const [open, setOpen] = useState(null);
+  const [sharing, setSharing] = useState(false);
+  const T = (ja, en, es) => (lang === "ja" ? ja : lang === "es" ? (es || en) : en);
+  const fname = f => (lang === "ja" ? f.name : lang === "es" ? (f.nameEs || f.nameEn) : f.nameEn);
+
+  // The community feed only holds the latest 50 catches, so load all of this angler's own.
+  useEffect(() => {
+    if (!profileName) return;
+    let alive = true;
+    getDocs(query(collection(db, "catches"), where("user", "==", profileName), limit(500)))
+      .then(snap => { if (alive) setRemote(snap.docs.map(d => { const x = d.data(); return { ...x, photo: x.photoURL || x.photoBase64 || null }; })); })
+      .catch(e => console.warn("Catch cards load failed:", e));
+    return () => { alive = false; };
+  }, [profileName]);
+
+  const seen = new Map();
+  [...remote, ...myCatches].forEach(c => seen.set(String(c.id || c.firestoreId), c));
+  const col = buildCollection(FISH_DATA, [...seen.values()]);
+  const cards = col[region];
+  const prog = k => ({ caught: col[k].filter(c => c.caught).length, total: col[k].length });
+
+  const renderCard = (card, big) => {
+    const r = card.rarity, rad = big ? 18 : 10;
+    const frame = !card.caught ? "#cfc9bc" : r.key === "epic" ? "linear-gradient(135deg,#f4d06a,#b07a0c 50%,#f4d06a)" : r.color;
+    return (
+      <div onClick={big ? undefined : () => setOpen(card)} style={{ position: "relative", aspectRatio: "5 / 7", borderRadius: rad, padding: big ? 8 : 3, background: frame, cursor: big ? "default" : "pointer", boxShadow: card.caught ? "0 3px 10px rgba(0,0,0,0.18)" : "none", boxSizing: "border-box" }}>
+        <div style={{ height: "100%", background: card.caught ? "#fffdf8" : "#ece7dc", borderRadius: rad - 3, display: "flex", flexDirection: "column", padding: big ? 10 : 4, boxSizing: "border-box", overflow: "hidden" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: big ? "0.85rem" : "0.56rem", fontWeight: 800, color: "#0a2837" }}>
+            <span>{card.no}</span><span style={{ color: card.caught ? r.color : "#a8a294" }}>{"★".repeat(r.stars)}</span>
+          </div>
+          <div style={{ flex: 1, margin: big ? "8px 0" : "3px 0", borderRadius: big ? 10 : 6, background: "#f2ece0", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative" }}>
+            {card.caught && card.best?.photo
+              ? <img src={card.best.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <FishIllustration fishId={card.fish.id} spriteId={card.fish.spriteId} size={big ? 170 : 58} style={card.caught ? {} : { filter: "brightness(0)", opacity: 0.2, animation: "none" }} />}
+            {!card.caught && <span style={{ position: "absolute", fontSize: big ? "3rem" : "1.4rem", fontWeight: 900, color: "#8a8474" }}>?</span>}
+          </div>
+          <div style={{ fontWeight: 800, fontSize: big ? "1.15rem" : "0.64rem", lineHeight: 1.25, color: card.caught ? "#1a1a14" : "#8a8474", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fname(card.fish)}</div>
+          <div style={{ fontSize: big ? "0.85rem" : "0.56rem", color: "#7a7a6a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {card.caught ? `${card.best?.weight || ""}${card.best?.weight ? " · " : ""}×${card.count}` : T("未捕獲", "Not caught", "Sin capturar")}
+          </div>
+        </div>
+        {card.foil && <div style={{ position: "absolute", inset: 0, borderRadius: rad, background: "linear-gradient(115deg, transparent 20%, rgba(255,0,170,0.22) 35%, rgba(0,220,255,0.24) 50%, rgba(255,240,0,0.22) 65%, transparent 80%)", backgroundSize: "200% 100%", animation: "cwFoil 3s linear infinite", pointerEvents: "none" }} />}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <style>{"@keyframes cwFoil{0%{background-position:100% 0}100%{background-position:-100% 0}}"}</style>
+      <h3 style={{ margin: "0 0 4px", fontSize: "1.1rem" }}>🃏 {T("釣りカード図鑑", "Catch Cards", "Cartas de pesca")}</h3>
+      <p style={{ margin: "0 0 12px", fontSize: "0.88rem", color: "#5a5a4a" }}>{T("釣った魚がカードになる。全魚種コンプリートを目指そう！フライで釣るとホロカードに。", "Every species you catch becomes a card. Collect them all — fly catches turn holo.", "Cada especie que pescas se vuelve una carta. ¡Colecciónalas todas! Con mosca salen holográficas.")}</p>
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        {[["japan", T("🇯🇵 日本", "🇯🇵 Japan", "🇯🇵 Japón")], ["caribbean", T("🇵🇷 カリブ海", "🇵🇷 Caribbean", "🇵🇷 Caribe")]].map(([k, label]) => {
+          const p = prog(k), on = region === k;
+          return (
+            <button key={k} onClick={() => setRegion(k)} style={{ flex: 1, textAlign: "left", padding: "9px 11px", borderRadius: 11, border: `2px solid ${on ? "#0d7377" : "#e0dbd0"}`, background: on ? "#e8f5f4" : "#fffdf8", cursor: "pointer", fontFamily: "inherit" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: "0.9rem", color: "#1a1a14" }}><span>{label}</span><span>{p.caught} / {p.total}</span></div>
+              <div style={{ height: 6, background: "#e6e0d4", borderRadius: 3, marginTop: 6, overflow: "hidden" }}><div style={{ width: `${(p.caught / p.total) * 100}%`, height: "100%", background: "#0d7377" }} /></div>
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+        {cards.map(card => <div key={card.fish.id}>{renderCard(card, false)}</div>)}
+      </div>
+
+      {open && (
+        <div onClick={() => setOpen(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 330, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 300, animation: "fadeUp 0.3s ease" }}>
+            {renderCard(open, true)}
+            <div style={{ background: "#fffdf8", borderRadius: 14, padding: 14, marginTop: 12, fontSize: "0.88rem", color: "#3a3a2e" }}>
+              <div style={{ fontWeight: 800, color: open.rarity.color }}>{"★".repeat(open.rarity.stars)} {T(open.rarity.ja, open.rarity.en, open.rarity.es)}{open.foil ? T(" · 🪶 フライ・ホロ", " · 🪶 Fly foil", " · 🪶 Holo de mosca") : ""}</div>
+              {open.caught
+                ? <div style={{ marginTop: 6 }}>{T("自己ベスト", "Personal best", "Mejor captura")}: <b>{open.best?.weight || "—"}</b>{open.best?.createdAt ? ` · ${new Date(open.best.createdAt).toLocaleDateString(lang === "ja" ? "ja-JP" : lang === "es" ? "es-ES" : "en-US")}` : ""} · ×{open.count}</div>
+                : <div style={{ marginTop: 6 }}>{T("シーズン", "Season", "Temporada")}: {gl(open.fish.season, lang) || "—"}<br />{T("釣って記録するとカードがもらえます。", "Log a catch of this fish to unlock the card.", "Registra una captura de este pez para desbloquear la carta.")}</div>}
+            </div>
+            {open.caught && (
+              <button disabled={sharing} onClick={async () => { setSharing(true); await shareCollectorCard({ card: open, art: fishArtSpec(open.fish), progress: prog(region), lang, user: profileName }); track("card_shared"); setSharing(false); }}
+                style={{ width: "100%", marginTop: 10, padding: 14, background: "#0d7377", color: "#fff", border: "none", borderRadius: 14, fontWeight: 800, fontSize: "1.02rem", cursor: "pointer", fontFamily: "inherit", opacity: sharing ? 0.6 : 1 }}>
+                📸 {sharing ? T("作成中…", "Making…", "Creando…") : T("カードをシェア", "Share card", "Compartir carta")}
+              </button>
+            )}
+            <button onClick={() => setOpen(null)} style={{ width: "100%", marginTop: 8, background: "none", border: "none", color: "#e8e4da", cursor: "pointer", fontFamily: "inherit" }}>{T("閉じる", "Close", "Cerrar")}</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ─── PERSONAL RECORDS / TROPHY ROOM ─────────────────────────────────────────
@@ -4965,9 +5070,9 @@ If this is NOT a fish or the image is unclear, return:
               )}
             </div>
 
-            <div style={{ display: "flex", gap: 5, marginBottom: 13 }}>
-              {[{ k: "catches", ja: "🎣 釣果記録", en: "🎣 My Catches" }, { k: "trophy", ja: "🏆 記録", en: "🏆 Records" }, { k: "calendar", ja: "🗓️ 釣り暦", en: "🗓️ Calendar" }, { k: "journal", ja: "📓 日誌", en: "📓 Journal" }, { k: "leaderboard", ja: "👑 ランク", en: "👑 Rank" }, { k: "pro", ja: "💎 PRO", en: "💎 PRO" }].map(pt => (
-                <button key={pt.k} onClick={() => setProfileTab(pt.k)} style={{ flex: 1, padding: "8px", borderRadius: 9, border: `1px solid ${profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.6)" : "#1a1a14") : "#d4cfc4"}`, background: profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.15)" : "rgba(72,202,228,0.1)") : "transparent", color: profileTab === pt.k ? (pt.k === "pro" ? "#9060e0" : "#1a1a14") : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: profileTab === pt.k ? 700 : 400 }}>{gl(pt, lang)}</button>
+            <div style={{ display: "flex", gap: 5, marginBottom: 13, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+              {[{ k: "catches", ja: "🎣 釣果記録", en: "🎣 My Catches" }, { k: "cards", ja: "🃏 カード", en: "🃏 Cards", es: "🃏 Cartas" }, { k: "trophy", ja: "🏆 記録", en: "🏆 Records" }, { k: "calendar", ja: "🗓️ 釣り暦", en: "🗓️ Calendar" }, { k: "journal", ja: "📓 日誌", en: "📓 Journal" }, { k: "leaderboard", ja: "👑 ランク", en: "👑 Rank" }, { k: "pro", ja: "💎 PRO", en: "💎 PRO" }].map(pt => (
+                <button key={pt.k} onClick={() => setProfileTab(pt.k)} style={{ flex: "1 0 auto", whiteSpace: "nowrap", padding: "8px", borderRadius: 9, border: `1px solid ${profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.6)" : "#1a1a14") : "#d4cfc4"}`, background: profileTab === pt.k ? (pt.k === "pro" ? "rgba(144,96,224,0.15)" : "rgba(72,202,228,0.1)") : "transparent", color: profileTab === pt.k ? (pt.k === "pro" ? "#9060e0" : "#1a1a14") : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "1rem", fontWeight: profileTab === pt.k ? 700 : 400 }}>{gl(pt, lang)}</button>
               ))}
             </div>
 
@@ -5110,6 +5215,12 @@ If this is NOT a fish or the image is unclear, return:
                     ))}
                   </div>}
               </>
+            )}
+
+            {profileTab === "cards" && (
+              <div style={{ animation: "fadeUp 0.4s ease" }}>
+                <CatchCards myCatches={myCatches} profileName={profile.name} lang={lang} FISH_DATA={FISH_DATA} />
+              </div>
             )}
 
             {profileTab === "trophy" && (
@@ -5307,6 +5418,18 @@ If this is NOT a fish or the image is unclear, return:
               style={{ width: "100%", padding: 14, background: "#0d7377", color: "#fff", border: "none", borderRadius: 14, fontWeight: 800, fontSize: "1.05rem", cursor: "pointer", fontFamily: "inherit" }}>
               📸 {lang === "ja" ? "釣果カードをシェア" : lang === "es" ? "Compartir tarjeta de captura" : "Share catch card"}
             </button>
+            {(() => {
+              const match = makeSpeciesMatcher(FISH_DATA), f = match(justLogged.fish);
+              if (!f) return null;
+              const isNew = !myCatches.some(c => c.id !== justLogged.id && match(c.fish)?.id === f.id);
+              const name = lang === "ja" ? f.name : lang === "es" ? (f.nameEs || f.nameEn) : f.nameEn;
+              return (
+                <button onClick={() => { setJustLogged(null); switchTab("Profile"); setProfileTab("cards"); }}
+                  style={{ width: "100%", marginTop: 10, padding: 12, background: isNew ? "#fff3c4" : "#f2ece0", color: "#1a1a14", border: `2px solid ${isNew ? "#e0b400" : "#e0dbd0"}`, borderRadius: 14, fontWeight: 800, fontSize: "0.98rem", cursor: "pointer", fontFamily: "inherit" }}>
+                  🃏 {isNew ? (lang === "ja" ? `NEW！「${name}」カード獲得` : lang === "es" ? `¡NUEVA carta: ${name}!` : `NEW card: ${name}!`) : (lang === "ja" ? "カード図鑑を見る" : lang === "es" ? "Ver mis cartas" : "View my cards")}
+                </button>
+              );
+            })()}
             <button onClick={() => setJustLogged(null)} style={{ marginTop: 10, background: "none", border: "none", color: "#7a7a6a", cursor: "pointer", fontFamily: "inherit" }}>{lang === "ja" ? "あとで" : lang === "es" ? "Después" : "Later"}</button>
           </div>
         </div>
