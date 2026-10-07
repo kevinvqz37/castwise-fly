@@ -97,8 +97,11 @@ export default async function handler(req, res) {
   if (JSON.stringify(body.messages).length > 6_000_000) {
     return res.status(413).json({ error: "Request too large" });
   }
+  // Photo requests (fish ID) need a stronger vision model than the fast text default:
+  // Haiku confuses look-alike species (ウグイ/ニゴイ, ヤマメ/バス). Text stays on Haiku.
+  const hasImage = body.messages.some(m => Array.isArray(m.content) && m.content.some(c => c?.type === "image"));
   const safeBody = {
-    model: process.env.CLAUDE_MODEL || "claude-haiku-4-5",
+    model: hasImage ? (process.env.CLAUDE_VISION_MODEL || "claude-sonnet-4-5") : (process.env.CLAUDE_MODEL || "claude-haiku-4-5"),
     max_tokens: Math.min(Number(body.max_tokens) || 800, 1500),
     messages: body.messages,
     ...(typeof body.system === "string" ? { system: body.system.slice(0, 4000) } : {}),

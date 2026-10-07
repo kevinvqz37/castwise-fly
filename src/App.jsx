@@ -4077,6 +4077,8 @@ export default function CastWiseJapan() {
   const activeUsers = useActiveUsers(db, userLocation, locationSharing, userId);
   const [fishIDResult, setFishIDResult] = useState(null);
   const [fishIDLoading, setFishIDLoading] = useState(false);
+  const [editCatchId, setEditCatchId] = useState(null);     // catch whose species is being corrected
+  const [editCatchName, setEditCatchName] = useState("");
   const fileRef = useRef();
 
   const diffMap = { all: { ja: "すべて", en: "All" }, beginner: { ja: "初心者", en: "Beginner" }, intermediate: { ja: "中級者", en: "Intermediate" }, advanced: { ja: "上級者", en: "Advanced" } };
@@ -4475,13 +4477,26 @@ export default function CastWiseJapan() {
                 },
                 {
                   type: "text",
-                  text: `You are an expert Japanese fisheries biologist and fishing guide. Analyze this photo and respond in JSON only — no markdown, no extra text.
+                  text: `You are an expert Japanese fisheries biologist and fishing guide. Identify the fish in this photo and respond in JSON only — no markdown, no extra text.
+
+Context: the angler is fishing in ${userLocation?.display || userLocation?.city || (lang === "es" ? "Puerto Rico" : "Japan (Kyushu)")}, month ${new Date().getMonth() + 1}.
+
+Species this app knows (Japanese｜English). If the fish is one of these, use exactly this Japanese name:
+${FISH_DATA.map(f => `${f.name}｜${f.nameEn}`).join("\n")}
+
+How to decide: look at the diagnostic features before naming anything — mouth size and whether the jaw reaches past the eye, barbels, snout shape, body markings (parr marks, spots, stripes, a dark lateral band), fin shape and position, scale size. Common mix-ups:
+- ウグイ has no barbels; ニゴイ has one pair of barbels, a long pointed snout and an underslung mouth.
+- ブラックバス has a huge mouth reaching past the eye, a spiny dorsal fin joined to the soft dorsal and a dark horizontal band. ヤマメ/アマゴ are trout: small adipose fin, oval parr marks along the side (アマゴ also has red spots), small mouth.
+- オイカワ/カワムツ/ウグイ: カワムツ has a dark lateral stripe; オイカワ males have blue-green and pink breeding colors.
+Only say "high" when the deciding features are clearly visible. If the photo can't separate two species, say "medium" or "low" and list both as candidates.
 
 If this is a fish photo, return:
 {
   "isFish": true,
   "species": { "ja": "Japanese species name", "en": "English species name" },
   "confidence": "high|medium|low",
+  "candidates": [ { "ja": "best match", "en": "English", "pct": 70 }, { "ja": "second", "en": "English", "pct": 20 } ],
+  "features": { "ja": "the visible features that decided it, one sentence", "en": "one sentence" },
   "estimatedLength": "estimated length in cm, e.g. 32cm",
   "estimatedWeight": "estimated weight in kg, e.g. 0.8 kg",
   "description": { "ja": "2-sentence Japanese description of the fish and any notable features visible", "en": "2-sentence English description" },
@@ -4510,8 +4525,8 @@ If this is NOT a fish or the image is unclear, return:
         const result = JSON.parse(clean);
         setFishIDResult(result);
 
-        // Auto-fill the form if fish detected with high/medium confidence
-        if (result.isFish && result.confidence !== "low") {
+        // Auto-fill only when confident; on medium/low the angler taps a candidate instead.
+        if (result.isFish && result.confidence === "high") {
           setNewCatch(p => ({
             ...p,
             fish: lang === "ja" ? result.species.ja : result.species.en,
@@ -4525,6 +4540,27 @@ If this is NOT a fish or the image is unclear, return:
       setFishIDLoading(false);
     };
     reader.readAsDataURL(file);
+  }
+
+  // Correct the species on an already-logged catch (wrong AI ID or typo). Updates the
+  // feed, My Catches and the card binder immediately, then the Firestore doc(s).
+  async function fixCatchSpecies(c, name) {
+    const fish = (name || "").trim();
+    setEditCatchId(null);
+    if (!fish || fish === c.fish) return;
+    const upd = x => (x.id === c.id ? { ...x, fish } : x);
+    setMyCatches(p => p.map(upd));
+    setCatches(p => p.map(upd));
+    try {
+      if (c.firestoreId) await setDoc(doc(db, "catches", c.firestoreId), { fish }, { merge: true });
+      else {
+        const snap = await getDocs(query(collection(db, "catches"), where("id", "==", c.id), limit(5)));
+        await Promise.all(snap.docs.map(d => setDoc(d.ref, { fish }, { merge: true })));
+      }
+      track("catch_species_fixed");
+    } catch (e) {
+      console.warn("Species fix failed:", e);
+    }
   }
 
   async function submitCatch() {
@@ -5126,6 +5162,22 @@ If this is NOT a fish or the image is unclear, return:
                                 <div>
                                   <div style={{ fontWeight: 900, fontSize: "1.15rem" }}>{gl(fishIDResult.species, lang)}</div>
                                   <div style={{ fontSize: "0.82rem", color: "#5a5a4a", marginTop: 2 }}>{fishIDResult.species?.[lang === "ja" ? "en" : "ja"]}</div>
+                                  {gl(fishIDResult.features, lang) && <div style={{ fontSize: "0.8rem", color: "#3a3a2a", marginTop: 6 }}>🔍 {gl(fishIDResult.features, lang)}</div>}
+                                  {Array.isArray(fishIDResult.candidates) && fishIDResult.candidates.length > 0 && (
+                                    <div style={{ marginTop: 8 }}>
+                                      <div style={{ fontSize: "0.75rem", color: "#5a5a4a", marginBottom: 4 }}>{lang === "ja" ? "どれですか？タップで選択（違えば名前を直接入力）" : lang === "es" ? "¿Cuál es? Toca para elegir (o escribe el nombre)" : "Which is it? Tap to choose (or type the name)"}</div>
+                                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                        {fishIDResult.candidates.slice(0, 3).map((cd, i) => {
+                                          const nm = lang === "ja" ? cd.ja : (cd.en || cd.ja);
+                                          const on = newCatch.fish === nm;
+                                          return <button key={i} type="button" onClick={() => setNewCatch(p => ({ ...p, fish: nm, weight: p.weight || fishIDResult.estimatedWeight || "" }))}
+                                            style={{ padding: "5px 10px", borderRadius: 99, border: `2px solid ${on ? "#0d7377" : "#d4cfc4"}`, background: on ? "#0d7377" : "#fffdf8", color: on ? "#fff" : "#1a1a14", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
+                                            {nm}{cd.pct ? ` ${cd.pct}%` : ""}
+                                          </button>;
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                                 <span style={{ background: fishIDResult.confidence === "high" ? "#2d7a3a" : fishIDResult.confidence === "medium" ? "#c06a10" : "#b82030", color: "white", borderRadius: 99, padding: "3px 10px", fontSize: "0.75rem", fontWeight: 700 }}>
                                   {fishIDResult.confidence === "high" ? (lang === "ja" ? "高精度" : lang === "es" ? "Alta" : "High") : fishIDResult.confidence === "medium" ? (lang === "ja" ? "中精度" : lang === "es" ? "Media" : "Medium") : (lang === "ja" ? "低精度" : lang === "es" ? "Bajo" : "Low")}
@@ -5149,7 +5201,7 @@ If this is NOT a fish or the image is unclear, return:
                                 <div style={{ fontSize: "0.85rem", color: "#3a3a2a" }}>{gl(fishIDResult.regulations.note, lang)}</div>
                               </div>
                             )}
-                            {fishIDResult.confidence !== "low" && (
+                            {fishIDResult.confidence === "high" && (
                               <div style={{ background: "#e0f2f2", padding: "8px 14px", fontSize: "0.82rem", color: "#0d7377", fontWeight: 600 }}>
                                 ✓ {lang === "ja" ? "魚種・重量を自動入力しました" : lang === "es" ? "Especie y peso rellenados abajo" : "Species & weight auto-filled below"}
                               </div>
@@ -5199,13 +5251,26 @@ If this is NOT a fish or the image is unclear, return:
                 {myCatches.length === 0
                   ? <div style={{ textAlign: "center", padding: "36px 14px", color: "#5a5a4a", background: "#f8f4ec", borderRadius: 15, border: "2px dashed #d4cfc4" }}><div style={{ fontSize: "2.2rem", marginBottom: 7, animation: "float 2s ease-in-out infinite" }}>🪶</div><p style={{ fontStyle: "italic", margin: 0, fontSize: "0.92rem", whiteSpace: "pre-line" }}>{s("noCatchYet", lang)}</p></div>
                   : <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <datalist id="cw-species">{FISH_DATA.map(f => <option key={f.id} value={lang === "ja" ? f.name : (f.nameEn || f.name)} />)}</datalist>
                     {myCatches.map(c => (
                       <div key={c.id} style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 12, overflow: "hidden" }}>
                         {c.photo && <img src={c.photo} alt="" style={{ width: "100%", height: 100, objectFit: "cover" }} />}
                         <div style={{ padding: "10px 13px", display: "flex", gap: 10, alignItems: "center" }}>
                           {!c.photo && <div style={{ width: 38, height: 38, borderRadius: 8, background: "#e0f2f2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem" }}>{c.method === "fly" ? "🪶" : "🎣"}</div>}
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 700, fontSize: "1rem" }}>{c.fish}</div>
+                            {editCatchId === c.id ? (
+                              <div style={{ display: "flex", gap: 6, marginBottom: 4 }}>
+                                <input autoFocus list="cw-species" value={editCatchName} onChange={e => setEditCatchName(e.target.value)}
+                                  style={{ flex: 1, minWidth: 0, padding: "6px 8px", borderRadius: 8, border: "2px solid #0d7377", fontSize: "1rem", fontFamily: "inherit" }} />
+                                <button onClick={() => fixCatchSpecies(c, editCatchName)} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "#0d7377", color: "#fff", fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>{lang === "ja" ? "保存" : lang === "es" ? "Guardar" : "Save"}</button>
+                                <button onClick={() => setEditCatchId(null)} style={{ padding: "6px 8px", borderRadius: 8, border: "1px solid #d4cfc4", background: "none", cursor: "pointer", fontFamily: "inherit" }}>✕</button>
+                              </div>
+                            ) : (
+                              <div style={{ fontWeight: 700, fontSize: "1rem" }}>{c.fish}
+                                <button onClick={() => { setEditCatchId(c.id); setEditCatchName(c.fish || ""); }} title={lang === "ja" ? "魚種を修正" : "Fix species"}
+                                  style={{ marginLeft: 8, padding: "1px 8px", borderRadius: 99, border: "1px solid #d4cfc4", background: "#fffdf8", color: "#5a5a4a", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>✏️ {lang === "ja" ? "魚種を修正" : lang === "es" ? "Corregir especie" : "Fix species"}</button>
+                              </div>
+                            )}
                             <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>⚖️ {c.weight} · 📍 {c.location}</div>
                             {c.notes && <div style={{ fontSize: "0.95rem", color: "#5a5a4a", fontStyle: "italic", marginTop: 2 }}>{c.notes}</div>}
                           </div>

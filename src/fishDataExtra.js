@@ -191,6 +191,18 @@ export const EXTRA_FISH = [
     spots: [{ name: "旧江戸川（東京・千葉）", rating: 4.4, type: S("河口", "Estuary") }, { name: "室見川河口（福岡）", rating: 4.3, type: S("河口", "Estuary") }, { name: "松島湾（宮城）", rating: 4.3, type: S("湾", "Bay") }],
     regulations: S("河口域は漁業権が設定されている場合あり。現地の表示を確認。", "Some estuaries have fishing rights — check local signage."),
   },
+  {
+    id: 116, name: "ニゴイ", nameEn: "Barbel Steed (Nigoi)", emoji: "🐟", category: "freshwater",
+    color: "#6b6a5a", accent: "#d8cfa8", difficulty: "beginner", flyFriendly: true,
+    flyNote: S("底を流すニンフに反応。大型は引きが強い。", "Takes nymphs drifted on the bottom; big ones pull hard."),
+    season: S("通年（春〜秋が活発）", "Year-round (most active spring–autumn)"),
+    habitat: S("川の中流〜下流、湖", "Middle and lower rivers, lakes"),
+    bestTime: S("朝・夕", "Morning and evening"),
+    description: S("口ひげと長くとがった口先が特徴のコイ科の魚。ウグイと間違えやすいが、ニゴイには1対のひげがある。", "A carp-family fish with barbels and a long, pointed snout. Often mistaken for ugui (dace), but nigoi has a pair of barbels."),
+    gear: { rod: S("ルアーロッド / フライ #4〜6", "Light lure rod / #4–6 fly rod"), reel: S("2000〜2500番 / フライリール", "2000–2500 spinning / fly reel"), line: S("ナイロン 6lb / ティペット 4X", "6lb nylon / 4X tippet"), hooks: S("#8〜12", "#8–12"), lures: ["小型スプーン", "ミノー", "ビーズヘッドニンフ", "ミミズ"], tips: S("底近くをゆっくり。ルアーへのスレ掛かりにも注意。", "Work slowly near the bottom; watch for foul-hooking on lures.") },
+    spots: [{ name: "筑後川（福岡・佐賀）", rating: 4.2, type: S("中流〜下流", "Mid–lower river") }, { name: "多摩川（東京）", rating: 4.1, type: S("中流", "Mid-river") }, { name: "琵琶湖（滋賀）", rating: 4.0, type: S("湖", "Lake") }],
+    regulations: S("河川により遊漁券が必要。", "Fishing ticket may be required depending on the river."),
+  },
   ...PR_FISH,
 ];
 

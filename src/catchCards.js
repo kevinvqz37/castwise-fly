@@ -29,7 +29,7 @@ const norm = s => String(s || "").toLowerCase().replace(/[\s・･\-_'’.]/g, "
 const LOCAL_NAMES = {
   1: ["バス", "ラージマウス", "largemouth"], 3: ["エノハ", "ヤマベ"], 4: ["スズキ", "セイゴ", "フッコ", "suzuki"],
   12: ["アオリ", "squid"], 13: ["ワラサ", "メジロ", "イナダ"], 14: ["チヌ"], 111: ["ガシラ", "アラカブ"],
-  16: ["メバリング"], 112: ["タチ"], 202: ["jurel"],
+  16: ["メバリング"], 112: ["タチ"], 116: ["コウライニゴイ"], 202: ["jurel"],
 };
 
 // Every name a species can be logged under: JA/EN/ES names plus the parts inside and
