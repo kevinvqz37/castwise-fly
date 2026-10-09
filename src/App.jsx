@@ -9,6 +9,7 @@ import { EXTRA_FISH, EXTRA_FISH_EMOJI } from "./fishDataExtra";
 import { FLY_SVG } from "./flyArt";
 import { shareCatchCard } from "./shareCard";
 import { buildCollection, makeSpeciesMatcher, shareCollectorCard } from "./catchCards";
+import { tilesForBounds, fetchSstTile, buildSstLayer, sstAtSpot } from "./sstLayer";
 import exifr from "exifr";
 import { initAnalytics, track } from "./analytics";
 import OwnerDashboard from "./OwnerDashboard";
@@ -2311,7 +2312,7 @@ const SPOT_COORDS = {
   "Río Grande de Arecibo":   { lat: 18.27,  lng: -66.70 },
   "Culebra Island":          { lat: 18.30,  lng: -65.30 },
   "Vieques - Red Beach Flats":          { lat: 18.09, lng: -65.44 },
-  "Vieques - Mosquito Pier (旧海軍桟橋)": { lat: 18.15, lng: -65.44 },
+  "Vieques - Mosquito Pier (旧海軍桟橋)": { lat: 18.1489, lng: -65.5149 }, // NOAA tide station 9752813, on the pier
   "Vieques - Blue Beach (東端)":         { lat: 18.103, lng: -65.384 },
   "Vieques - Bioluminescent Bay (カヤック釣り)": { lat: 18.09, lng: -65.47 },
   "Vieques - North Shore Reef":          { lat: 18.16, lng: -65.44 },
@@ -2418,7 +2419,7 @@ const MAP_SPOTS = [
 
   // ── VIEQUES & SURROUNDING ISLANDS ────────────────────────────────────────────
   { id: 63, name: "Vieques - Red Beach Flats", region: "puertorico", pref: "Vieques", fish: { ja: "タリポン・ボーンフィッシュ・パーミット", en: "Tarpon, Bonefish & Permit", es: "Sábalo, macabí y palometa" }, rating: 5.0, type: { ja: "フラット・浅瀬", en: "Saltwater Flats", es: "Llanuras de agua salada" }, icon: "🦈", lat: 18.1086, lng: -65.4131, bestSeason: { ja: "通年（3〜6月最高）", en: "Year-round (Mar–Jun best)", es: "Todo el año (mejor de marzo a junio)" }, access: { ja: "セイバ港からフェリー1時間またはセスナ15分。レッドビーチ前のフラット", en: "1hr ferry from Ceiba or 15min flight. Flats in front of Red Beach", es: "Ferry de 1 hora desde Ceiba o vuelo de 15 min. Las llanuras quedan frente a Red Beach" }, tip: { ja: "カリブ海最高のフラットフィッシング聖地。ボーンフィッシュは朝の干潮時にフラットを泳ぐ姿が見える。タリポンは夜明け前後が勝負。カヤックフライフィッシングが最も効果的。", en: "Caribbean's finest flats fishing. Bonefish visibly feed on flats during morning low tide. Tarpon are best at dawn. Kayak fly fishing is the most effective approach.", es: "La mejor pesca de llanura del Caribe. El macabí se ve comiendo en la marea baja de la mañana. El sábalo entra mejor al amanecer. Pescar a mosca desde kayak es lo más efectivo." } },
-  { id: 64, name: "Vieques - Mosquito Pier (旧海軍桟橋)", region: "puertorico", pref: "Vieques", fish: { ja: "タリポン・スナッパー・バラクーダ", en: "Tarpon, Snapper & Barracuda", es: "Sábalo, pargo y picúa" }, rating: 4.9, type: { ja: "桟橋・夜釣り", en: "Pier Night Fishing", es: "Pesca nocturna de muelle" }, icon: "🦈", lat: 18.158, lng: -65.470, bestSeason: { ja: "通年（夜釣り最高）", en: "Year-round (night fishing best)", es: "Todo el año (mejor de noche)" }, access: { ja: "ビエケス市街から車10分。旧米海軍桟橋跡", en: "10min from Vieques town. Former US Navy pier", es: "A 10 min del pueblo de Vieques. Antiguo muelle de la Marina" }, tip: { ja: "旧海軍桟橋はタリポンの溜まり場。夜に常夜灯周りでポッパーを投げると激しいバイトが楽しめる。地元アングラーが毎晩集う名所。", en: "The old Navy pier is a tarpon magnet. Night fishing with poppers around the lights produces explosive strikes. Local anglers gather here every evening.", es: "El viejo muelle de la Marina es un imán de sábalo. De noche, con popper alrededor de las luces, los ataques son explosivos. Los pescadores locales se reúnen aquí todas las tardes." } },
+  { id: 64, name: "Vieques - Mosquito Pier (旧海軍桟橋)", region: "puertorico", pref: "Vieques", fish: { ja: "タリポン・スナッパー・バラクーダ", en: "Tarpon, Snapper & Barracuda", es: "Sábalo, pargo y picúa" }, rating: 4.9, type: { ja: "桟橋・夜釣り", en: "Pier Night Fishing", es: "Pesca nocturna de muelle" }, icon: "🦈", lat: 18.1489, lng: -65.5149, bestSeason: { ja: "通年（夜釣り最高）", en: "Year-round (night fishing best)", es: "Todo el año (mejor de noche)" }, access: { ja: "ビエケス市街から車10分。旧米海軍桟橋跡", en: "10min from Vieques town. Former US Navy pier", es: "A 10 min del pueblo de Vieques. Antiguo muelle de la Marina" }, tip: { ja: "旧海軍桟橋はタリポンの溜まり場。夜に常夜灯周りでポッパーを投げると激しいバイトが楽しめる。地元アングラーが毎晩集う名所。", en: "The old Navy pier is a tarpon magnet. Night fishing with poppers around the lights produces explosive strikes. Local anglers gather here every evening.", es: "El viejo muelle de la Marina es un imán de sábalo. De noche, con popper alrededor de las luces, los ataques son explosivos. Los pescadores locales se reúnen aquí todas las tardes." } },
   { id: 65, name: "Vieques - Blue Beach (東端)", region: "puertorico", pref: "Vieques", fish: { ja: "ボーンフィッシュ・パーミット・マングローブスナッパー", en: "Bonefish, Permit & Mangrove Snapper", es: "Macabí, palometa y pargo prieto" }, rating: 4.9, type: { ja: "フラット・マングローブ", en: "Flats & Mangrove", es: "Llanuras y mangle" }, icon: "🐠", lat: 18.103, lng: -65.384, bestSeason: { ja: "11〜5月（ボーンフィッシュ）", en: "Nov–May (Bonefish best)", es: "Noviembre–mayo (mejor para macabí)" }, access: { ja: "ビエケス東端。4WD推奨。地元ガイド同行が理想的", en: "Far eastern tip of Vieques. 4WD recommended. Local guide ideal", es: "En la punta este de Vieques. Se recomienda 4x4 y, mejor aún, un guía local" }, tip: { ja: "ビエケス東端の手つかずのフラット。ボーンフィッシュが群れをなして泳ぐ場面が見られる。フライロッド8番が最適。パーミットは希少だが出ると感動もの。", en: "Pristine untouched flats at the eastern tip. Schools of bonefish visibly feeding. 8-weight fly rod is ideal. Permit are rare but unforgettable when they appear.", es: "Llanuras vírgenes en la punta este. Se ven cardúmenes de macabí comiendo. La caña de mosca #8 es la ideal. La palometa es rara, pero inolvidable cuando aparece." } },
   { id: 66, name: "Vieques - Bioluminescent Bay (カヤック釣り)", region: "puertorico", pref: "Vieques", fish: { ja: "スナッパー・タリポン・ジャック", en: "Snapper, Tarpon & Jack", es: "Pargo, sábalo y jurel" }, rating: 4.7, type: { ja: "生物発光湾・夜釣り", en: "Bioluminescent Bay Night Fishing", es: "Pesca nocturna en bahía bioluminiscente" }, icon: "✨", lat: 18.1019, lng: -65.4458, bestSeason: { ja: "通年（新月の夜が最高）", en: "Year-round (new moon nights best)", es: "Todo el año (mejor en noches de luna nueva)" }, access: { ja: "プエルトモスキートへのカヤックツアーで到達。ガイドツアー推奨（$45〜）", en: "Via kayak tour to Puerto Mosquito. Guided tour recommended ($45+)", es: "En tour de kayak a Puerto Mosquito. Se recomienda ir con guía ($45+)" }, tip: { ja: "世界最高の生物発光湾での夜釣り体験。発光プランクトンが水中で光る幻想的な環境でスナッパーとジャックが狙える。一生忘れられない体験。釣りとバイオルミネセンスツアーの組み合わせが最高。", en: "Night fishing in the world's brightest bioluminescent bay. Snapper and jack amid glowing plankton. A once-in-a-lifetime experience. Combine with bio bay tour for the ultimate night out.", es: "Pesca nocturna en la bahía bioluminiscente más brillante del mundo. Pargo y jurel entre el plancton que brilla. Una experiencia irrepetible. Combínala con el tour de la bahía." } },
   { id: 67, name: "Vieques - North Shore Reef", region: "puertorico", pref: "Vieques", fish: { ja: "グルーパー・スナッパー・バラクーダ", en: "Grouper, Snapper & Barracuda", es: "Mero, pargo y picúa" }, rating: 4.8, type: { ja: "リーフ・ボートフィッシング", en: "Reef Boat Fishing", es: "Pesca de arrecife en bote" }, icon: "🐠", lat: 18.16, lng: -65.44, bestSeason: { ja: "通年", en: "Year-round", es: "Todo el año" }, access: { ja: "ビエケス島内レンタルボートまたはチャーターボート（$150〜/日）", en: "Rental boat or charter from Vieques ($150+/day)", es: "Bote de alquiler o charter desde Vieques ($150+/día)" }, tip: { ja: "北岸の礁は30〜60フィートの根魚の宝庫。ジギングとボトムフィッシングでグルーパーが狙える。潮の流れが速い場所なので100gジグが有効。", en: "North shore reef holds excellent grouper at 30-60ft. Jigging and bottom fishing are productive. Fast current spots respond well to 100g jigs.", es: "El arrecife de la costa norte guarda meros excelentes entre 30 y 60 pies. El jigging y la pesca de fondo funcionan bien. En los sitios de corriente fuerte, jigs de 100g." } },
@@ -2954,7 +2955,7 @@ function FlyFishingView({ lang, weather, onOpenAI }) {
 // ─── MAP VIEW ────────────────────────────────────────────────────────────────
 // ─── LEAFLET MAP COMPONENT ───────────────────────────────────────────────────
 // Uses Leaflet + OpenStreetMap — real terrain, real tiles, no API key needed
-function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, activeUsers = [], showHeatmap = false, weather = {} }) {
+function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, activeUsers = [], showHeatmap = false, showSST = false, weather = {} }) {
   const mapRef = useRef(null);
   const leafletRef = useRef(null);
   const markersRef = useRef([]);
@@ -2972,8 +2973,13 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
   // centered on the spot instead, using the same score/color scale.
   const oceanLayerRef = useRef(null);
   const liveRef = useRef({});
-  liveRef.current = { spots, weather, activeUsers, showHeatmap, lang, userLocation };
+  liveRef.current = { spots, weather, activeUsers, showHeatmap, showSST, lang, userLocation };
   const [riverStatus, setRiverStatus] = useState("");
+  // NOAA sea-surface temperature layer + thermal-front hotspots (see sstLayer.js)
+  const sstCacheRef = useRef(new Map());
+  const sstLayerRef = useRef(null);
+  const sstAbortRef = useRef(null);
+  const [sstInfo, setSstInfo] = useState(null); // { status } | { min, max, date, hot }
 
   function riverScore(lat, lng) {
     const { spots, weather, activeUsers } = liveRef.current;
@@ -3013,10 +3019,13 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
       if (isWaterLine(spot)) continue;
       const c = SPOT_COORDS[spot.name] || (spot.lat ? { lat: spot.lat, lng: spot.lng } : null);
       if (!c) continue;
-      const score = calcSpotScore(spot, weather, [], activeUsers);
+      // A thermal front within 10 km (from NOAA SST, when loaded) lifts the score.
+      const sst = sstAtSpot([...sstCacheRef.current.values()].filter(Boolean), c.lat, c.lng);
+      const score = Math.min(99, calcSpotScore(spot, weather, [], activeUsers) + (sst?.nearFront ? 8 : 0));
       const band = score >= 75 ? 75 : score >= 60 ? 60 : score >= 45 ? 45 : 0;
       const color = heatColor(score);
-      const popup = `<div style="font-family:sans-serif"><b>${spot.icon || "\uD83C\uDF0A"} ${spot.name}</b><br><span style="color:${color};font-weight:700">\uD83D\uDD25 ${(bandName[band][lang] || bandName[band].en)}</span></div>`;
+      const sstLine = sst?.temp != null ? `<br><span style="font-size:12px">\uD83C\uDF21 ${sst.temp.toFixed(1)}\u2103${sst.nearFront ? (lang === "ja" ? " \u00B7 \u8FD1\u304F\u306B\u6F6E\u76EE" : lang === "es" ? " \u00B7 frente t\u00E9rmico cerca" : " \u00B7 thermal front nearby") : ""}</span>` : "";
+      const popup = `<div style="font-family:sans-serif"><b>${spot.icon || "\uD83C\uDF0A"} ${spot.name}</b><br><span style="color:${color};font-weight:700">\uD83D\uDD25 ${(bandName[band][lang] || bandName[band].en)}</span>${sstLine}</div>`;
       // Three concentric rings approximate a radial glow without a true heat-grid.
       [[2800, 0.08], [1700, 0.14], [800, 0.22]].forEach(([radius, opacity]) => {
         L.circle([c.lat, c.lng], { radius, renderer, color, weight: 0, fillColor: color, fillOpacity: opacity, interactive: radius === 800 })
@@ -3084,9 +3093,39 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     });
     setRiverStatus(ways.length ? (failed ? "partial" : "") : (failed ? "error" : "none"));
   }
+  async function loadSst() {
+    const L = window.L, map = leafletRef.current;
+    if (!L || !map) return;
+    const { showSST, lang } = liveRef.current;
+    const clear = () => { if (sstLayerRef.current) { map.removeLayer(sstLayerRef.current); sstLayerRef.current = null; } };
+    if (!showSST) { sstAbortRef.current?.abort(); clear(); setSstInfo(null); return; }
+    if (map.getZoom() < 6) { clear(); setSstInfo({ status: "zoom" }); return; }
+    const tiles = tilesForBounds(map.getBounds());
+    if (!tiles) { clear(); setSstInfo({ status: "zoomout" }); return; }
+    sstAbortRef.current?.abort();
+    const ctrl = new AbortController(); sstAbortRef.current = ctrl;
+    const key = t => t.join(",");
+    const cache = sstCacheRef.current;
+    const need = tiles.filter(t => !cache.has(key(t)));
+    if (need.length) setSstInfo(i => ({ ...(i || {}), status: "loading" }));
+    let failed = 0;
+    await Promise.all(need.map(async t => {
+      try { cache.set(key(t), await fetchSstTile(t, ctrl.signal)); }
+      catch (e) { if (e.name !== "AbortError") failed++; }
+    }));
+    while (cache.size > 40) cache.delete(cache.keys().next().value);
+    if (ctrl.signal.aborted) return;
+    const data = tiles.map(t => cache.get(key(t))).filter(Boolean);
+    clear();
+    if (!data.length) { setSstInfo({ status: "error" }); return; }
+    const built = buildSstLayer(L, data, lang);
+    sstLayerRef.current = built.layer.addTo(map);
+    setSstInfo({ min: built.min, max: built.max, date: built.date, hot: built.hotspots.length, partial: failed > 0 });
+    drawOceanHeat(); // refresh halos with the front bonus
+  }
   function scheduleRivers() {
     clearTimeout(riverTimerRef.current);
-    riverTimerRef.current = setTimeout(() => { loadRivers(); drawOceanHeat(); }, 500);
+    riverTimerRef.current = setTimeout(() => { loadRivers(); drawOceanHeat(); loadSst(); }, 500);
   }
 
   // Load Leaflet CSS + JS once
@@ -3234,6 +3273,14 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     drawOceanHeat();
   }, [showHeatmap, spots, weather, activeUsers]);
 
+  // Ocean temperature layer: jump out/in to a zoom where 2° tiles make sense
+  useEffect(() => {
+    const map = leafletRef.current;
+    if (!map) return;
+    if (showSST && map.getZoom() < 6) { map.setView(map.getCenter(), 7); return; }
+    loadSst();
+  }, [showSST]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Init map if Leaflet was already loaded
   useEffect(() => {
     if (window.L && !leafletRef.current && mapRef.current) {
@@ -3261,7 +3308,7 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
     <div style={{ position: "relative", marginBottom: 14 }}>
       <div
         ref={mapRef}
-        style={{ height: showHeatmap ? 420 : 300, borderRadius: 16, overflow: "hidden", border: "2px solid #FFE500", position: "relative", zIndex: 1, background: "#e8f4f4" }}
+        style={{ height: showHeatmap || showSST ? 420 : 300, borderRadius: 16, overflow: "hidden", border: "2px solid #FFE500", position: "relative", zIndex: 1, background: "#e8f4f4" }}
       />
       {showHeatmap && (
         <div style={{ position: "absolute", left: 8, bottom: 8, zIndex: 500, background: "rgba(255,253,248,0.94)", borderRadius: 10, padding: "6px 10px", fontSize: "0.75rem", boxShadow: "0 1px 6px rgba(0,0,0,0.2)", pointerEvents: "none" }}>
@@ -3271,6 +3318,23 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
                 <span key={c} style={{ display: "inline-flex", alignItems: "center", gap: 3 }}><span style={{ width: 14, height: 4, borderRadius: 2, background: c, display: "inline-block" }} />{t}</span>
               ))}
             </div>
+          )}
+        </div>
+      )}
+      {showSST && sstInfo && (
+        <div style={{ position: "absolute", right: 8, bottom: 8, zIndex: 500, background: "rgba(255,253,248,0.94)", borderRadius: 10, padding: "6px 10px", fontSize: "0.72rem", boxShadow: "0 1px 6px rgba(0,0,0,0.2)", pointerEvents: "none", maxWidth: 190 }}>
+          {sstInfo.status === "loading" && !sstInfo.date ? <b style={{ color: "#0d7377" }}>{lang === "ja" ? "海水温を読み込み中…" : lang === "es" ? "Cargando temperatura…" : "Loading sea temps…"}</b>
+            : sstInfo.status === "zoom" ? <b style={{ color: "#0d7377" }}>{lang === "ja" ? "ズームインすると海水温を表示" : lang === "es" ? "Acércate para ver la temperatura" : "Zoom in to see sea temps"}</b>
+            : sstInfo.status === "zoomout" ? <b style={{ color: "#0d7377" }}>{lang === "ja" ? "範囲が広すぎます。ズームイン" : lang === "es" ? "Área muy grande: acércate" : "Area too large — zoom in"}</b>
+            : sstInfo.status === "error" ? <b style={{ color: "#b82030" }}>{lang === "ja" ? "NOAAの水温を取得できませんでした" : lang === "es" ? "No se pudo cargar NOAA" : "Couldn't load NOAA data"}</b>
+            : sstInfo.min != null && (
+            <>
+              <div style={{ fontWeight: 700, marginBottom: 3 }}>🌡️ {lang === "ja" ? "海面水温" : lang === "es" ? "Temp. del mar" : "Sea temp"}</div>
+              <div style={{ height: 6, borderRadius: 3, background: "linear-gradient(90deg,#313695,#45a0dc,#78d2be,#fadc5a,#f58c32,#d73027)" }} />
+              <div style={{ display: "flex", justifyContent: "space-between" }}><span>{sstInfo.min.toFixed(1)}℃</span><span>{sstInfo.max.toFixed(1)}℃</span></div>
+              <div style={{ marginTop: 2 }}>🔥 {lang === "ja" ? `潮目 ${sstInfo.hot}か所` : lang === "es" ? `${sstInfo.hot} frentes térmicos` : `${sstInfo.hot} thermal fronts`}</div>
+              <div style={{ color: "#7a7a6a" }}>NOAA {sstInfo.date}{sstInfo.partial ? " *" : ""}</div>
+            </>
           )}
         </div>
       )}
@@ -3516,6 +3580,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
   const [showCommunityPins, setShowCommunityPins] = useState(true);
   const [mapMode, setMapMode] = useState("spots"); // "spots" | "prediction"
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [showSST, setShowSST] = useState(false);
   const [predictionSpot, setPredictionSpot] = useState(null);
   const [predictionScore, setPredictionScore] = useState(null);
 
@@ -3545,7 +3610,10 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
 
       {/* AR Camera button */}
       <button onClick={() => setShowHeatmap(h => !h)} style={{ width: "100%", marginBottom: 10, padding: "10px", background: showHeatmap ? "#0d7377" : "#1a1a14", border: "none", borderRadius: 12, color: "#FFE500", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-        🔥 {lang === "ja" ? (showHeatmap ? "ヒートマップ非表示" : "魚活性ヒートマップ") : (showHeatmap ? "Hide Heatmap" : "Fish Activity Heatmap")}
+        🔥 {lang === "ja" ? (showHeatmap ? "ヒートマップ非表示" : "魚活性ヒートマップ") : lang === "es" ? (showHeatmap ? "Ocultar mapa de calor" : "Mapa de actividad") : (showHeatmap ? "Hide Heatmap" : "Fish Activity Heatmap")}
+      </button>
+      <button onClick={() => setShowSST(v => !v)} style={{ width: "100%", marginBottom: 10, padding: "10px", background: showSST ? "#1d5fa8" : "#e8f0fa", border: "2px solid #1d5fa8", borderRadius: 12, color: showSST ? "#fff" : "#1d5fa8", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        🌡️ {lang === "ja" ? (showSST ? "海水温マップ非表示" : "海水温マップ＋潮目予測（NOAA衛星）") : lang === "es" ? (showSST ? "Ocultar temperatura del mar" : "Temperatura del mar + frentes (satélite NOAA)") : (showSST ? "Hide sea temperature" : "Sea temp map + fronts (NOAA satellite)")}
       </button>
 
 
@@ -3610,7 +3678,7 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
       )}
       <p style={{ margin: "0 0 14px", color: "#5a5a4a", fontSize: "1.05rem" }}>{lang === "ja" ? "ピンをタップして詳細を見る" : lang === "es" ? "Toca un punto para ver detalles" : "Tap a pin for details"}</p>
       {/* ── REAL LEAFLET MAP via OSM ── */}
-      <LeafletMap spots={spots} userLocation={userLocation} activeSpot={activeSpot} setActiveSpot={setActiveSpot} lang={lang} activeUsers={activeUsers} showHeatmap={showHeatmap} weather={weather} />
+      <LeafletMap spots={spots} userLocation={userLocation} activeSpot={activeSpot} setActiveSpot={setActiveSpot} lang={lang} activeUsers={activeUsers} showHeatmap={showHeatmap} showSST={showSST} weather={weather} />
       {/* Heatmap overlay */}
       {showHeatmap && (
         <div style={{ marginBottom: 10 }}>
