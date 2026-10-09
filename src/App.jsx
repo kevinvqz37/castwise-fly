@@ -955,6 +955,17 @@ function defaultLang() {
 }
 
 const LANGS = ["ja", "en", "es"];
+
+// Default language by the visitor's country (IP geolocation via /api/geo): Japan → ja,
+// Puerto Rico and other Spanish-speaking countries → es, everywhere else → the browser's
+// language. Once someone taps the language button, their choice wins from then on.
+const SPANISH_COUNTRIES = new Set(["PR", "ES", "MX", "AR", "CO", "CL", "PE", "VE", "EC", "GT", "CU", "BO", "DO", "HN", "PY", "SV", "NI", "CR", "PA", "UY", "GQ"]);
+function langForCountry(cc) {
+  if (cc === "JP") return "ja";
+  if (SPANISH_COUNTRIES.has(cc)) return "es";
+  return null;
+}
+const LANG_MANUAL_KEY = "mabo_lang_manual";
 const LANG_LABEL = { ja: "🇯🇵 JP", en: "🇺🇸 EN", es: "🇵🇷 ES" };
 
 function useLocalStorage(key, defaultValue) {
@@ -4005,6 +4016,15 @@ Keep it under 220 words, emoji section headers.`;
 
 export default function CastWiseJapan() {
   const [lang, setLang] = useLocalStorage("mabo_lang", defaultLang());
+  useEffect(() => {
+    try { if (localStorage.getItem(LANG_MANUAL_KEY)) return; } catch { /* storage blocked */ }
+    let alive = true;
+    fetch("/api/geo").then(r => (r.ok ? r.json() : null)).then(d => {
+      const l = langForCountry(d?.country || "");
+      if (alive && l) setLang(l);
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [tab, setTab] = useState("Explore");
   const [selectedFish, setSelectedFish] = useState(null);
   const [gearTab, setGearTab] = useState("gear");
@@ -4695,7 +4715,7 @@ If this is NOT a fish or the image is unclear, return:
           </div>
           <div style={{ display: "flex", gap: 6 }}>
             <button onClick={() => { if (user) { if (confirm(lang === "ja" ? "ログアウトしますか？" : lang === "es" ? "¿Cerrar sesión?" : "Log out?")) handleLogout(); } else { setShowAuth(true); } }} style={{ background: user ? "#e0f2f2" : "#fef3c7", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", marginRight: 6, color: user ? "#0d7377" : "#b45309" }}>{user ? (isPro ? "PRO ⭐" : `AI ${5 - aiUsage.count}/5`) : (lang === "ja" ? "ログイン" : lang === "es" ? "Iniciar sesión" : "Login")}</button>
-            <button onClick={() => setLang(l => LANGS[(LANGS.indexOf(l) + 1) % LANGS.length])} title="日本語 / English / Español" style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
+            <button onClick={() => { try { localStorage.setItem(LANG_MANUAL_KEY, "1"); } catch { /* ignore */ } setLang(l => LANGS[(LANGS.indexOf(l) + 1) % LANGS.length]); }} title="日本語 / English / Español" style={{ background: "#e8e3d8", border: "2px solid #c4bfb4", borderRadius: 8, padding: "6px 12px", color: "#0d7377", cursor: "pointer", fontSize: "0.95rem", fontWeight: 700 }}>
               {LANG_LABEL[lang] || LANG_LABEL.en}
             </button>
             {/* Location / AI nearby button */}
