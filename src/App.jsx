@@ -1572,7 +1572,7 @@ function fishArtSpec(fish) {
   return { emoji: k ? (SPRITE_EMOJI[k] || "🐟") : (EXTRA_FISH_EMOJI[fish.id] || fish.emoji || "🐟") };
 }
 
-function CatchCards({ myCatches, profileName, lang, FISH_DATA }) {
+function CatchCards({ myCatches, profileName, ownerUid, lang, FISH_DATA }) {
   const [remote, setRemote] = useState([]);
   const [region, setRegion] = useState(lang === "es" ? "caribbean" : "japan");
   const [open, setOpen] = useState(null);
@@ -1580,15 +1580,24 @@ function CatchCards({ myCatches, profileName, lang, FISH_DATA }) {
   const T = (ja, en, es) => (lang === "ja" ? ja : lang === "es" ? (es || en) : en);
   const fname = f => (lang === "ja" ? f.name : lang === "es" ? (f.nameEs || f.nameEn) : f.nameEn);
 
-  // The community feed only holds the latest 50 catches, so load all of this angler's own.
+  // The community feed only holds the latest 50 catches, so load all of this angler's own:
+  // by login, by this device, and (for old catches without ids) by a non-default name.
   useEffect(() => {
-    if (!profileName) return;
     let alive = true;
-    getDocs(query(collection(db, "catches"), where("user", "==", profileName), limit(500)))
-      .then(snap => { if (alive) setRemote(snap.docs.map(d => { const x = d.data(); return { ...x, photo: x.photoURL || x.photoBase64 || null }; })); })
+    const me = { uid: ownerUid, deviceId: getOrCreateUserId(), name: profileName };
+    const qs = [where("deviceId", "==", me.deviceId)];
+    if (ownerUid) qs.push(where("ownerUid", "==", ownerUid));
+    const n = String(profileName || "").trim();
+    if (n && !DEFAULT_PROFILE_NAMES.has(n.toLowerCase())) qs.push(where("user", "==", n));
+    Promise.all(qs.map(w => getDocs(query(collection(db, "catches"), w, limit(500))).catch(() => null)))
+      .then(snaps => {
+        if (!alive) return;
+        const rows = snaps.filter(Boolean).flatMap(sn => sn.docs.map(d => { const x = d.data(); return { ...x, photo: x.photoURL || x.photoBase64 || null }; }));
+        setRemote(rows.filter(c => isMyCatch(c, me)));
+      })
       .catch(e => console.warn("Catch cards load failed:", e));
     return () => { alive = false; };
-  }, [profileName]);
+  }, [profileName, ownerUid]);
 
   const seen = new Map();
   [...remote, ...myCatches].forEach(c => seen.set(String(c.id || c.firestoreId), c));
@@ -1918,6 +1927,18 @@ function getCrowdingLevel(spotLat, spotLng, activeUsers) {
   if (count >= 5) return { level: "crowded", color: "#b82030", glow: "0 0 16px rgba(184,32,48,0.7)", label: { ja: "🔴 混雑", en: "🔴 Crowded" }, count };
   if (count >= 2) return { level: "moderate", color: "#c06a10", glow: "0 0 12px rgba(192,106,16,0.5)", label: { ja: "🟠 普通", en: "🟠 Moderate" }, count };
   return { level: "quiet", color: "#2d7a3a", glow: "none", label: { ja: "🟢 空いてる", en: "🟢 Quiet" }, count };
+}
+
+// Catch ownership. Catches used to be matched to "you" by profile name only, and every
+// new profile starts as "Angler" — so a new user saw other people's catches as their own.
+// Now each catch carries deviceId (this browser) and ownerUid (the login, if any).
+// Old catches with neither are only yours if your name is a real, non-default name.
+const DEFAULT_PROFILE_NAMES = new Set(["", "angler", "釣り人", "pescador", "guest", "ゲスト"]);
+function isMyCatch(c, { uid, deviceId, name }) {
+  if (!c) return false;
+  if (c.ownerUid || c.deviceId) return (!!uid && c.ownerUid === uid) || (!!deviceId && c.deviceId === deviceId);
+  const n = String(name || "").trim();
+  return !!n && !DEFAULT_PROFILE_NAMES.has(n.toLowerCase()) && c.user === n;
 }
 
 // Generate a stable anonymous user ID stored in localStorage
@@ -4241,6 +4262,13 @@ export default function CastWiseJapan() {
     );
   }, []);
 
+  // "My" catches = catches owned by this login or this device (see isMyCatch). Recomputed
+  // whenever the feed, the login or the profile name changes.
+  const myIds = { uid: user?.uid || null, deviceId: getOrCreateUserId(), name: profile.name };
+  useEffect(() => {
+    setMyCatches(catches.filter(c => isMyCatch(c, myIds)));
+  }, [catches, user?.uid, profile.name]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Load catches from Firestore on startup
   useEffect(() => {
     const q = query(collection(db, "catches"), orderBy("createdAt", "desc"), limit(50));
@@ -4256,7 +4284,6 @@ export default function CastWiseJapan() {
         };
       });
       setCatches(loaded);
-      setMyCatches(loaded.filter(c => c.user === profile.name));
       setCatchesLoading(false);
     }, (err) => console.warn("Firestore listen error:", err));
     return () => unsub();
@@ -4664,6 +4691,8 @@ If this is NOT a fish or the image is unclear, return:
       photo: newCatch.photo || null,
       user: profile.name,
       avatar: profile.avatar,
+      deviceId: getOrCreateUserId(),
+      ownerUid: user?.uid || null,
       date: { ja: "今日", en: "Today" },
       emoji: "🎣",
       likes: 0,
@@ -4688,6 +4717,8 @@ If this is NOT a fish or the image is unclear, return:
         method: entry.method,
         user: entry.user,
         avatar: entry.avatar,
+        deviceId: entry.deviceId,
+        ownerUid: entry.ownerUid,
         dateJa: "今日",
         dateEn: "Today",
         likes: 0,
@@ -4724,8 +4755,9 @@ If this is NOT a fish or the image is unclear, return:
 
   // Season rank from recent community catches (100 pt per catch + bonus points)
   const rankCounts = {};
-  catches.forEach(c => { if (c.user) rankCounts[c.user] = (rankCounts[c.user] || 0) + 1; });
-  const myRankCount = rankCounts[profile.name] || 0;
+  const ownerKey = c => c.ownerUid || c.deviceId || (c.user && !DEFAULT_PROFILE_NAMES.has(String(c.user).trim().toLowerCase()) ? "name:" + c.user : null);
+  catches.forEach(c => { const k = ownerKey(c); if (k) rankCounts[k] = (rankCounts[k] || 0) + 1; });
+  const myRankCount = myCatches.length;
   const myRank = myRankCount ? 1 + Object.values(rankCounts).filter(n => n > myRankCount).length : null;
   const seasonPts = (profile.catches + myCatches.length) * 100 + (bonusPoints || 0);
 
@@ -5372,14 +5404,14 @@ If this is NOT a fish or the image is unclear, return:
 
             {profileTab === "cards" && (
               <div style={{ animation: "fadeUp 0.4s ease" }}>
-                <CatchCards myCatches={myCatches} profileName={profile.name} lang={lang} FISH_DATA={FISH_DATA} />
+                <CatchCards myCatches={myCatches} profileName={profile.name} ownerUid={user?.uid || null} lang={lang} FISH_DATA={FISH_DATA} />
               </div>
             )}
 
             {profileTab === "trophy" && (
               <div style={{ animation: "fadeUp 0.4s ease" }}>
                 <h3 style={{ margin: "0 0 12px", fontSize: "1.1rem" }}>🏆 {lang === "ja" ? "魚種別自己記録" : lang === "es" ? "Récords personales" : "Personal Best Records"}</h3>
-                <TrophyRoom catches={[...myCatches, ...catches.filter(c => c.user === profile.name)]} lang={lang} FISH_DATA={FISH_DATA} />
+                <TrophyRoom catches={myCatches} lang={lang} FISH_DATA={FISH_DATA} />
               </div>
             )}
 
