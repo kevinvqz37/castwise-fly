@@ -10,6 +10,7 @@ import { FLY_SVG } from "./flyArt";
 import { shareCatchCard } from "./shareCard";
 import { buildCollection, makeSpeciesMatcher, shareCollectorCard } from "./catchCards";
 import { tilesForBounds, fetchSstTile, buildSstLayer, sstAtSpot } from "./sstLayer";
+import { captureConditions, conditionChips, findPatterns } from "./conditions";
 import exifr from "exifr";
 import { initAnalytics, track } from "./analytics";
 import OwnerDashboard from "./OwnerDashboard";
@@ -4681,6 +4682,10 @@ If this is NOT a fish or the image is unclear, return:
   async function submitCatch() {
     if (!newCatch.fish) return;
     const now = Date.now();
+    // Conditions at the moment of logging (time, moon, weather; tide + water temp for sea fish).
+    const loggedSpecies = makeSpeciesMatcher(FISH_DATA)(newCatch.fish);
+    const salt = !!loggedSpecies && loggedSpecies.category !== "freshwater" && ![201, 210].includes(loggedSpecies.id); // PR peacock bass & tilapia are freshwater
+    const cond = await captureConditions({ weather: WEATHER, location: userLocation, salt, t: now });
     const entry = {
       id: now,
       fish: newCatch.fish || "",
@@ -4688,6 +4693,7 @@ If this is NOT a fish or the image is unclear, return:
       location: newCatch.location || (lang === "ja" ? "場所未入力" : lang === "es" ? "Ubicación no definida" : "Location not set"),
       notes: newCatch.notes || "",
       method: newCatch.method || "lure",
+      cond,
       photo: newCatch.photo || null,
       user: profile.name,
       avatar: profile.avatar,
@@ -4715,6 +4721,7 @@ If this is NOT a fish or the image is unclear, return:
         location: entry.location,
         notes: entry.notes,
         method: entry.method,
+        cond: entry.cond,
         user: entry.user,
         avatar: entry.avatar,
         deviceId: entry.deviceId,
@@ -5392,6 +5399,7 @@ If this is NOT a fish or the image is unclear, return:
                               </div>
                             )}
                             <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>⚖️ {c.weight} · 📍 {c.location}</div>
+                            {c.cond && <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>{conditionChips(c.cond, lang).map(t => <span key={t} style={{ fontSize: "0.72rem", background: "#eef5f4", color: "#0d5a5c", borderRadius: 99, padding: "2px 7px" }}>{t}</span>)}</div>}
                             {c.notes && <div style={{ fontSize: "0.95rem", color: "#5a5a4a", fontStyle: "italic", marginTop: 2 }}>{c.notes}</div>}
                           </div>
                           <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{ gl(c.date, lang)}</div>
@@ -5410,6 +5418,31 @@ If this is NOT a fish or the image is unclear, return:
 
             {profileTab === "trophy" && (
               <div style={{ animation: "fadeUp 0.4s ease" }}>
+                {(() => {
+                  const pats = findPatterns(myCatches, makeSpeciesMatcher(FISH_DATA), lang);
+                  const T3 = (ja, en, es) => (lang === "ja" ? ja : lang === "es" ? es : en);
+                  return (
+                    <div style={{ background: "#f3f8fc", border: "2px solid #c9dcef", borderRadius: 14, padding: "12px 14px", marginBottom: 16 }}>
+                      <div style={{ fontWeight: 800, fontSize: "1.02rem", marginBottom: 6 }}>📊 {T3("あなたの釣れるパターン", "Your catch patterns", "Tus patrones de pesca")}</div>
+                      {pats.length === 0 ? (
+                        <div style={{ fontSize: "0.86rem", color: "#4a5a6a", lineHeight: 1.6 }}>{T3("釣果を3匹以上記録すると、時間帯・潮・水温・月齢から「あなたが一番釣れる条件」がわかります。釣った直後にその場で記録すると正確です。", "Log 3+ catches and the app finds the time, tide, water temp and moon phase you catch the most in. Log right after the catch, on the spot, for accurate conditions.", "Registra 3+ capturas y la app encontrará la hora, marea, temperatura del agua y fase lunar en que más pescas. Regístralas en el momento para mayor precisión.")}</div>
+                      ) : pats.map((g, gi) => (
+                        <div key={g.title} style={{ marginTop: gi ? 10 : 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1d5fa8" }}>{g.title} <span style={{ fontWeight: 400, color: "#6a7a8a" }}>· {g.count}{T3("匹", " catches", " capturas")}</span></div>
+                          {g.lines.map((ln, li) => {
+                            const locked = !isPro && (gi > 0 || li > 0);
+                            return <div key={li} style={{ fontSize: "0.86rem", lineHeight: 1.6, filter: locked ? "blur(4px)" : "none", userSelect: locked ? "none" : "auto" }}>{ln}</div>;
+                          })}
+                        </div>
+                      ))}
+                      {!isPro && pats.some((g, gi) => gi > 0 || g.lines.length > 1) && (
+                        <button onClick={() => startCheckout("monthly")} style={{ marginTop: 10, width: "100%", padding: 10, borderRadius: 10, border: "none", background: "#9060e0", color: "#fff", fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
+                          💎 {T3("PROで全パターンを見る（¥480/月）", "See all patterns with PRO (¥480/mo)", "Ver todos los patrones con PRO (¥480/mes)")}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
                 <h3 style={{ margin: "0 0 12px", fontSize: "1.1rem" }}>🏆 {lang === "ja" ? "魚種別自己記録" : lang === "es" ? "Récords personales" : "Personal Best Records"}</h3>
                 <TrophyRoom catches={myCatches} lang={lang} FISH_DATA={FISH_DATA} />
               </div>
