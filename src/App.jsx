@@ -3758,6 +3758,10 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
 
 // ─── MAP VIEW ────────────────────────────────────────────────────────────────
 
+// River conditions panel is hidden until it uses real 国土交通省 water-level data
+// (the hook below still returns simulated readings). Flip to true once it's real.
+const SHOW_RIVER_PANEL = false;
+
 function WeatherView({ lang, weather, forecast, tides, rivers }) {
   const WEATHER = weather || {};
   const fi = WEATHER.fishingIndex ?? 75;
@@ -3901,7 +3905,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       )}
 
       {/* ── RIVER CONDITIONS ── */}
-      {rivers.length > 0 && (
+      {SHOW_RIVER_PANEL && rivers.length > 0 && (
         <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
           <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 4, letterSpacing: "0.07em" }}>
             {lang === "ja" ? "🏞️ 河川状況" : lang === "es" ? "🏞️ CONDICIONES DEL RÍO" : "🏞️ RIVER CONDITIONS"}
