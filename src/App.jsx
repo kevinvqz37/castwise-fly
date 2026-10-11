@@ -10,7 +10,7 @@ import { FLY_SVG } from "./flyArt";
 import { shareCatchCard } from "./shareCard";
 import { buildCollection, makeSpeciesMatcher, shareCollectorCard } from "./catchCards";
 import { tilesForBounds, fetchSstTile, buildSstLayer, sstAtSpot } from "./sstLayer";
-import { captureConditions, conditionChips, findPatterns } from "./conditions";
+import { captureConditions, conditionChips, findPatterns, todaysTides } from "./conditions";
 import exifr from "exifr";
 import { initAnalytics, track } from "./analytics";
 import OwnerDashboard from "./OwnerDashboard";
@@ -1953,68 +1953,31 @@ function getOrCreateUserId() {
 }
 
 // ─── REAL TIDE DATA ───────────────────────────────────────────────────────────
-// Uses worldtides.info API — 10 free requests/day on free tier
-// Falls back to lunar calculation if unavailable
+// Today's highs and lows from modelled sea level (Open-Meteo Marine API,
+// `sea_level_height_msl`, MeteoFrance SMOC incl. tides, ~8 km). Less accurate right at the
+// coast and not a navigation tide table, but real — the old version guessed from the moon.
+// Inland, the model has no sea level: we return [] with .noData so the UI can say so.
 function useRealTideData(userLocation) {
   const [tides, setTides] = useState([]);
 
   useEffect(() => {
     if (!userLocation) return;
     const { lat, lng } = userLocation;
-
-    (async () => {
-      try {
-        // Try Open-Meteo marine API for wave/tide data (free, no key)
-        const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lng}&hourly=wave_height,swell_wave_height&timezone=auto&forecast_days=1`;
-        const res = await fetch(url);
-        const data = await res.json();
-
-        // Build tide approximation from wave patterns + lunar cycle
-        const now = new Date();
-        const lunarCycle = 29.53 * 24 * 60 * 60 * 1000;
-        const knownNewMoon = new Date("2024-01-11").getTime();
-        const phase = ((now.getTime() - knownNewMoon) % lunarCycle) / lunarCycle;
-        const baseHour = Math.round(phase * 24 * 2) % 12;
-
-        const calculated = [];
-        for (let i = 0; i < 4; i++) {
-          const h = (baseHour + i * 6) % 24;
-          const m = Math.floor((phase * 60 + i * 15) % 40);
-          const isHigh = i % 2 === 0;
-          // Use wave data to estimate tidal range if available
-          const waveHeight = data?.hourly?.wave_height?.[h] || 0;
-          const height = isHigh
-            ? (1.2 + waveHeight * 0.3 + (phase < 0.5 ? 0.3 : 0)).toFixed(1)
-            : (0.2 + waveHeight * 0.1).toFixed(1);
-          calculated.push({
-            time: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`,
-            type: isHigh ? "high" : "low",
-            height,
-            source: "marine",
-          });
-        }
-        setTides(calculated.sort((a, b) => a.time.localeCompare(b.time)));
-      } catch (err) {
-        // Pure lunar fallback
-        const now = new Date();
-        const lunarCycle = 29.53 * 24 * 60 * 60 * 1000;
-        const knownNewMoon = new Date("2024-01-11").getTime();
-        const phase = ((now.getTime() - knownNewMoon) % lunarCycle) / lunarCycle;
-        const baseHour = Math.round(phase * 24 * 2) % 12;
-        const calculated = [];
-        for (let i = 0; i < 4; i++) {
-          const h = (baseHour + i * 6) % 24;
-          const m = Math.floor((phase * 60 + i * 15) % 40);
-          calculated.push({
-            time: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`,
-            type: i % 2 === 0 ? "high" : "low",
-            height: i % 2 === 0 ? (1.2 + Math.random() * 0.6).toFixed(1) : (0.2 + Math.random() * 0.3).toFixed(1),
-            source: "lunar",
-          });
-        }
-        setTides(calculated.sort((a, b) => a.time.localeCompare(b.time)));
-      }
-    })();
+    let alive = true;
+    const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat.toFixed(3)}&longitude=${lng.toFixed(3)}` +
+      `&hourly=sea_level_height_msl&timezone=auto&past_days=1&forecast_days=2`;
+    fetch(url).then(r => r.json()).then(d => {
+      if (!alive) return;
+      const offset = Number(d?.utc_offset_seconds) || 0;
+      const today = new Date(Date.now() + offset * 1000).toISOString().slice(0, 10); // location's local date
+      const list = todaysTides(d?.hourly?.time || [], d?.hourly?.sea_level_height_msl || [], today);
+      if (!list.length) list.noData = true;
+      setTides(list);
+    }).catch(() => {
+      if (!alive) return;
+      const empty = []; empty.noData = true; setTides(empty);
+    });
+    return () => { alive = false; };
   }, [userLocation?.lat, userLocation?.lng]);
 
   return tides;
@@ -3877,7 +3840,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
         <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em", display: "flex", justifyContent: "space-between" }}>
           <span>{lang === "ja" ? "🌊 本日の潮汐" : lang === "es" ? "🌊 MAREAS DE HOY" : "🌊 TODAY'S TIDES"}</span>
-          <span style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? "※推算値" : lang === "es" ? "Estimado" : "Calculated"}</span>
+          <span style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? "※海洋モデル（Open-Meteo）・航海用ではありません" : lang === "es" ? "Modelo oceánico (Open-Meteo), no apto para navegación" : "Ocean model (Open-Meteo) — not for navigation"}</span>
         </div>
         {tides.length > 0 ? tides.map(td => (
           <div key={td.time} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: td.type === "high" ? "#e0f2f2" : "#f5f0e8", borderRadius: 10, marginBottom: 6, border: `1px solid ${td.type === "high" ? "#74c69d" : "#e0dbd0"}` }}>
@@ -3892,7 +3855,9 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
           </div>
         )) : (
           <div style={{ textAlign: "center", color: "#9a9a8a", fontSize: "0.88rem", padding: "12px 0" }}>
-            {lang === "ja" ? "📍 位置情報を許可すると潮汐を表示" : lang === "es" ? "📍 Permite la ubicación para ver las mareas" : "📍 Allow location for tide data"}
+            {tides.noData
+              ? (lang === "ja" ? "🏞 この場所の潮汐データはありません（内陸部など）" : lang === "es" ? "🏞 No hay datos de marea para este lugar (zona interior)" : "🏞 No tide data for this location (inland)")
+              : (lang === "ja" ? "📍 位置情報を許可すると潮汐を表示" : lang === "es" ? "📍 Permite la ubicación para ver las mareas" : "📍 Allow location for tide data")}
           </div>
         )}
       </div>

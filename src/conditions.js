@@ -146,3 +146,31 @@ export function findPatterns(catches, matchSpecies, lang) {
   }
   return out;
 }
+
+// ─── today's tide table from hourly sea level ─────────────────────────────────
+// times: local "YYYY-MM-DDTHH:MM" (Open-Meteo timezone=auto), levels: metres vs mean sea
+// level. Finds each turning point (high/low), refines it to the minute with a parabola
+// through the three hours around it, and keeps the ones on `today` (local date).
+// Heights are shown relative to the day's lowest hourly level, like a simple tide table.
+export function todaysTides(times, levels, today) {
+  const out = [];
+  const dayVals = levels.filter((v, i) => v != null && String(times[i]).startsWith(today));
+  if (!dayVals.length) return out;
+  const base = Math.min(...dayVals);
+  for (let i = 1; i < levels.length - 1; i++) {
+    const a = levels[i - 1], b = levels[i], c = levels[i + 1];
+    if (a == null || b == null || c == null) continue;
+    const high = b > a && b >= c, low = b < a && b <= c;
+    if (!high && !low) continue;
+    const den = a - 2 * b + c;
+    const off = den ? Math.max(-0.5, Math.min(0.5, (0.5 * (a - c)) / den)) : 0;
+    const val = b - 0.25 * (a - c) * off;
+    const [d, hm] = String(times[i]).split("T");
+    let mins = Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5)) + Math.round(off * 60);
+    let day = d;
+    if (mins < 0 || mins >= 1440) continue; // turning point lands on a neighbouring day
+    if (day !== today) continue;
+    out.push({ time: `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`, type: high ? "high" : "low", height: Math.max(0, val - base).toFixed(1), source: "open-meteo" });
+  }
+  return out;
+}
