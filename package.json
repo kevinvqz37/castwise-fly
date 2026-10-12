@@ -37,6 +37,7 @@
     "node": "22.x"
   },
   "overrides": {
-    "jose": "^5.10.0"
+    "jose": "^5.10.0",
+    "websocket-driver": "^0.7.5"
   }
 }

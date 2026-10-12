@@ -21,7 +21,25 @@ function admin() {
   return { auth: getAuth(), db: getFirestore() };
 }
 const docId = endpoint => crypto.createHash("sha256").update(endpoint).digest("hex").slice(0, 40);
-const validSub = s => s && typeof s.endpoint === "string" && /^https:\/\//.test(s.endpoint) && s.endpoint.length < 1000 && typeof s.keys?.p256dh === "string" && typeof s.keys?.auth === "string";
+// Only the browsers' real push services — so nobody can make our server POST to their own URL.
+const PUSH_HOSTS = /^(fcm\.googleapis\.com|android\.googleapis\.com|updates\.push\.services\.mozilla\.com|[a-z0-9-]+\.push\.apple\.com|web\.push\.apple\.com|[a-z0-9-]+\.notify\.windows\.com)$/i;
+const pushHost = u => { try { const x = new URL(u); return x.protocol === "https:" && PUSH_HOSTS.test(x.hostname); } catch { return false; } };
+const validSub = s => s && typeof s.endpoint === "string" && s.endpoint.length < 1000 && pushHost(s.endpoint)
+  && typeof s.keys?.p256dh === "string" && s.keys.p256dh.length < 200 && typeof s.keys?.auth === "string" && s.keys.auth.length < 100;
+
+// 20 requests / 10 min per IP (Upstash, same as /api/claude). Fails open if Redis is down.
+let limiter = null;
+async function limited(req) {
+  try {
+    if (!process.env.UPSTASH_REDIS_REST_URL) return false;
+    if (!limiter) {
+      const [{ Ratelimit }, { Redis }] = await Promise.all([import("@upstash/ratelimit"), import("@upstash/redis")]);
+      limiter = new Ratelimit({ redis: Redis.fromEnv(), limiter: Ratelimit.slidingWindow(20, "600 s"), prefix: "rl:alerts" });
+    }
+    const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
+    return !(await limiter.limit(ip)).success;
+  } catch { return false; }
+}
 
 async function proUid(fb, req) {
   const token = String(req.headers.authorization || "").replace(/^Bearer /, "");
@@ -43,7 +61,9 @@ export default async function handler(req, res) {
   const fb = admin();
   if (!keys || !fb) return res.status(503).json({ error: "Alerts are not configured yet" });
 
-  const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
+  if (await limited(req)) return res.status(429).json({ error: "Too many requests" });
+  let body;
+  try { body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {}; } catch { return res.status(400).json({ error: "bad json" }); }
   const col = fb.db.collection("pushSubs");
 
   if (body.action === "unsubscribe") {

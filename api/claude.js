@@ -39,6 +39,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  // Only allow calls from our own site (blocks people using the key from elsewhere)
+  const origin = req.headers.origin || req.headers.referer || "";
+  const allowed = ["https://castwise-fly.vercel.app", "http://localhost:5173", ...(process.env.ALLOWED_ORIGINS || "").split(",").filter(Boolean)];
+  // Compare exact origins — a prefix check would let "castwise-fly.vercel.app.evil.com" through.
+  let o = "";
+  try { o = origin ? new URL(origin).origin : ""; } catch { o = "bad"; }
+  if (o && !allowed.includes(o) && !/^https:\/\/castwise-fly-[a-z0-9-]+\.vercel\.app$/.test(o)) {
+    return res.status(403).json({ error: "Forbidden origin" });
+  }
+
   // Identify caller by IP (Vercel forwards real IP here)
   const ip =
     (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
@@ -67,8 +77,8 @@ export default async function handler(req, res) {
     try { uid = (await fb.auth.verifyIdToken(token)).uid; }
     catch { return res.status(401).json({ error: "Session expired. Please log in again." }); }
     try {
-      const snap = await fb.db.collection("users").where("uid", "==", uid).limit(1).get();
-      const isPro = !snap.empty && snap.docs[0].data().isPro === true;
+      // pros/{uid} is written only by the Stripe webhook (same check the Firestore rules use)
+      const isPro = (await fb.db.collection("pros").doc(uid).get()).exists;
       const day = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); // JST day
       const key = `ai:${uid}:${day}`;
       const used = await redis.incr(key);
@@ -80,13 +90,6 @@ export default async function handler(req, res) {
     } catch (e) {
       console.warn("Quota check failed:", e?.message); // fail open on infra errors
     }
-  }
-
-  // Only allow calls from our own site (blocks people using the key from elsewhere)
-  const origin = req.headers.origin || req.headers.referer || "";
-  const allowed = ["https://castwise-fly.vercel.app", "http://localhost:5173", ...(process.env.ALLOWED_ORIGINS || "").split(",").filter(Boolean)];
-  if (origin && !allowed.some(a => origin.startsWith(a)) && !/^https:\/\/castwise-fly-[a-z0-9-]+\.vercel\.app/.test(origin)) {
-    return res.status(403).json({ error: "Forbidden origin" });
   }
 
   // Never forward the raw client body — pin model and cap tokens so the key can't be abused

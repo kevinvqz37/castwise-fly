@@ -11,7 +11,8 @@ service cloud.firestore {
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.isPro == false;
+        && request.resource.data.isPro == false
+        && !request.resource.data.keys().hasAny(['stripeCustomerId', 'stripeSubscriptionId', 'proSince', 'stripeStatus']);
       allow update: if request.auth != null
         && resource.data.uid == request.auth.uid
         && !request.resource.data.diff(resource.data).affectedKeys()
@@ -24,37 +25,70 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Community feed
+    // Community feed. Anyone (logged in or not) can post, but a post can't claim to belong
+    // to another account, and can't arrive with fake likes / ratings. After posting, only the
+    // species name can be corrected — and only by the owner when the post has an owner.
+    function str(v, n) { return v == null || (v is string && v.size() <= n); }
+    function num(v) { return v == null || v is number; }
     match /catches/{id} {
       allow read: if true;
-      allow create, update: if request.resource.size() < 1000000;
+      allow create: if request.resource.data.size() < 40
+        && request.resource.data.fish is string && request.resource.data.fish.size() > 0 && request.resource.data.fish.size() <= 80
+        && str(request.resource.data.get('user', null), 60)
+        && str(request.resource.data.get('location', null), 200)
+        && str(request.resource.data.get('notes', null), 2000)
+        && str(request.resource.data.get('weight', null), 40)
+        && num(request.resource.data.get('lat', null)) && num(request.resource.data.get('lng', null))
+        && request.resource.data.get('likes', 0) == 0
+        && request.resource.data.get('rating', 0) == 0
+        && request.resource.data.get('comments', []).size() == 0
+        && (request.resource.data.get('ownerUid', null) == null
+            || (request.auth != null && request.resource.data.ownerUid == request.auth.uid));
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fish'])
+        && request.resource.data.fish is string && request.resource.data.fish.size() > 0 && request.resource.data.fish.size() <= 80
+        && (resource.data.get('ownerUid', null) == null
+            || (request.auth != null && resource.data.ownerUid == request.auth.uid));
     }
 
     // Tournament entries — PRO members only
     match /tournamentSubmissions/{id} {
       allow read: if true;
+      allow create: if isPro() && request.resource.data.userId == request.auth.uid
+        && !request.resource.data.keys().hasAny(['verification', 'lat', 'lng', 'photoLat', 'photoLng', 'deviceLat', 'deviceLng']);
+    }
+    // Anti-cheat GPS for each entry — private to the angler; the server reads it with the admin SDK.
+    match /tournamentVerifications/{id} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if isPro() && request.resource.data.userId == request.auth.uid;
     }
 
     // Analytics counters — written by the app, read only by the server (admin SDK)
     match /stats/{day} {
       allow read: if false;
-      allow create, update: if true;
+      allow create, update: if day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') && request.resource.data.size() < 300;
       allow delete: if false;
     }
     match /presence/{sid} {
       allow read: if false;
-      allow create, update, delete: if true;
+      allow create, update: if sid.size() <= 64
+        && request.resource.data.keys().hasOnly(['lastSeen', 'ref', 'lang', 'at'])
+        && sid.size() > 0;
+      allow delete: if true;
     }
     match /events/{id} {
       allow read: if false;
-      allow create: if true;
+      allow create: if request.resource.data.size() < 20;
       allow update, delete: if false;
     }
 
-    // Live anglers map
+    // Live anglers map — location is rounded to ~1 km by the app; each doc is one device.
     match /activeUsers/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, update: if request.resource.data.keys().hasOnly(['lat', 'lng', 'display', 'updatedAt', 'userId'])
+        && request.resource.data.userId == id
+        && request.resource.data.lat is number && request.resource.data.lng is number
+        && str(request.resource.data.get('display', null), 80);
+      allow delete: if true;
     }
   }
 }

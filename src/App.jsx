@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, lazy, Suspense } from "react";
+const OwnerDashboard = lazy(() => import("./OwnerDashboard")); // owner-only, kept out of the main bundle
 import React from "react";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, where, getDocs, serverTimestamp, Timestamp, limit } from "firebase/firestore";
-import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { Analytics } from "@vercel/analytics/react";
 import { EXTRA_FISH, EXTRA_FISH_EMOJI } from "./fishDataExtra";
@@ -12,16 +12,12 @@ import { buildCollection, makeSpeciesMatcher, shareCollectorCard } from "./catch
 import { tilesForBounds, fetchSstTile, buildSstLayer, sstAtSpot } from "./sstLayer";
 import { captureConditions, conditionChips, findPatterns } from "./conditions";
 import { pushSupported, needsHomeScreen, savedAlertSpots, enableAlerts, disableAlerts, sendTestAlert } from "./pushAlerts";
-import exifr from "exifr";
 import { initAnalytics, track } from "./analytics";
-import OwnerDashboard from "./OwnerDashboard";
 
 // Accounts that can see the 📊 owner dashboard (VITE_OWNER_EMAILS overrides; comma separated)
 const OWNER_EMAILS = (import.meta.env.VITE_OWNER_EMAILS || "kevin@shigematsutech.com,kevinvqz@gmail.com")
   .split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
 const isOwner = u => !!u?.email && OWNER_EMAILS.includes(u.email.toLowerCase());
-import { VectorTile } from "@mapbox/vector-tile";
-import Pbf from "pbf";
 
 // River lines for one map tile. Japan: 国土地理院 vector tiles (fast, CORS, free). Elsewhere: our /api/rivers Overpass proxy.
 async function fetchRiverTile(z, x, y, detail, signal) {
@@ -33,6 +29,7 @@ async function fetchRiverTile(z, x, y, detail, signal) {
     const r = await fetch(`https://cyberjapandata.gsi.go.jp/xyz/experimental_bvmap/${z}/${x}/${y}.pbf`, { signal });
     if (r.status === 404) return [];
     if (!r.ok) throw new Error(r.status);
+    const [{ VectorTile }, { default: Pbf }] = await Promise.all([import("@mapbox/vector-tile"), import("pbf")]); // map-only code, loaded on first river tile
     const vt = new VectorTile(new Pbf(new Uint8Array(await r.arrayBuffer())));
     const layer = vt.layers.river;
     if (!layer) return [];
@@ -84,7 +81,6 @@ async function claudeHeaders() {
   try { const t = await auth.currentUser?.getIdToken(); if (t) h.Authorization = `Bearer ${t}`; } catch { /* not logged in */ }
   return h;
 }
-const storage = getStorage(firebaseApp);
 
 // ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
 const ES_NOTE = "\n\nResponde íntegramente en español (español de Puerto Rico), conservando los encabezados con emoji.";
@@ -406,7 +402,7 @@ const JAPAN2_ID_MAP = {
 };
 
 // ─── CARIBBEAN SPRITE SHEET ──────────────────────────────────────────────────
-const CARIBBEAN_SPRITE_URL = "/caribbean_spritesheet.png";
+const CARIBBEAN_SPRITE_URL = "/caribbean_spritesheet.webp";
 const CARIBBEAN_COLS = 7;
 const CARIBBEAN_ROWS = 2;
 
@@ -468,7 +464,7 @@ const SPRITE_EMOJI = {
 };
 
 // Set SPRITE_SHEET_URL to "/fish_spritesheet.png" once image is in public/
-const SPRITE_SHEET_URL = "/fish_spritesheet.png";
+const SPRITE_SHEET_URL = "/fish_spritesheet.webp";
 const SPRITE_COLS = 7;
 const SPRITE_ROWS = 4;
 
@@ -1218,7 +1214,7 @@ const TOURNAMENTS = [
   },
 ];
 
-function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = false, onUpgrade }) {
+function TournamentView({ lang, profile, myCatches, user, db, isPro = false, onUpgrade }) {
   const [activeTournament, setActiveTournament] = useState(null);
   const [showJoin, setShowJoin] = useState(false);
   const [submitWeight, setSubmitWeight] = useState("");
@@ -1271,7 +1267,7 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
     const L = (ja, en) => (lang === "ja" ? ja : en);
     const msgs = []; let ok = true;
     let meta = null, dev = null;
-    try { meta = await exifr.parse(file, { tiff: true, exif: true, gps: true, xmp: false, icc: false, iptc: false }); } catch { meta = null; }
+    try { const { default: exifr } = await import("exifr"); meta = await exifr.parse(file, { tiff: true, exif: true, gps: true, xmp: false, icc: false, iptc: false }); } catch { meta = null; }
     try { dev = await getDevicePosition(); } catch { dev = null; }
 
     const taken = meta?.DateTimeOriginal || meta?.CreateDate;
@@ -1327,7 +1323,9 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
     setSubmitting(true);
     try {
       const weightNum = parseFloat(submitWeight.replace(/[^0-9.]/g, "")) || 0;
-      await addDoc(collection(db, "tournamentSubmissions"), {
+      // The public leaderboard doc carries no location. The anti-cheat GPS check goes in a
+      // separate doc only the angler (and the server) can read.
+      const subRef = await addDoc(collection(db, "tournamentSubmissions"), {
         tournamentId: activeTournament.id,
         userId: user.uid,
         userName: profile.name || "Angler",
@@ -1338,13 +1336,15 @@ function TournamentView({ lang, profile, myCatches, user, db, storage, isPro = f
         photoBase64: tourneyPhoto,
         createdAt: Date.now(),
         submittedAt: serverTimestamp(),
-        verification: {
-          photoTakenAt: photoCheck.exif.takenAt,
-          photoLat: photoCheck.exif.lat, photoLng: photoCheck.exif.lng,
-          deviceLat: photoCheck.device.lat, deviceLng: photoCheck.device.lng, deviceAccuracyM: photoCheck.device.acc,
-          checks: photoCheck.msgs,
-        },
+        verified: true,
       });
+      await setDoc(doc(db, "tournamentVerifications", subRef.id), {
+        submissionId: subRef.id, tournamentId: activeTournament.id, userId: user.uid, createdAt: Date.now(),
+        photoTakenAt: photoCheck.exif.takenAt ?? null,
+        photoLat: photoCheck.exif.lat ?? null, photoLng: photoCheck.exif.lng ?? null,
+        deviceLat: photoCheck.device?.lat ?? null, deviceLng: photoCheck.device?.lng ?? null, deviceAccuracyM: photoCheck.device?.acc ?? null,
+        checks: photoCheck.msgs,
+      }).catch(e => console.warn("verification save failed:", e));
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
@@ -1863,9 +1863,10 @@ function useActiveUsers(db, userLocation, sharingEnabled, userId) {
   async function writeLocation() {
     if (!sharingEnabled || !userLocation || !userId) return;
     try {
+      // Rounded to ~1 km: enough for the "anglers nearby" map, never someone's exact position.
       await setDoc(doc(db, "activeUsers", userId), {
-        lat: userLocation.lat,
-        lng: userLocation.lng,
+        lat: Math.round(userLocation.lat * 100) / 100,
+        lng: Math.round(userLocation.lng * 100) / 100,
         display: userLocation.display || "",
         updatedAt: Date.now(),
         userId,
@@ -5087,8 +5088,8 @@ If this is NOT a fish or the image is unclear, return:
         {tab === "Map" && <MapView selectedFish={null} lang={lang} userLocation={userLocation} onOpenLocalAI={() => setShowLocalAI(true)} activeUsers={activeUsers} locationSharing={locationSharing} setLocationSharing={setLocationSharing} weather={WEATHER} tideData={tideData} incrementAiUsage={incrementAiUsage} />}
 
         {/* ── WEATHER ── */}
-        {tab === "Owner" && isOwner(user) && <OwnerDashboard lang={lang} />}
-        {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} user={user} db={db} storage={storage} isPro={isPro} onUpgrade={() => startCheckout("monthly")} />}
+        {tab === "Owner" && isOwner(user) && <Suspense fallback={<div style={{ padding: 24 }}>…</div>}><OwnerDashboard lang={lang} /></Suspense>}
+        {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} user={user} db={db} isPro={isPro} onUpgrade={() => startCheckout("monthly")} />}
         {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} forecast={forecast7day} tides={tideData} rivers={riverConditions} userLocation={userLocation} isPro={isPro} onUpgrade={() => startCheckout("monthly")} />}
 
         {/* ── COMMUNITY ── */}
