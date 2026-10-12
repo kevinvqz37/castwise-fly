@@ -1,6 +1,6 @@
 // Service Worker — 釣りナビ PRO offline support
 // Network-first for pages (so new deploys show up immediately), cache-first for hashed build assets.
-const CACHE = "castwise-v3";
+const CACHE = "castwise-v4";
 const PRECACHE = ["/", "/index.html"];
 
 self.addEventListener("install", e => {
@@ -40,4 +40,28 @@ self.addEventListener("fetch", e => {
       return res;
     }))
   );
+});
+
+// ─── Bite alerts (Web Push from /api/cron-alerts) ─────────────────────────────
+self.addEventListener("push", e => {
+  let d;
+  try { d = e.data ? e.data.json() : {}; } catch { d = { title: "Castwise", body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "🎣 Castwise", {
+    body: d.body || "",
+    icon: "/icon-192.png",
+    badge: "/icon-96.png",
+    tag: d.tag || "bite",
+    renotify: true,
+    data: { url: d.url || "/" },
+  }));
+});
+
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const url = new URL(e.notification.data?.url || "/", self.location.origin).href;
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+    const open = list.find(c => c.url.startsWith(self.location.origin));
+    if (open) { open.navigate?.(url); return open.focus(); }
+    return self.clients.openWindow(url);
+  }));
 });

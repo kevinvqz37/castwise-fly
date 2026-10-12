@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import React from "react";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, setDoc, deleteDoc, doc, where, getDocs, serverTimestamp, Timestamp, limit } from "firebase/firestore";
@@ -10,7 +10,8 @@ import { FLY_SVG } from "./flyArt";
 import { shareCatchCard } from "./shareCard";
 import { buildCollection, makeSpeciesMatcher, shareCollectorCard } from "./catchCards";
 import { tilesForBounds, fetchSstTile, buildSstLayer, sstAtSpot } from "./sstLayer";
-import { captureConditions, conditionChips, findPatterns, todaysTides } from "./conditions";
+import { captureConditions, conditionChips, findPatterns } from "./conditions";
+import { pushSupported, needsHomeScreen, savedAlertSpots, enableAlerts, disableAlerts, sendTestAlert } from "./pushAlerts";
 import exifr from "exifr";
 import { initAnalytics, track } from "./analytics";
 import OwnerDashboard from "./OwnerDashboard";
@@ -830,7 +831,7 @@ const LEADERBOARD = [
 
 // ─── WEATHER UTILS ───────────────────────────────────────────────────────────
 // WMO weather code → condition label + icon
-// https://open-meteo.com/en/docs#weathervariables
+// (standard WMO 4677 present-weather codes; JMA/NWS forecasts are mapped onto these in api/_lib/gov.js)
 const WMO_CONDITIONS = {
   0:  { ja: "快晴",           en: "Clear Sky",        icon: "☀️" },
   1:  { ja: "ほぼ晴れ",       en: "Mainly Clear",     icon: "🌤️" },
@@ -1015,41 +1016,28 @@ function use7DayForecast(userLocation) {
   useEffect(() => {
     if (!userLocation) return;
     const { lat, lng } = userLocation;
-    (async () => {
-      try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}` +
-          `&daily=weather_code,temperature_2m_max,temperature_2m_min,windspeed_10m_max,precipitation_sum` +
-          `&timezone=auto&forecast_days=7&models=jma_seamless`;
-        const res = await fetch(url);
-        const d = await res.json();
-        const days = d.daily.time.map((date, i) => {
-          const code = d.daily.weather_code[i];
-          const cond = wmoToCondition(code);
-          const avgTemp = Math.round((d.daily.temperature_2m_max[i] + d.daily.temperature_2m_min[i]) / 2);
-          const wind = d.daily.windspeed_10m_max[i];
-          const rain = d.daily.precipitation_sum[i];
-          const fi = calcFishingIndex(code, wind * 1000 / 3600, avgTemp, true);
-          const dateObj = new Date(date);
-          const dayNames = { ja: ["日","月","火","水","木","金","土"], en: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"] };
-          return {
-            date,
-            dayJa: `${dateObj.getMonth()+1}/${dateObj.getDate()}(${dayNames.ja[dateObj.getDay()]})`,
-            dayEn: `${dayNames.en[dateObj.getDay()]} ${dateObj.getMonth()+1}/${dateObj.getDate()}`,
-            icon: cond.icon,
-            condJa: cond.ja,
-            condEn: cond.en,
-            maxTemp: Math.round(d.daily.temperature_2m_max[i]),
-            minTemp: Math.round(d.daily.temperature_2m_min[i]),
-            wind: Math.round(wind * 10 / 36) / 10, // km/h → m/s
-            rain: Math.round(rain * 10) / 10,
-            fishingIndex: fi,
-          };
-        });
-        setForecast(days);
-      } catch (err) {
-        console.warn("7-day forecast failed:", err);
-      }
-    })();
+    let alive = true;
+    fetch(`/api/weather?lat=${lat.toFixed(2)}&lng=${lng.toFixed(2)}`).then(r => (r.ok ? r.json() : null)).then(d => {
+      if (!alive || !d) return;
+      const dayNames = { ja: ["日","月","火","水","木","金","土"], en: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"] };
+      setForecast((d.week || []).map(w => {
+        const cond = wmoToCondition(w.wmo);
+        const avg = w.max != null && w.min != null ? (w.max + w.min) / 2 : (w.max ?? w.min ?? 18);
+        const rainPenalty = w.pop >= 70 ? 10 : w.pop >= 50 ? 5 : 0;
+        const dateObj = new Date(`${w.date}T00:00:00`);
+        return {
+          date: w.date,
+          dayJa: `${dateObj.getMonth()+1}/${dateObj.getDate()}(${dayNames.ja[dateObj.getDay()]})`,
+          dayEn: `${dayNames.en[dateObj.getDay()]} ${dateObj.getMonth()+1}/${dateObj.getDate()}`,
+          icon: cond.icon, condJa: cond.ja, condEn: cond.en,
+          maxTemp: w.max != null ? Math.round(w.max) : null,
+          minTemp: w.min != null ? Math.round(w.min) : null,
+          pop: w.pop,
+          fishingIndex: Math.max(10, calcFishingIndex(w.wmo ?? 2, 10, avg, true) - rainPenalty),
+        };
+      }));
+    }).catch(err => console.warn("7-day forecast failed:", err));
+    return () => { alive = false; };
   }, [userLocation?.lat, userLocation?.lng]);
 
   return forecast;
@@ -1953,10 +1941,8 @@ function getOrCreateUserId() {
 }
 
 // ─── REAL TIDE DATA ───────────────────────────────────────────────────────────
-// Today's highs and lows from modelled sea level (Open-Meteo Marine API,
-// `sea_level_height_msl`, MeteoFrance SMOC incl. tides, ~8 km). Less accurate right at the
-// coast and not a navigation tide table, but real — the old version guessed from the moon.
-// Inland, the model has no sea level: we return [] with .noData so the UI can say so.
+// Japan: JMA tide tables (潮位表) for the nearest of 40 Kyushu/Yamaguchi stations.
+// Puerto Rico/US: NOAA tide predictions for the nearest station. Via /api/tide.
 function useRealTideData(userLocation) {
   const [tides, setTides] = useState([]);
 
@@ -1964,19 +1950,14 @@ function useRealTideData(userLocation) {
     if (!userLocation) return;
     const { lat, lng } = userLocation;
     let alive = true;
-    const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat.toFixed(3)}&longitude=${lng.toFixed(3)}` +
-      `&hourly=sea_level_height_msl&timezone=auto&past_days=1&forecast_days=2`;
-    fetch(url).then(r => r.json()).then(d => {
+    fetch(`/api/tide?lat=${lat.toFixed(2)}&lng=${lng.toFixed(2)}`).then(r => (r.ok ? r.json() : null)).then(d => {
       if (!alive) return;
-      const offset = Number(d?.utc_offset_seconds) || 0;
-      const today = new Date(Date.now() + offset * 1000).toISOString().slice(0, 10); // location's local date
-      const list = todaysTides(d?.hourly?.time || [], d?.hourly?.sea_level_height_msl || [], today);
+      const list = (d?.today?.events || []).map(e => ({ time: e.time, type: e.type, height: e.height != null ? Number(e.height).toFixed(2) : null, source: d.source }));
+      list.station = d?.station || null;
+      list.source = d?.source || null;
       if (!list.length) list.noData = true;
       setTides(list);
-    }).catch(() => {
-      if (!alive) return;
-      const empty = []; empty.noData = true; setTides(empty);
-    });
+    }).catch(() => { if (alive) { const empty = []; empty.noData = true; setTides(empty); } });
     return () => { alive = false; };
   }, [userLocation?.lat, userLocation?.lng]);
 
@@ -1986,35 +1967,27 @@ function useRealTideData(userLocation) {
 
 
 // ─── RIVER CONDITIONS ─────────────────────────────────────────────────────────
-// Japan river monitoring — 国土交通省 川の防災情報
-// Real API: https://www.river.go.jp/kawabou/reference/suii_api.html
-const MONITORED_RIVERS = [
-  { id: "river_nagara", name: { ja: "長良川（岐阜）", en: "Nagara River (Gifu)" }, station: "156061285501010", fish: ["アユ","ヤマメ"], idealLevel: "1.0〜2.5m" },
-  { id: "river_kuma",   name: { ja: "球磨川（熊本）", en: "Kuma River (Kumamoto)" }, station: "205021285401010", fish: ["アユ","シーバス"], idealLevel: "0.8〜2.0m" },
-  { id: "river_okutama",name: { ja: "奥多摩川（東京）", en: "Okutama River (Tokyo)" }, station: "306081285101010", fish: ["ヤマメ","イワナ"], idealLevel: "0.3〜0.8m" },
-];
-
-function useRiverConditions() {
+// River conditions for the river spots nearest the angler, from /api/river:
+// Japan — JMA rain/flood warnings + 24 h AMeDAS rainfall (an estimate, JMA publishes no free
+// live flow feed); Puerto Rico — live USGS stream gauges + NWS flood alerts.
+const RIVER_SPOT_TYPE = /river|stream|creek|清流|渓流|河川|本流|急流|r[ií]o/i;
+function useRiverConditions(userLocation) {
   const [rivers, setRivers] = useState([]);
 
   useEffect(() => {
-    // Simulate river data — real implementation would call 川の防災情報 API
-    // API endpoint: https://www.river.go.jp/kawabou/ba/reference/suii
-    const mockRivers = MONITORED_RIVERS.map(r => ({
-      ...r,
-      level: (0.5 + Math.random() * 2.5).toFixed(2),
-      trend: ["rising","stable","falling"][Math.floor(Math.random()*3)],
-      clarity: ["clear","slightly_cloudy","cloudy"][Math.floor(Math.random()*3)],
-      temp: (8 + Math.random() * 14).toFixed(1),
-      updatedAt: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
-      fishable: Math.random() > 0.3,
-    }));
-    setRivers(mockRivers);
-
-    // In production, poll every 30 minutes:
-    // const iv = setInterval(fetchRealData, 30 * 60 * 1000);
-    // return () => clearInterval(iv);
-  }, []);
+    if (!userLocation) return;
+    const typeText = sp => (typeof sp.type === "object" ? `${sp.type.ja || ""} ${sp.type.en || ""}` : String(sp.type || ""));
+    const near = MAP_SPOTS
+      .filter(sp => sp.lat != null && RIVER_SPOT_TYPE.test(`${typeText(sp)} ${sp.name}`))
+      .map(sp => ({ sp, d: distKm(userLocation.lat, userLocation.lng, sp.lat, sp.lng) }))
+      .filter(x => x.d <= 80).sort((a, b) => a.d - b.d).slice(0, 3);
+    let alive = true;
+    Promise.all(near.map(({ sp, d }) =>
+      fetch(`/api/river?lat=${sp.lat.toFixed(2)}&lng=${sp.lng.toFixed(2)}`).then(r => (r.ok ? r.json() : null)).catch(() => null)
+        .then(data => ({ spot: sp, km: Math.round(d), data }))))
+      .then(list => { if (alive) setRivers(list.filter(x => x.data)); });
+    return () => { alive = false; };
+  }, [userLocation?.lat, userLocation?.lng]);
 
   return rivers;
 }
@@ -2071,48 +2044,6 @@ function useOfflineMode() {
   return { isOnline, lastOnline };
 }
 
-// ─── PUSH NOTIFICATIONS ───────────────────────────────────────────────────────
-async function requestNotificationPermission() {
-  if (!("Notification" in window)) return false;
-  if (Notification.permission === "granted") return true;
-  const result = await Notification.requestPermission();
-  return result === "granted";
-}
-
-function sendFishingAlert(title, body) {
-  if (Notification.permission !== "granted") return;
-  new Notification(title, {
-    body,
-    icon: "/favicon.svg",
-    badge: "/favicon.svg",
-    tag: "fishing-alert",
-  });
-}
-
-// Check conditions and fire notification if fishing index peaks
-function useFishingAlerts(weather, userLocation, lang) {
-  const alertedRef = useRef(false);
-
-  useEffect(() => {
-    if (!weather?.loaded || alertedRef.current) return;
-    if (weather.fishingIndex >= 88) {
-      alertedRef.current = true;
-      requestNotificationPermission().then(granted => {
-        if (granted) {
-          sendFishingAlert(
-            lang === "ja" ? "🔥 今が釣り日和！" : lang === "es" ? "🔥 ¡Condiciones óptimas de pesca!" : "🔥 Prime Fishing Conditions!",
-            lang === "ja"
-              ? `釣り指数 ${weather.fishingIndex}/100 — ${userLocation?.display || "現在地"}周辺が最高の状態です！`
-              : lang === "es" ? `Índice de pesca ${weather.fishingIndex}/100 — ¡Las condiciones cerca de ${userLocation?.display || "tu ubicación"} están excelentes!` : `Fishing index ${weather.fishingIndex}/100 — Conditions are excellent near ${userLocation?.display || "your location"}!`
-          );
-        }
-      });
-    }
-  }, [weather?.fishingIndex, weather?.loaded]);
-}
-
-
-
 // Hook that fetches real weather from Open-Meteo
 function useRealWeather(userLocation) {
   const [weather, setWeather] = useState(WEATHER_FALLBACK);
@@ -2120,52 +2051,41 @@ function useRealWeather(userLocation) {
   useEffect(() => {
     if (!userLocation) return;
     const { lat, lng } = userLocation;
-
-    (async () => {
-      try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}` +
-          `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,windspeed_10m,winddirection_10m,uv_index,surface_pressure` +
-          `&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto&forecast_days=1` +
-          `&models=jma_seamless`; // JMA model — best for Japan
-
-        const res = await fetch(url);
-        const d = await res.json();
-        const c = d.current;
-        const code = c.weather_code;
-        const cond = wmoToCondition(code);
-        const windspd = Math.round(c.windspeed_10m * 1000 / 3600 * 10) / 10; // km/h → m/s
-        const windDirLabel = windDir(c.winddirection_10m, "ja");
-        const windDirLabelEn = windDir(c.winddirection_10m, "en");
-        const fi = calcFishingIndex(code, c.windspeed_10m, c.temperature_2m, true);
-        const hourly = buildHourlySlots(d.hourly.time, d.hourly.temperature_2m, d.hourly.weather_code, lat);
-
-        setWeather({
-          temp: Math.round(c.temperature_2m),
-          feels: Math.round(c.apparent_temperature),
-          condition: { ja: cond.ja, en: cond.en },
-          conditionIcon: cond.icon,
-          humidity: c.relative_humidity_2m,
-          wind: {
-            ja: `${windDirLabel} ${windspd.toFixed(1)}m/s`,
-            en: `${windDirLabelEn} ${windspd.toFixed(1)}m/s`,
-          },
-          fishingIndex: fi,
-          moonPhase: { ja: moonPhaseEmoji("ja"), en: moonPhaseEmoji("en") },
-          uvIndex: c.uv_index !== undefined ? Math.round(c.uv_index) : "－",
-          waterTemp: null, // would need marine API
-          waterClarity: { ja: "現地確認を", en: "Check locally" },
-          flow: { ja: "現地確認を", en: "Check locally" },
-          hourly,
-          tides: [], // would need tide API
-          loaded: true,
-          lat, lng,
-        });
-      } catch (err) {
-        console.warn("Weather fetch failed:", err);
-        // Keep fallback but mark as attempted
-        setWeather(w => ({ ...w, condition: { ja: "取得失敗", en: "Unavailable" }, loaded: true }));
-      }
-    })();
+    let alive = true;
+    fetch(`/api/weather?lat=${lat.toFixed(2)}&lng=${lng.toFixed(2)}`).then(r => (r.ok ? r.json() : null)).then(d => {
+      if (!alive || !d) return;
+      const c = d.current || {};
+      const cond = wmoToCondition(c.wmo);
+      const temp = c.temp != null ? Math.round(c.temp) : null;
+      const windMs = c.windMs != null ? Math.round(c.windMs * 10) / 10 : null;
+      const dir = l => (c.windDeg != null ? `${windDir(c.windDeg, l)} ` : "");
+      const wind = windMs == null ? { ja: "－", en: "－" } : { ja: `${dir("ja")}${windMs.toFixed(1)}m/s`, en: `${dir("en")}${windMs.toFixed(1)}m/s` };
+      const fiFor = (code, t) => calcFishingIndex(code ?? 2, (windMs ?? 3) * 3.6, t ?? 18, true);
+      setWeather({
+        temp: temp ?? "－",
+        feels: null,
+        condition: { ja: c.textJa || cond.ja, en: c.textEn || cond.en, es: c.textEn || cond.en },
+        conditionIcon: cond.icon,
+        humidity: c.humidity ?? "－",
+        wind,
+        fishingIndex: fiFor(c.wmo, temp),
+        moonPhase: { ja: moonPhaseEmoji("ja"), en: moonPhaseEmoji("en") },
+        uvIndex: "－",
+        waterTemp: null,
+        waterClarity: { ja: "現地確認を", en: "Check locally" },
+        flow: { ja: "現地確認を", en: "Check locally" },
+        hourly: (d.blocks || []).map(b => {
+          const bt = b.temp != null ? Math.round(b.temp) : null;
+          return { time: b.label, timeEn: b.labelEn || b.label, temp: bt, pop: b.pop, icon: wmoToCondition(b.wmo).icon, fishing: fiFor(b.wmo, bt ?? temp) };
+        }),
+        tides: [],
+        precip24h: c.precip24h ?? null,
+        station: d.station || null, area: d.area || null, source: d.source, credit: d.credit,
+        loaded: true,
+        lat, lng,
+      });
+    }).catch(err => console.warn("weather failed:", err));
+    return () => { alive = false; };
   }, [userLocation?.lat, userLocation?.lng]);
 
   return weather;
@@ -3758,11 +3678,107 @@ function MapView({ selectedFish, lang, userLocation, onOpenLocalAI, activeUsers 
 
 // ─── MAP VIEW ────────────────────────────────────────────────────────────────
 
-// River conditions panel is hidden until it uses real 国土交通省 water-level data
-// (the hook below still returns simulated readings). Flip to true once it's real.
-const SHOW_RIVER_PANEL = false;
+// River conditions panel (real data via /api/river — see useRiverConditions).
+const SHOW_RIVER_PANEL = true;
 
-function WeatherView({ lang, weather, forecast, tides, rivers }) {
+// ─── BITE ALERTS ──────────────────────────────────────────────────────────────
+// Push notification each morning (~5–6 am local) when a chosen spot scores 80+ for the
+// morning or evening window, plus flood / storm warnings for those spots (free for all).
+// Free: 1 spot. PRO: up to 10. Server: api/alerts.js + api/cron-alerts.js.
+const FRESH_SPOT_TYPE = /ダム|湖|池|reservoir|lake|lago|pond|embalse|管理釣り場/i;
+const spotKind = sp => {
+  const t = `${typeof sp.type === "object" ? `${sp.type.ja || ""} ${sp.type.en || ""}` : String(sp.type || "")} ${sp.name}`;
+  return RIVER_SPOT_TYPE.test(t) ? "river" : FRESH_SPOT_TYPE.test(t) ? "fresh" : "salt";
+};
+function BiteAlerts({ lang, userLocation, isPro, onUpgrade }) {
+  const T = (ja, en, es) => (lang === "ja" ? ja : lang === "es" ? es : en);
+  const limit = isPro ? 10 : 1;
+  const [on, setOn] = useState(() => !!savedAlertSpots()?.length && pushSupported() && Notification.permission === "granted");
+  const [picked, setPicked] = useState(() => savedAlertSpots() || []);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const near = useMemo(() => {
+    if (!userLocation) return [];
+    return MAP_SPOTS.filter(sp => sp.lat != null)
+      .map(sp => ({ sp, d: distKm(userLocation.lat, userLocation.lng, sp.lat, sp.lng) }))
+      .filter(x => x.d <= 150).sort((a, b) => a.d - b.d).slice(0, 15);
+  }, [userLocation?.lat, userLocation?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
+  const box = { background: "#f3f8fc", border: "2px solid #c9dcef", borderRadius: 14, padding: "12px 14px", marginBottom: 14 };
+  const btn = (bg, fg = "#fff") => ({ padding: "10px 12px", borderRadius: 10, border: "none", background: bg, color: fg, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" });
+  const errText = e => ({
+    denied: T("通知がブロックされています。ブラウザ／iPhoneの設定で通知を許可してください。", "Notifications are blocked. Allow them in your browser / phone settings.", "Las notificaciones están bloqueadas. Permítelas en los ajustes del navegador o del teléfono."),
+    unsupported: T("このブラウザは通知に対応していません。", "This browser doesn't support push notifications.", "Este navegador no admite notificaciones push."),
+    "not-configured": T("通知サーバーの準備中です。しばらくお待ちください。", "Alerts aren't switched on on the server yet.", "Las alertas aún no están activadas en el servidor."),
+  }[e.message] || T("保存できませんでした：", "Couldn't save: ", "No se pudo guardar: ") + e.message);
+
+  if (!pushSupported() && !needsHomeScreen()) return null;
+  if (needsHomeScreen()) return (
+    <div style={box}>
+      <div style={{ fontWeight: 800, marginBottom: 4 }}>🔔 {T("釣れる日の朝に通知", "Bite alerts", "Alertas de pesca")}</div>
+      <div style={{ fontSize: "0.85rem", lineHeight: 1.6, color: "#3a4a5a" }}>{T("iPhoneで通知を受け取るには、共有ボタン（□↑）→「ホーム画面に追加」でアプリを追加し、ホーム画面から開いてください。", "On iPhone, tap Share (□↑) → “Add to Home Screen”, then open the app from your Home Screen to turn on alerts.", "En iPhone, toca Compartir (□↑) → “Añadir a pantalla de inicio” y abre la app desde ahí para activar las alertas.")}</div>
+    </div>
+  );
+
+  const toggle = id => setPicked(p => p.includes(id) ? p.filter(x => x !== id) : p.length >= limit ? (isPro ? p : [id]) : [...p, id]);
+  const save = async () => {
+    const spots = near.filter(x => picked.includes(x.sp.id)).map(x => ({ id: x.sp.id, name: x.sp.name, lat: x.sp.lat, lng: x.sp.lng, kind: spotKind(x.sp) }));
+    if (!spots.length) { setMsg(T("場所を1つ選んでください。", "Pick at least one spot.", "Elige al menos un lugar.")); return; }
+    setBusy(true); setMsg("");
+    try {
+      const r = await enableAlerts({ spots, lang, headers: await claudeHeaders() });
+      setOn(true); setOpen(false);
+      setMsg(T(`✅ ${r.saved}か所で通知ON。毎朝5時台にお知らせします。`, `✅ Alerts on for ${r.saved} spot${r.saved > 1 ? "s" : ""}. Checked every morning around 5 am.`, `✅ Alertas activadas para ${r.saved} lugar${r.saved > 1 ? "es" : ""}. Se revisan cada mañana hacia las 5 am.`));
+    } catch (e) { setMsg(errText(e)); }
+    setBusy(false);
+  };
+  const off = async () => { setBusy(true); await disableAlerts(); setOn(false); setPicked([]); setMsg(T("通知をOFFにしました。", "Alerts turned off.", "Alertas desactivadas.")); setBusy(false); };
+  const test = async () => { try { await sendTestAlert(lang); setMsg(T("テスト通知を送りました。", "Test sent.", "Prueba enviada.")); } catch (e) { setMsg(errText(e)); } };
+  const names = near.filter(x => picked.includes(x.sp.id)).map(x => x.sp.name);
+
+  return (
+    <div style={box}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <div style={{ fontWeight: 800 }}>🔔 {T("釣れる日の朝に通知", "Bite alerts", "Alertas de pesca")}</div>
+        {on && <span style={{ background: "#2d7a3a", color: "#fff", borderRadius: 99, padding: "2px 10px", fontSize: "0.74rem", fontWeight: 700 }}>ON</span>}
+      </div>
+      <div style={{ fontSize: "0.84rem", lineHeight: 1.6, color: "#3a4a5a", marginTop: 4 }}>
+        {T("毎朝5時台に、選んだ場所の天気・潮・月齢・川の状態をチェック。朝か夕マズメが80点以上の日と、大雨・洪水・波浪などの警報が出た日に通知します。",
+           "Every morning around 5 am we check weather, tide, moon and river levels at your spots, and notify you when the morning or evening bite scores 80+ — or when a flood or storm warning is out.",
+           "Cada mañana hacia las 5 am revisamos el tiempo, la marea, la luna y los ríos en tus lugares, y te avisamos si la mañana o la tarde llega a 80+, o si hay aviso de inundación o tormenta.")}
+      </div>
+      {on && !open && names.length > 0 && <div style={{ fontSize: "0.84rem", marginTop: 6 }}>📍 {names.join("、")}</div>}
+      {(open || !on) && (
+        near.length === 0
+          ? <div style={{ fontSize: "0.84rem", color: "#7a6a5a", marginTop: 8 }}>{T("近く（150km以内）に登録スポットがありません。", "No spots within 150 km of you yet.", "Aún no hay lugares a menos de 150 km.")}</div>
+          : <div style={{ marginTop: 8, display: "grid", gap: 4, maxHeight: 260, overflowY: "auto" }}>
+              {near.map(({ sp, d }) => {
+                const sel = picked.includes(sp.id);
+                return (
+                  <label key={sp.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.86rem", padding: "6px 8px", borderRadius: 8, background: sel ? "#dcebf8" : "#fff", border: "1px solid #d5e2ee", cursor: "pointer" }}>
+                    <input type="checkbox" checked={sel} onChange={() => toggle(sp.id)} />
+                    <span style={{ flex: 1 }}>{sp.icon} {sp.name}</span>
+                    <span style={{ color: "#7a8a9a", fontSize: "0.76rem" }}>{Math.round(d)}km</span>
+                  </label>
+                );
+              })}
+            </div>
+      )}
+      {!isPro && (open || !on) && near.length > 1 && (
+        <div style={{ fontSize: "0.78rem", color: "#6a4ab0", marginTop: 6 }}>💎 {T("無料は1か所まで。PROなら10か所まで通知できます。", "Free: 1 spot. PRO: up to 10 spots.", "Gratis: 1 lugar. PRO: hasta 10.")} <button onClick={onUpgrade} style={{ background: "none", border: "none", color: "#9060e0", fontWeight: 800, cursor: "pointer", padding: 0, fontFamily: "inherit", fontSize: "inherit", textDecoration: "underline" }}>{T("PROにする", "Go PRO", "Hazte PRO")}</button></div>
+      )}
+      <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+        {(open || !on) && near.length > 0 && <button disabled={busy} onClick={save} style={{ ...btn("#0d7377"), flex: 1, opacity: busy ? 0.6 : 1 }}>{busy ? "…" : on ? T("保存", "Save", "Guardar") : T("通知をONにする", "Turn on alerts", "Activar alertas")}</button>}
+        {on && !open && <button onClick={() => setOpen(true)} style={{ ...btn("#e0ecf6", "#1d5fa8"), flex: 1 }}>{T("場所を変更", "Change spots", "Cambiar lugares")}</button>}
+        {on && <button onClick={test} style={btn("#e0ecf6", "#1d5fa8")}>{T("テスト", "Test", "Probar")}</button>}
+        {on && <button disabled={busy} onClick={off} style={btn("#f3e3e3", "#8a2020")}>{T("OFF", "Off", "Apagar")}</button>}
+      </div>
+      {msg && <div style={{ fontSize: "0.82rem", marginTop: 8, color: "#2a3a4a" }}>{msg}</div>}
+    </div>
+  );
+}
+
+function WeatherView({ lang, weather, forecast, tides, rivers, userLocation, isPro, onUpgrade }) {
   const WEATHER = weather || {};
   const fi = WEATHER.fishingIndex ?? 75;
   const fiColor = fi >= 80 ? "#2d7a3a" : fi >= 60 ? "#c06a10" : "#b82030";
@@ -3775,7 +3791,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
         <h2 style={{ margin: 0, fontSize: "1.2rem" }}>{lang === "ja" ? "釣り天気予報" : lang === "es" ? "Clima de pesca" : "Fishing Weather"}</h2>
         {WEATHER.loaded ? (
-          <span style={{ fontSize: "0.78rem", color: "#0d7377", fontWeight: 600 }}>🌐 Open-Meteo · JMA</span>
+          <span style={{ fontSize: "0.78rem", color: "#0d7377", fontWeight: 600 }}>🌐 {WEATHER.source === "nws" ? "NOAA / NWS" : (lang === "ja" ? "気象庁" : "JMA")}{WEATHER.station ? ` · ${WEATHER.station}` : ""}</span>
         ) : (
           <span style={{ fontSize: "0.78rem", color: "#7a7a6a" }}>⏳ {lang === "ja" ? "位置情報待ち..." : lang === "es" ? "Esperando el GPS..." : "Waiting for GPS..."}</span>
         )}
@@ -3797,7 +3813,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <div style={{ fontSize: "2.8rem", lineHeight: 1, fontWeight: 700 }}>{WEATHER.temp}℃</div>
-            <div style={{ fontSize: "0.92rem", color: "#5a5a4a" }}>{lang === "ja" ? `体感${WEATHER.feels}℃` : lang === "es" ? `Sensación ${WEATHER.feels}℃` : `Feels ${WEATHER.feels}℃`} · {(WEATHER.condition?.[lang] || WEATHER.condition?.en || WEATHER.condition?.ja || "")}</div>
+            <div style={{ fontSize: "0.92rem", color: "#5a5a4a" }}>{WEATHER.feels != null ? <>{lang === "ja" ? `体感${WEATHER.feels}℃` : lang === "es" ? `Sensación ${WEATHER.feels}℃` : `Feels ${WEATHER.feels}℃`} · </> : null}{(WEATHER.condition?.[lang] || WEATHER.condition?.en || WEATHER.condition?.ja || "")}</div>
             <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
               {[{ icon: "💨", v: WEATHER.wind?.[lang] || "－" }, { icon: "💧", v: `${WEATHER.humidity ?? "－"}%` }, { icon: "🌡️", v: WEATHER.waterTemp != null ? `${lang === "ja" ? "水温" : lang === "es" ? "Agua" : "Water"}: ${WEATHER.waterTemp}℃` : (lang === "ja" ? "水温: 現地確認" : lang === "es" ? "Agua: verifica en el sitio" : "Water: check locally") }, { icon: "🌙", v: WEATHER.moonPhase?.[lang] || "－" }].map(i => <span key={i.v} style={{ fontSize: "1rem", color: "#3a3a2a", background: "#fffdf8", borderRadius: 8, padding: "3px 8px" }}>{i.icon} {i.v}</span>)}
             </div>
@@ -3814,13 +3830,13 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
         <div style={{ display: "flex", gap: 5, overflowX: "auto", paddingBottom: 4 }}>
           {(WEATHER.hourly || []).map(h => (
             <div key={h.time} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, minWidth: 42 }}>
-              <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{h.time}</div>
+              <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{lang === "ja" ? h.time : (h.timeEn || h.time)}</div>
               <div style={{ fontSize: "1rem" }}>{h.icon}</div>
               <div style={{ width: 34, height: 56, background: "#f8f4ec", borderRadius: 6, position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: `${h.fishing}%`, borderRadius: "4px 4px 0 0", background: h.fishing >= 85 ? "linear-gradient(180deg,#FFE500,#2d6a4f)" : h.fishing >= 70 ? "linear-gradient(180deg,#f4a261,#6b4226)" : "linear-gradient(180deg,#556677,#334455)" }} />
               </div>
               <div style={{ fontSize: "1.05rem", color: h.fishing >= 85 ? "#74c69d" : "#8899aa", fontWeight: 700 }}>{h.fishing}</div>
-              <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{h.temp}℃</div>
+              <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{h.temp != null ? `${h.temp}℃` : h.pop != null ? `☔${h.pop}%` : ""}</div>
             </div>
           ))}
         </div>
@@ -3844,7 +3860,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
         <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 12, letterSpacing: "0.07em", display: "flex", justifyContent: "space-between" }}>
           <span>{lang === "ja" ? "🌊 本日の潮汐" : lang === "es" ? "🌊 MAREAS DE HOY" : "🌊 TODAY'S TIDES"}</span>
-          <span style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{lang === "ja" ? "※海洋モデル（Open-Meteo）・航海用ではありません" : lang === "es" ? "Modelo oceánico (Open-Meteo), no apto para navegación" : "Ocean model (Open-Meteo) — not for navigation"}</span>
+          <span style={{ fontSize: "0.75rem", color: "#9a9a8a" }}>{tides.station ? (lang === "ja" ? `※${tides.station}（${tides.source === "jma" ? "気象庁 潮位表" : "NOAA"}）` : `${tides.station} (${tides.source === "jma" ? "JMA tide table" : "NOAA"})`) : ""}</span>
         </div>
         {tides.length > 0 ? tides.map(td => (
           <div key={td.time} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: td.type === "high" ? "#e0f2f2" : "#f5f0e8", borderRadius: 10, marginBottom: 6, border: `1px solid ${td.type === "high" ? "#74c69d" : "#e0dbd0"}` }}>
@@ -3860,7 +3876,7 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
         )) : (
           <div style={{ textAlign: "center", color: "#9a9a8a", fontSize: "0.88rem", padding: "12px 0" }}>
             {tides.noData
-              ? (lang === "ja" ? "🏞 この場所の潮汐データはありません（内陸部など）" : lang === "es" ? "🏞 No hay datos de marea para este lugar (zona interior)" : "🏞 No tide data for this location (inland)")
+              ? (lang === "ja" ? "🏞 近くに潮位観測点がありません（内陸部・対象外の地域）" : lang === "es" ? "🏞 No hay estación de mareas cerca" : "🏞 No tide station near this location")
               : (lang === "ja" ? "📍 位置情報を許可すると潮汐を表示" : lang === "es" ? "📍 Permite la ubicación para ver las mareas" : "📍 Allow location for tide data")}
           </div>
         )}
@@ -3885,8 +3901,8 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
                   </div>
                   <div style={{ fontSize: "1.4rem", marginBottom: 4 }}>{day.icon}</div>
                   <div style={{ fontWeight: 900, fontSize: "1.1rem", color, marginBottom: 2 }}>{fi}</div>
-                  <div style={{ fontSize: "0.72rem", color: "#5a5a4a" }}>{day.maxTemp}°/{day.minTemp}°</div>
-                  {day.rain > 0 && <div style={{ fontSize: "0.68rem", color: "#1565a0" }}>💧{day.rain}mm</div>}
+                  <div style={{ fontSize: "0.72rem", color: "#5a5a4a" }}>{day.maxTemp ?? "—"}°/{day.minTemp ?? "—"}°</div>
+                  {day.pop != null && <div style={{ fontSize: "0.68rem", color: "#1565a0" }}>☔{day.pop}%</div>}
                 </div>
               );
             })}
@@ -3905,54 +3921,50 @@ function WeatherView({ lang, weather, forecast, tides, rivers }) {
       )}
 
       {/* ── RIVER CONDITIONS ── */}
-      {SHOW_RIVER_PANEL && rivers.length > 0 && (
-        <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
-          <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 4, letterSpacing: "0.07em" }}>
-            {lang === "ja" ? "🏞️ 河川状況" : lang === "es" ? "🏞️ CONDICIONES DEL RÍO" : "🏞️ RIVER CONDITIONS"}
-          </div>
-          <div style={{ fontSize: "0.78rem", color: "#9a9a8a", marginBottom: 12 }}>
-            {lang === "ja" ? "国土交通省 川の防災情報（模擬データ）" : lang === "es" ? "Ministerio de Tierras e Infraestructura — Info de ríos (simulado)" : "Ministry of Land, Infrastructure — River Info (simulated)"}
-          </div>
-          {rivers.map(r => {
-            const trendIcon = r.trend === "rising" ? "↑" : r.trend === "falling" ? "↓" : "→";
-            const trendColor = r.trend === "rising" ? "#b82030" : r.trend === "falling" ? "#2d7a3a" : "#5a5a4a";
-            const clarityLabel = { clear: { ja: "澄み", en: "Clear" }, slightly_cloudy: { ja: "やや濁り", en: "Slightly cloudy" }, cloudy: { ja: "濁り", en: "Cloudy" } };
-            return (
-              <div key={r.id} style={{ background: r.fishable ? "#e0f2f2" : "#f8e8d0", border: `2px solid ${r.fishable ? "#74c69d" : "#d0b090"}`, borderRadius: 12, padding: "12px 14px", marginBottom: 8 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{(r.name?.[lang] || r.name?.en || r.name?.ja || "")}</div>
-                    <div style={{ fontSize: "0.78rem", color: "#5a5a4a" }}>🐟 {r.fish.join("・")}</div>
+      {WEATHER.credit && <div style={{ fontSize: "0.7rem", color: "#9a9a8a", margin: "-6px 2px 14px" }}>{lang === "ja" ? WEATHER.credit.ja : WEATHER.credit.en}</div>}
+      {SHOW_RIVER_PANEL && rivers.length > 0 && (() => {
+        const ST = {
+          normal: { c: "#2d7a3a", bg: "#e0f2f2", ja: "平水見込み", en: "Normal", es: "Normal" },
+          rising: { c: "#b88a00", bg: "#fdf6dc", ja: "やや増水の可能性", en: "May be rising", es: "Puede subir" },
+          high: { c: "#c06a10", bg: "#f8e8d0", ja: "増水注意", en: "High water", es: "Crecida" },
+          danger: { c: "#b82030", bg: "#f8d8d8", ja: "危険・釣行中止", en: "Dangerous — stay off", es: "Peligro — no pescar" },
+          unknown: { c: "#7a7a6a", bg: "#f5f0e8", ja: "情報なし", en: "No data", es: "Sin datos" },
+        };
+        const T = (ja, en, es) => (lang === "ja" ? ja : lang === "es" ? (es || en) : en);
+        const credit = rivers[0]?.data?.credit;
+        return (
+          <div style={{ background: "#fffdf8", border: "2px solid #e0dbd0", borderRadius: 18, padding: 16, marginBottom: 14 }}>
+            <div style={{ fontSize: "0.95rem", color: "#5a5a4a", marginBottom: 4, letterSpacing: "0.07em" }}>🏞️ {T("近くの河川状況", "NEARBY RIVER CONDITIONS", "RÍOS CERCANOS")}</div>
+            <div style={{ fontSize: "0.75rem", color: "#9a9a8a", marginBottom: 12 }}>
+              {rivers[0]?.data?.source === "usgs" ? T("USGS 水位観測所の実測値・米国立気象局の警報", "Live USGS gauges + NWS alerts", "Medidores USGS en vivo + alertas del NWS") : T("気象庁の雨量（アメダス）と大雨・洪水の警報・注意報から推定", "Estimated from JMA rainfall (AMeDAS) and flood warnings", "Estimado con lluvia y avisos de la JMA")}
+            </div>
+            {rivers.map(({ spot, km, data }) => {
+              const st = ST[data.status] || ST.unknown;
+              const riverWarn = (data.warnings || []).filter(w => w.river);
+              return (
+                <div key={spot.id} style={{ background: st.bg, border: `2px solid ${st.c}55`, borderRadius: 12, padding: "11px 13px", marginBottom: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{spot.name}</div>
+                      <div style={{ fontSize: "0.75rem", color: "#5a5a4a" }}>📏 {km} km</div>
+                    </div>
+                    <span style={{ background: st.c, color: "#fff", borderRadius: 99, padding: "3px 10px", fontSize: "0.76rem", fontWeight: 700, whiteSpace: "nowrap" }}>{T(st.ja, st.en, st.es)}</span>
                   </div>
-                  <span style={{ background: r.fishable ? "#2d7a3a" : "#c06a10", color: "white", borderRadius: 99, padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
-                    {r.fishable ? (lang === "ja" ? "釣行可" : lang === "es" ? "Pescable" : "Fishable") : (lang === "ja" ? "要確認" : lang === "es" ? "Verificar" : "Check")}
-                  </span>
+                  <div style={{ fontSize: "0.82rem", color: "#3a3a2e", marginTop: 6, lineHeight: 1.55 }}>
+                    {data.rain24h != null && <div>🌧 {T(`24時間雨量 ${data.rain24h}mm`, `24h rain ${data.rain24h} mm`, `Lluvia 24h ${data.rain24h} mm`)}{data.rainStation ? `（${data.rainStation}）` : ""}</div>}
+                    {data.gauge?.flow && <div>🌊 {T("流量", "Flow", "Caudal")} {data.gauge.flow.m3s} m³/s {data.gauge.flow.trend === "up" ? "↑" : data.gauge.flow.trend === "down" ? "↓" : "→"}{data.gauge.stage ? ` · ${T("水位", "Stage", "Nivel")} ${data.gauge.stage.m} m` : ""}</div>}
+                    {data.gauge && <div style={{ fontSize: "0.72rem", color: "#7a7a6a" }}>USGS {data.gauge.name} ({data.gauge.km} km)</div>}
+                    {riverWarn.length > 0 && <div style={{ marginTop: 4, display: "flex", flexWrap: "wrap", gap: 4 }}>{riverWarn.map(w => <span key={w.code} style={{ fontSize: "0.72rem", background: w.level === "advisory" || w.level === "watch" ? "#f6c500" : "#b82030", color: w.level === "advisory" || w.level === "watch" ? "#1a1a14" : "#fff", borderRadius: 99, padding: "2px 8px", fontWeight: 700 }}>⚠ {lang === "ja" ? w.ja : w.en}</span>)}</div>}
+                  </div>
                 </div>
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "水位" : lang === "es" ? "Nivel" : "Level"}</span><br/><span style={{ fontWeight: 700 }}>{r.level}m <span style={{ color: trendColor }}>{trendIcon}</span></span></div>
-                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "水温" : lang === "es" ? "Temp." : "Temp"}</span><br/><span style={{ fontWeight: 700 }}>{r.temp}℃</span></div>
-                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "透明度" : lang === "es" ? "Claridad" : "Clarity"}</span><br/><span style={{ fontWeight: 700, fontSize: "0.88rem" }}>{clarityLabel[r.clarity]?.[lang] || r.clarity}</span></div>
-                  <div><span style={{ fontSize: "0.75rem", color: "#7a7a6a" }}>{lang === "ja" ? "適正水位" : lang === "es" ? "Ideal" : "Ideal"}</span><br/><span style={{ fontSize: "0.82rem", color: "#0d7377" }}>{r.idealLevel}</span></div>
-                </div>
-                <div style={{ fontSize: "0.72rem", color: "#9a9a8a", marginTop: 6 }}>🕐 {lang === "ja" ? `${r.updatedAt}更新` : lang === "es" ? `Actualizado ${r.updatedAt}` : `Updated ${r.updatedAt}`}</div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+            {credit && <div style={{ fontSize: "0.7rem", color: "#9a9a8a", marginTop: 4 }}>{lang === "ja" ? credit.ja : credit.en}</div>}
+          </div>
+        );
+      })()}
 
-      {/* ── NOTIFICATION BUTTON ── */}
-      {"Notification" in window && Notification.permission !== "granted" && (
-        <button onClick={() => requestNotificationPermission().then(ok => ok && sendFishingAlert(lang === "ja" ? "🎣 通知テスト" : lang === "es" ? "🎣 Alerta de prueba" : "🎣 Test Alert", lang === "ja" ? "釣り指数が高い時に通知します！" : lang === "es" ? "¡Te avisaremos cuando las condiciones estén óptimas!" : "You'll be alerted when conditions peak!"))}
-          style={{ width: "100%", padding: "12px", background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 14, color: "#0d7377", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", fontWeight: 700, marginBottom: 14 }}>
-          🔔 {lang === "ja" ? "好条件の時に通知を受け取る" : lang === "es" ? "Recibe aviso cuando las condiciones estén óptimas" : "Get notified when conditions peak"}
-        </button>
-      )}
-      {"Notification" in window && Notification.permission === "granted" && (
-        <div style={{ background: "#e0f2f2", border: "2px solid #FFE500", borderRadius: 12, padding: "10px 14px", marginBottom: 14, fontSize: "0.88rem", color: "#1a4a22", fontWeight: 600 }}>
-          🔔 {lang === "ja" ? "通知ON — 釣り指数88+で自動アラート" : lang === "es" ? "Notificaciones activadas — Aviso automático con índice 88+" : "Notifications ON — Auto-alert at fishing index 88+"}
-        </div>
-      )}
+      <BiteAlerts lang={lang} userLocation={userLocation} isPro={isPro} onUpgrade={onUpgrade} />
     </div>
   );
 }
@@ -4084,7 +4096,7 @@ export default function CastWiseJapan() {
     }).catch(() => {});
     return () => { alive = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const [tab, setTab] = useState("Explore");
+  const [tab, setTab] = useState(() => { const t = new URLSearchParams(window.location.search).get("tab"); return ["Explore", "Map", "Weather", "FishGuide", "Community", "Profile"].includes(t) ? t : "Explore"; });
   const [selectedFish, setSelectedFish] = useState(null);
   const [gearTab, setGearTab] = useState("gear");
   const [catches, setCatches] = useState([]);
@@ -4145,9 +4157,8 @@ export default function CastWiseJapan() {
   const WEATHER = useRealWeather(userLocation);
   const forecast7day = use7DayForecast(userLocation);
   const tideData = useRealTideData(userLocation);
-  const riverConditions = useRiverConditions();
+  const riverConditions = useRiverConditions(userLocation);
   const { isOnline } = useOfflineMode();
-  useFishingAlerts(WEATHER, userLocation, lang);
   const { journal, addEntry, deleteEntry } = useFishingJournal();
   const [journalOpen, setJournalOpen] = useState(false);
   const [journalEntry, setJournalEntry] = useState({ title: "", notes: "", weather: "", water: "", flies: "", rating: 3 });
@@ -5078,7 +5089,7 @@ If this is NOT a fish or the image is unclear, return:
         {/* ── WEATHER ── */}
         {tab === "Owner" && isOwner(user) && <OwnerDashboard lang={lang} />}
         {tab === "Tournament" && <TournamentView lang={lang} profile={profile} myCatches={myCatches} user={user} db={db} storage={storage} isPro={isPro} onUpgrade={() => startCheckout("monthly")} />}
-        {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} forecast={forecast7day} tides={tideData} rivers={riverConditions} />}
+        {tab === "Weather" && <WeatherView lang={lang} weather={WEATHER} forecast={forecast7day} tides={tideData} rivers={riverConditions} userLocation={userLocation} isPro={isPro} onUpgrade={() => startCheckout("monthly")} />}
 
         {/* ── COMMUNITY ── */}
         {tab === "Community" && (

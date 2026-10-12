@@ -32,5 +32,15 @@
       ]
     }
   ],
-  "cleanUrls": true
+  "cleanUrls": true,
+  "crons": [
+    {
+      "path": "/api/cron-alerts?region=jp",
+      "schedule": "0 20 * * *"
+    },
+    {
+      "path": "/api/cron-alerts?region=pr",
+      "schedule": "0 9 * * *"
+    }
+  ]
 }

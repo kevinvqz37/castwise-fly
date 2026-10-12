@@ -1,10 +1,10 @@
 // Conditions saved with every catch, and the personal patterns found in them.
 //
 // Saved for every catch: time of day, moon phase, air temp + weather (from the app's live
-// weather). For sea/shore species we also save the tide stage and water temperature from the
-// Open-Meteo Marine API (`sea_level_height_msl` = modelled sea level incl. tides, MeteoFrance
-// SMOC; `sea_surface_temperature`). The marine model is ~8 km and less accurate right at the
-// coast, so it's skipped for freshwater catches where it would be meaningless.
+// weather, JMA / NWS). For sea/shore species we also save the tide stage — from the official
+// tide tables via /api/tide (JMA 潮位表 in Japan, NOAA predictions in Puerto Rico) — and the
+// water temperature from NOAA's satellite SST grid (/api/sst). Skipped for freshwater catches.
+import { fetchSstTile, sstAtSpot } from "./sstLayer";
 
 const T = (lang, ja, en, es) => (lang === "ja" ? ja : lang === "es" ? (es || en) : en);
 
@@ -45,32 +45,29 @@ export function moonIndex(t) {
   return Math.floor(phase * 8 + 0.5) % 8;
 }
 
-// Tide stage at hour index i of an hourly sea-level series.
-export function tideStage(levels, i) {
-  const at = k => levels[k];
-  if (at(i) == null || at(i - 1) == null || at(i + 1) == null) return null;
-  const win = [-2, -1, 0, 1, 2].map(d => at(i + d)).filter(v => v != null);
-  const hi = Math.max(...win), lo = Math.min(...win), range = hi - lo;
-  if (range > 0 && at(i) >= hi - range * 0.15 && at(i - 1) <= at(i) && at(i + 1) <= at(i)) return "high";
-  if (range > 0 && at(i) <= lo + range * 0.15 && at(i - 1) >= at(i) && at(i + 1) >= at(i)) return "low";
-  return at(i + 1) > at(i - 1) ? "rising" : "falling";
+// Tide stage at a local "HH:MM" from that day's high/low events (official tide tables).
+export function stageAt(events, hhmm) {
+  if (!events?.length) return null;
+  const m = t => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  const now = m(hhmm);
+  const near = events.find(e => Math.abs(m(e.time) - now) <= 45);
+  if (near) return near.type;
+  const prev = [...events].reverse().find(e => m(e.time) < now), next = events.find(e => m(e.time) > now);
+  if (prev) return prev.type === "low" ? "rising" : "falling";
+  if (next) return next.type === "high" ? "rising" : "falling";
+  return null;
 }
 
-async function marineAt(lat, lng, t, timeoutMs = 4000) {
+async function tideAndWater(lat, lng, t, timeoutMs = 4000) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  const d = new Date(t), hhmm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   try {
-    const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat.toFixed(3)}&longitude=${lng.toFixed(3)}` +
-      `&hourly=sea_level_height_msl,sea_surface_temperature&timezone=GMT&past_days=1&forecast_days=1`;
-    const d = await (await fetch(url, { signal: ctrl.signal })).json();
-    const times = d?.hourly?.time || [];
-    const hourISO = new Date(Math.floor(t / 36e5) * 36e5).toISOString().slice(0, 13); // "YYYY-MM-DDTHH"
-    const i = times.findIndex(x => x.slice(0, 13) === hourISO);
-    if (i < 0) return {};
-    const lv = d.hourly.sea_level_height_msl || [], sst = d.hourly.sea_surface_temperature || [];
-    return { tide: tideStage(lv, i), waterTemp: sst[i] != null ? Math.round(sst[i] * 10) / 10 : null };
-  } catch {
-    return {};
+    const [tide, water] = await Promise.all([
+      fetch(`/api/tide?lat=${lat.toFixed(2)}&lng=${lng.toFixed(2)}`, { signal: ctrl.signal }).then(r => (r.ok ? r.json() : null)).catch(() => null),
+      fetchSstTile([Math.floor(lat / 2) * 2, Math.floor(lng / 2) * 2], ctrl.signal).then(tile => sstAtSpot([tile], lat, lng)?.temp ?? null).catch(() => null),
+    ]);
+    return { tide: tide ? stageAt(tide.today?.events, hhmm) : null, waterTemp: water != null ? Math.round(water * 10) / 10 : null };
   } finally {
     clearTimeout(timer);
   }
@@ -86,7 +83,7 @@ export async function captureConditions({ weather, location, salt, t = Date.now(
     sky: weather?.loaded ? (weather.conditionIcon || null) : null,
     skyText: weather?.loaded ? (weather.condition?.en || null) : null,
   };
-  if (salt && location?.lat != null) Object.assign(cond, await marineAt(location.lat, location.lng, t));
+  if (salt && location?.lat != null) Object.assign(cond, await tideAndWater(location.lat, location.lng, t));
   return cond;
 }
 
@@ -143,34 +140,6 @@ export function findPatterns(catches, matchSpecies, lang) {
     const mg = topOf(g.list.map(c => moonGroup(c.cond.moon)));
     if (mg && mg.count >= 2 && mg.count / mg.of >= 0.5) lines.push(`${mg.key === "full" ? "🌕" : mg.key === "new" ? "🌑" : "🌓"} ${T(lang, `${MOON_GROUP[mg.key].ja}が多い（${mg.of}匹中${mg.count}匹）`, `Mostly ${MOON_GROUP[mg.key].en} (${mg.count} of ${mg.of})`, `Sobre todo ${MOON_GROUP[mg.key].es} (${mg.count} de ${mg.of})`)}`);
     if (lines.length) out.push({ title: g.title, count: g.list.length, lines });
-  }
-  return out;
-}
-
-// ─── today's tide table from hourly sea level ─────────────────────────────────
-// times: local "YYYY-MM-DDTHH:MM" (Open-Meteo timezone=auto), levels: metres vs mean sea
-// level. Finds each turning point (high/low), refines it to the minute with a parabola
-// through the three hours around it, and keeps the ones on `today` (local date).
-// Heights are shown relative to the day's lowest hourly level, like a simple tide table.
-export function todaysTides(times, levels, today) {
-  const out = [];
-  const dayVals = levels.filter((v, i) => v != null && String(times[i]).startsWith(today));
-  if (!dayVals.length) return out;
-  const base = Math.min(...dayVals);
-  for (let i = 1; i < levels.length - 1; i++) {
-    const a = levels[i - 1], b = levels[i], c = levels[i + 1];
-    if (a == null || b == null || c == null) continue;
-    const high = b > a && b >= c, low = b < a && b <= c;
-    if (!high && !low) continue;
-    const den = a - 2 * b + c;
-    const off = den ? Math.max(-0.5, Math.min(0.5, (0.5 * (a - c)) / den)) : 0;
-    const val = b - 0.25 * (a - c) * off;
-    const [d, hm] = String(times[i]).split("T");
-    let mins = Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5)) + Math.round(off * 60);
-    let day = d;
-    if (mins < 0 || mins >= 1440) continue; // turning point lands on a neighbouring day
-    if (day !== today) continue;
-    out.push({ time: `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`, type: high ? "high" : "low", height: Math.max(0, val - base).toFixed(1), source: "open-meteo" });
   }
   return out;
 }
