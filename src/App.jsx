@@ -103,7 +103,7 @@ const T = {
   good: { ja: "👍 良い条件 — 釣りに行こう", en: "👍 Good conditions — go fish", es: "👍 Buenas condiciones — ¡a pescar!" },
   fair: { ja: "😐 まずまず — 深場を狙って", en: "😐 Fair — fish deep or wait", es: "😐 Regular — pesca profundo o espera" },
   keepFishing: { ja: "🔥 上位を目指して釣り続けよう！", en: "🔥 Keep fishing to climb the ranks!", es: "🔥 ¡Sigue pescando para subir el ranking!" },
-  verified: { ja: "✓ 認証済", en: "✓ Verified", es: "✓ Verificado" },
+  verified: { ja: "📷 写真あり", en: "📷 Photo", es: "📷 Con foto" },
   addComment: { ja: "コメントを追加...", en: "Add a comment...", es: "Añadir comentario..." },
   addPhoto: { ja: "タップして写真を追加", en: "Tap to add photo", es: "Toca para añadir foto" },
   edit: { ja: "編集", en: "Edit", es: "Editar" },
@@ -807,23 +807,6 @@ const URGENCY_STYLES = {
   medium: { bg: "#f0f8f0", border: "#2d7a3a", text: "#1a4a22", dot: "#2d7a3a" },
   low:    { bg: "#f5f0e8", border: "#a0a090", text: "#5a5a4a", dot: "#a0a090" },
 };
-
-const MOCK_CATCHES = [
-  { id: 1, user: "テンカラ師", avatar: "🎋", fish: "イワナ", weight: "0.5 kg", location: "黒部川源流（富山）", date: { ja: "3月24日", en: "Mar 24" }, emoji: "🐠", likes: 68, comments: ["美しい！", "テンカラで？", "源流ロマン✨"], rating: 5.0, verified: true, photo: null, method: "fly" },
-  { id: 2, user: "渓流師", avatar: "🏔️", fish: "ヤマメ", weight: "0.38 kg", location: "奥多摩川（東京）", date: { ja: "3月22日", en: "Mar 22" }, emoji: "🐡", likes: 38, comments: ["綺麗な魚！", "ドライフライ？", "羨ましい〜"], rating: 4.8, verified: false, photo: null, method: "fly" },
-  { id: 3, user: "湾岸ハンター", avatar: "🌙", fish: "シーバス", weight: "3.5 kg", location: "東京湾・運河", date: { ja: "3月20日", en: "Mar 20" }, emoji: "🦈", likes: 91, comments: ["モンスター！", "ランカーですね！", "最高🔥"], rating: 5.0, verified: true, photo: null, method: "lure" },
-  { id: 4, user: "タイラバ王", avatar: "🚤", fish: "マダイ", weight: "1.8 kg", location: "明石海峡（兵庫）", date: { ja: "3月18日", en: "Mar 18" }, emoji: "🐟", likes: 44, comments: ["美味そう！", "タイラバで？"], rating: 4.7, verified: false, photo: null, method: "lure" },
-];
-
-const LEADERBOARD = [
-  { rank: 1, user: "テンカラ師", avatar: "🎋", points: 15600, catches: 221, topFish: { ja: "イワナ", en: "Iwana" }, badge: "🏆", streak: 22 },
-  { rank: 2, user: "湾岸ハンター", avatar: "🌙", points: 14820, catches: 203, topFish: { ja: "シーバス", en: "Seabass" }, badge: "🥈", streak: 18 },
-  { rank: 3, user: "琵琶湖マスター", avatar: "🎣", points: 12340, catches: 176, topFish: { ja: "バス", en: "Bass" }, badge: "🥉", streak: 11 },
-  { rank: 4, user: "タイラバ王", avatar: "🚤", points: 10870, catches: 155, topFish: { ja: "マダイ", en: "Red Bream" }, badge: "⭐", streak: 25 },
-  { rank: 5, user: "渓流師", avatar: "🏔️", points: 9200, catches: 134, topFish: { ja: "ヤマメ", en: "Yamame" }, badge: "⭐", streak: 7 },
-  { rank: 6, user: "サーフキング", avatar: "🌊", points: 7430, catches: 112, topFish: { ja: "ヒラメ", en: "Flounder" }, badge: "⭐", streak: 4 },
-  { rank: 7, user: "アジングプロ", avatar: "🎯", points: 6190, catches: 298, topFish: { ja: "アジ", en: "Mackerel" }, badge: "⭐", streak: 9 },
-];
 
 // ─── WEATHER UTILS ───────────────────────────────────────────────────────────
 // WMO weather code → condition label + icon
@@ -1942,7 +1925,7 @@ function getOrCreateUserId() {
 }
 
 // ─── REAL TIDE DATA ───────────────────────────────────────────────────────────
-// Japan: JMA tide tables (潮位表) for the nearest of 40 Kyushu/Yamaguchi stations.
+// Japan: JMA tide tables (潮位表) for the nearest of ~230 stations nationwide.
 // Puerto Rico/US: NOAA tide predictions for the nearest station. Via /api/tide.
 function useRealTideData(userLocation) {
   const [tides, setTides] = useState([]);
@@ -4097,7 +4080,7 @@ export default function CastWiseJapan() {
     }).catch(() => {});
     return () => { alive = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const [tab, setTab] = useState(() => { const t = new URLSearchParams(window.location.search).get("tab"); return ["Explore", "Map", "Weather", "FishGuide", "Community", "Profile"].includes(t) ? t : "Explore"; });
+  const [tab, setTab] = useState(() => { const t = new URLSearchParams(window.location.search).get("tab"); return ["Explore", "Map", "Weather", "FishGuide", "FlyFishing", "Tournament", "Community", "Profile"].includes(t) ? t : "Explore"; });
   const [selectedFish, setSelectedFish] = useState(null);
   const [gearTab, setGearTab] = useState("gear");
   const [catches, setCatches] = useState([]);
@@ -4116,11 +4099,17 @@ export default function CastWiseJapan() {
   const [showAI, setShowAI] = useState(false);
   const [showFlyAI, setShowFlyAI] = useState(false);
   const [flyAIFish, setFlyAIFish] = useState(null);
-  const [leaderFilter, setLeaderFilter] = useState("points");
+  const [leaderFilter, setLeaderFilter] = useState("catches");
   const [profileTab, setProfileTab] = useState("catches");
   const [photoPreview, setPhotoPreview] = useState(null);
   const [editProfile, setEditProfile] = useState(false);
-  const [profile, setProfile] = useLocalStorage("mabo_profile", { name: "Angler", bio: "釣り好き🎣", avatar: "🎣", catches: 0, followers: 0, following: 0 });
+  // Default name/bio in the visitor's own language (all defaults count as "no name yet" — see DEFAULT_PROFILE_NAMES).
+  const [profile, setProfile] = useLocalStorage("mabo_profile", (() => {
+    const l = (navigator.language || "").toLowerCase();
+    return l.startsWith("ja") ? { name: "釣り人", bio: "釣り好き🎣", avatar: "🎣", catches: 0, followers: 0, following: 0 }
+      : l.startsWith("es") ? { name: "Pescador", bio: "Me encanta pescar 🎣", avatar: "🎣", catches: 0, followers: 0, following: 0 }
+      : { name: "Angler", bio: "Love fishing 🎣", avatar: "🎣", catches: 0, followers: 0, following: 0 };
+  })());
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [obName, setObName] = useState("");
   const [obAvatar, setObAvatar] = useState("🎣");
@@ -4685,7 +4674,7 @@ If this is NOT a fish or the image is unclear, return:
       likes: 0,
       comments: [],
       rating: 0,
-      verified: true,
+      verified: !!newCatch.photo, // "📷 photo" badge — there's no human review, so only claim what's true
       createdAt: now,
     };
 
@@ -4712,7 +4701,7 @@ If this is NOT a fish or the image is unclear, return:
         likes: 0,
         comments: [],
         rating: 0,
-        verified: true,
+        verified: !!photoURL,
         createdAt: now,
         photoURL: null,
         photoBase64: photoURL || null,
@@ -4746,6 +4735,15 @@ If this is NOT a fish or the image is unclear, return:
   const ownerKey = c => c.ownerUid || c.deviceId || (c.user && !DEFAULT_PROFILE_NAMES.has(String(c.user).trim().toLowerCase()) ? "name:" + c.user : null);
   catches.forEach(c => { const k = ownerKey(c); if (k) rankCounts[k] = (rankCounts[k] || 0) + 1; });
   const myRankCount = myCatches.length;
+  // Real ranking from the community feed (latest catches): count and biggest fish per angler.
+  const kgOf = w => { const m = String(w || "").replace(/,/g, ".").match(/[\d.]+/); if (!m) return 0; const n = parseFloat(m[0]); return /g\b|グラム/.test(w) && !/kg/i.test(w) ? n / 1000 : /lb/i.test(w) ? n * 0.4536 : n; };
+  const board = Object.values(catches.reduce((acc, c) => {
+    const k = ownerKey(c); if (!k) return acc;
+    const r = (acc[k] ||= { key: k, user: c.user || "Angler", avatar: c.avatar || "🎣", catches: 0, best: 0, bestFish: "", species: new Set(), me: isMyCatch(c, myIds) });
+    r.catches++; r.species.add(c.fish);
+    const kg = kgOf(c.weight); if (kg > r.best) { r.best = kg; r.bestFish = c.fish; }
+    return acc;
+  }, {})).map(r => ({ ...r, species: r.species.size }));
   const myRank = myRankCount ? 1 + Object.values(rankCounts).filter(n => n > myRankCount).length : null;
   const seasonPts = (profile.catches + myCatches.length) * 100 + (bonusPoints || 0);
 
@@ -5495,43 +5493,41 @@ If this is NOT a fish or the image is unclear, return:
                 )}
               </div>
             )}
-            {profileTab === "leaderboard" && (
+            {profileTab === "leaderboard" && (() => {
+              const T3 = (ja, en, es) => (lang === "ja" ? ja : lang === "es" ? es : en);
+              const sorted = [...board].sort((a, b) => leaderFilter === "biggest" ? b.best - a.best : leaderFilter === "species" ? b.species - a.species : b.catches - a.catches);
+              const val = u => leaderFilter === "biggest" ? (u.best ? `${u.best.toFixed(2)} kg` : "—") : leaderFilter === "species" ? `${u.species}${T3("種", " species", " especies")}` : `${u.catches}${T3("匹", " catches", " capturas")}`;
+              return (
               <div>
+                <div style={{ fontSize: "0.82rem", color: "#5a5a4a", marginBottom: 8 }}>{T3("みんなの最新の釣果から集計したランキングです。", "Ranked from the community's latest catches.", "Clasificación según las últimas capturas de la comunidad.")}</div>
                 <div style={{ display: "flex", gap: 5, marginBottom: 11 }}>
-                  {[{ k: "points", ja: "ポイント", en: "Points" }, { k: "catches", ja: "釣果数", en: "Catches" }, { k: "streak", ja: "連続日数", en: "Streak" }].map(f => (
-                    <button key={f.k} onClick={() => setLeaderFilter(f.k)} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${leaderFilter === f.k ? "#c06a10" : "#d4cfc4"}`, background: leaderFilter === f.k ? "rgba(244,162,97,0.1)" : "transparent", color: leaderFilter === f.k ? "#f4a261" : "#8899aa", cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem" }}>{gl(f, lang)}</button>
+                  {[{ k: "catches", ja: "釣果数", en: "Catches", es: "Capturas" }, { k: "biggest", ja: "最大魚", en: "Biggest", es: "Mayor" }, { k: "species", ja: "魚種数", en: "Species", es: "Especies" }].map(f => (
+                    <button key={f.k} onClick={() => setLeaderFilter(f.k)} style={{ flex: 1, padding: "6px", borderRadius: 8, border: `1px solid ${leaderFilter === f.k ? "#c06a10" : "#d4cfc4"}`, background: leaderFilter === f.k ? "rgba(244,162,97,0.1)" : "transparent", color: leaderFilter === f.k ? "#c06a10" : "#5a6a7a", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>{T3(f.ja, f.en, f.es)}</button>
                   ))}
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                  {LEADERBOARD.sort((a, b) => leaderFilter === "points" ? b.points - a.points : leaderFilter === "catches" ? b.catches - a.catches : b.streak - a.streak).map((u, i) => (
-                    <div key={u.rank} style={{ background: i === 0 ? "rgba(244,162,97,0.09)" : "#fffdf8", border: `1px solid ${i === 0 ? "rgba(244,162,97,0.26)" : "#e0dbd0"}`, borderRadius: 12, padding: "10px 13px", display: "flex", gap: 10, alignItems: "center", animation: `fadeUp ${0.17 + i * 0.06}s ease both` }}>
-                      <div style={{ fontSize: i < 3 ? "1.2rem" : "0.78rem", minWidth: 26, textAlign: "center", fontWeight: 700, color: i === 0 ? "#f4a261" : "#8899aa" }}>{i < 3 ? u.badge : `#${u.rank}`}</div>
-                      <div style={{ fontSize: "1.2rem" }}>{u.avatar}</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: "1rem" }}>{u.user}</div>
-                        <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>🐟 {(u.topFish?.[lang] || u.topFish?.en || u.topFish?.ja || "")} · 🔥 {u.streak}{lang === "ja" ? "日" : lang === "es" ? "d" : "d"}</div>
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <div style={{ fontWeight: 700, color: "#c06a10", fontSize: "1rem" }}>{leaderFilter === "points" ? u.points.toLocaleString() : leaderFilter === "catches" ? u.catches : `${u.streak}${lang === "ja" ? "日" : lang === "es" ? "d" : "d"}`}</div>
-                        <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>{leaderFilter === "points" ? "pt" : leaderFilter === "catches" ? (lang === "ja" ? "釣果" : lang === "es" ? "capturas" : "catches") : (lang === "ja" ? "連続" : lang === "es" ? "racha" : "streak")}</div>
-                      </div>
-                    </div>
-                  ))}
-                  <div style={{ background: "rgba(72,202,228,0.07)", border: "2px solid #FFE500", borderRadius: 12, padding: "10px 13px", display: "flex", gap: 10, alignItems: "center" }}>
-                    <div style={{ fontSize: "1.05rem", minWidth: 26, textAlign: "center", fontWeight: 700, color: "#0d7377" }}>#8</div>
-                    <div style={{ fontSize: "1.2rem" }}>{profile.avatar}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: "1rem" }}>{profile.name} <span style={{ fontSize: "0.95rem", color: "#0d7377" }}>({lang === "ja" ? "あなた" : lang === "es" ? "Tú" : "You"})</span></div>
-                      <div style={{ fontSize: "0.95rem", color: "#5a5a4a" }}>{s("keepFishing", lang)}</div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontWeight: 700, color: "#0d7377", fontSize: "1rem" }}>3,210</div>
-                      <div style={{ fontSize: "1.05rem", color: "#5a5a4a" }}>pt</div>
-                    </div>
+                {sorted.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "30px 16px", color: "#5a5a4a", background: "#f8f4ec", borderRadius: 14, border: "2px dashed #d4cfc4" }}>
+                    <div style={{ fontSize: "2rem", marginBottom: 6 }}>🏆</div>
+                    {T3("まだランキングはありません。最初の釣果を記録して1位になろう！", "No rankings yet — log the first catch and take #1!", "Aún no hay clasificación. ¡Registra la primera captura y sé el #1!")}
                   </div>
+                ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                  {sorted.slice(0, 20).map((u, i) => (
+                    <div key={u.key} style={{ background: u.me ? "rgba(72,202,228,0.07)" : i === 0 ? "rgba(244,162,97,0.09)" : "#fffdf8", border: u.me ? "2px solid #FFE500" : `1px solid ${i === 0 ? "rgba(244,162,97,0.26)" : "#e0dbd0"}`, borderRadius: 12, padding: "10px 13px", display: "flex", gap: 10, alignItems: "center" }}>
+                      <div style={{ fontSize: i < 3 ? "1.2rem" : "0.85rem", minWidth: 26, textAlign: "center", fontWeight: 700, color: "#8899aa" }}>{["🏆", "🥈", "🥉"][i] || `#${i + 1}`}</div>
+                      <div style={{ fontSize: "1.2rem" }}>{u.avatar}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: "1rem" }}>{u.user}{u.me && <span style={{ fontSize: "0.85rem", color: "#0d7377" }}> ({T3("あなた", "You", "Tú")})</span>}</div>
+                        {u.bestFish && <div style={{ fontSize: "0.85rem", color: "#5a5a4a" }}>🐟 {u.bestFish}{u.best ? ` · ${u.best.toFixed(2)} kg` : ""}</div>}
+                      </div>
+                      <div style={{ fontWeight: 700, color: "#c06a10", fontSize: "1rem", whiteSpace: "nowrap" }}>{val(u)}</div>
+                    </div>
+                  ))}
                 </div>
+                )}
               </div>
-            )}
+              );
+            })()}
           </div>
         )}
 
