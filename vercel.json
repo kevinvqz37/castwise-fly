@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/mabo",
-      "destination": "/mabo.html"
-    },
-    {
       "source": "/((?!api/|zukan|spots|es/|tsuki|robots\\.txt|sitemap\\.xml|legal|google).*)",
       "destination": "/index.html"
     }
