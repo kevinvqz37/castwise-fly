@@ -50,16 +50,16 @@ service cloud.firestore {
             || (request.auth != null && resource.data.ownerUid == request.auth.uid));
     }
 
-    // Tournament entries — PRO members only
+    // Tournament entries — open to any signed-in angler during the launch period (was: isPro() only)
     match /tournamentSubmissions/{id} {
       allow read: if true;
-      allow create: if isPro() && request.resource.data.userId == request.auth.uid
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid
         && !request.resource.data.keys().hasAny(['verification', 'lat', 'lng', 'photoLat', 'photoLng', 'deviceLat', 'deviceLng']);
     }
     // Anti-cheat GPS for each entry — private to the angler; the server reads it with the admin SDK.
     match /tournamentVerifications/{id} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if isPro() && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
 
     // Analytics counters — written by the app, read only by the server (admin SDK)

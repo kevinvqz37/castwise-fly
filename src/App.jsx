@@ -1197,7 +1197,12 @@ const TOURNAMENTS = [
   },
 ];
 
-function TournamentView({ lang, profile, myCatches, user, db, isPro = false, onUpgrade }) {
+// Launch period: anyone signed in can enter tournaments. Set to false to make entry PRO-only again
+// (and switch firestore.rules back to isPro() for tournamentSubmissions/tournamentVerifications).
+const FREE_TOURNAMENT_ENTRY = true;
+
+function TournamentView({ lang, profile, myCatches, user, db, isPro: isProMember = false, onUpgrade }) {
+  const isPro = isProMember || FREE_TOURNAMENT_ENTRY;
   const [activeTournament, setActiveTournament] = useState(null);
   const [showJoin, setShowJoin] = useState(false);
   const [submitWeight, setSubmitWeight] = useState("");
@@ -1467,7 +1472,7 @@ function TournamentView({ lang, profile, myCatches, user, db, isPro = false, onU
     <div style={{ padding: "14px 14px 80px" }}>
       <div style={{ background: "#0d7377", borderRadius: 14, padding: "12px 16px", marginBottom: 14, textAlign: "center" }}>
         <div style={{ color: "#74c69d", fontWeight: 900, fontSize: "1rem", marginBottom: 2 }}>🏆 Castwise 釣り大会</div>
-        <div style={{ color: "#aaa", fontSize: "0.78rem" }}>{lang === "ja" ? "Castwise 公式オンライン釣り大会（エントリーはPRO会員限定）" : lang === "es" ? "Torneos oficiales de Castwise en línea (participan los miembros PRO)" : "Official Castwise online tournaments (PRO members enter)"}</div>
+        <div style={{ color: "#aaa", fontSize: "0.78rem" }}>{lang === "ja" ? (FREE_TOURNAMENT_ENTRY ? "Castwise 公式オンライン釣り大会（今だけエントリー無料）" : "Castwise 公式オンライン釣り大会（エントリーはPRO会員限定）") : lang === "es" ? (FREE_TOURNAMENT_ENTRY ? "Torneos oficiales de Castwise en línea (inscripción gratis por tiempo limitado)" : "Torneos oficiales de Castwise en línea (participan los miembros PRO)") : (FREE_TOURNAMENT_ENTRY ? "Official Castwise online tournaments (free entry for a limited time)" : "Official Castwise online tournaments (PRO members enter)")}</div>
       </div>
 
       {TOURNAMENTS.map(t => (
@@ -5580,7 +5585,7 @@ If this is NOT a fish or the image is unclear, return:
                     { icon: "🪶", free: { ja: "フライ8パターン", en: "8 fly patterns" }, pro: { ja: "30+プレミアム", en: "30+ premium" } },
                     { icon: "📊", free: { ja: "基本釣果記録", en: "Basic log" }, pro: { ja: "AI釣果分析", en: "AI analytics" } },
                     { icon: "🗺️", free: { ja: "オンラインマップ", en: "Online maps" }, pro: { ja: "オフラインマップ", en: "Offline maps" } },
-                    { icon: "🏆", free: { ja: "大会の閲覧のみ", en: "View tournaments" }, pro: { ja: "大会にエントリー", en: "Enter tournaments" } },
+                    { icon: "🏆", free: FREE_TOURNAMENT_ENTRY ? { ja: "大会にエントリー（今だけ無料）", en: "Enter tournaments (free for now)" } : { ja: "大会の閲覧のみ", en: "View tournaments" }, pro: { ja: "大会にエントリー", en: "Enter tournaments" } },
                   ].map((f, i) => (
                     <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", padding: "9px 12px", background: "#f8f4ec", borderRadius: 10, marginBottom: 6 }}>
                       <span style={{ fontSize: "1.1rem", width: 24 }}>{f.icon}</span>
