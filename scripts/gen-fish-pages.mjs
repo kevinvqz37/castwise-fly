@@ -49,7 +49,7 @@ const shell = ({ title, desc, url, body, ld, image, lang = "ja", alts }) => `<!d
 <meta name="description" content="${esc(desc)}"><link rel="canonical" href="${url}">
 ${(alts || []).map(a => `<link rel="alternate" hreflang="${a.l}" href="${a.u}">`).join("")}
 <meta property="og:type" content="article"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
-<meta property="og:url" content="${url}"><meta property="og:image" content="${SITE}${image || "/icon-512.png"}"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:url" content="${url}"><meta property="og:image" content="${SITE}${image || "/og-image.jpg"}"><meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.ico"><meta name="theme-color" content="#0a2837"><style>${css}</style>
 ${ld ? `<script type="application/ld+json">${JSON.stringify(ld)}</script>` : ""}</head>
 <body><header><a href="/">${CHROME[lang].home}</a>${CHROME[lang].nav.map(([h, n]) => `<span style="opacity:.7">/</span><a href="${h}" style="color:#fff">${n}</a>`).join("")}</header>
