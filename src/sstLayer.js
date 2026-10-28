@@ -9,6 +9,11 @@ const MAX_TILES = 9;      // don't fetch more than a 3×3 block of tiles at once
 const FRONT_MIN = 0.03;   // °C per km — weaker than this isn't a usable break
 const HOTSPOT_SPACING_KM = 8;
 const MAX_HOTSPOTS = 10;
+const HOT_PER_TILE = 3;   // hotspots are picked per tile, so panning doesn't reshuffle them
+
+// FIXED colour scale (°C). Colours used to stretch to whatever was on screen, so the same water
+// changed colour every time you panned. Now 10 °C is always deep blue and 32 °C always red.
+export const SST_MIN = 10, SST_MAX = 32;
 
 const km = (lat1, lng1, lat2, lng2) => {
   const R = 6371, r = Math.PI / 180;
@@ -77,13 +82,30 @@ function colorFor(x) { // x in 0..1 → blue → cyan → yellow → red
   return stops.at(-1)[1];
 }
 
+// The strongest fronts of ONE tile (cached on the tile), so a tile shows the same 🔥 wherever you pan.
+function tileHotspots(d, g) {
+  const list = [];
+  for (let i = 0; i < d.n; i++) for (let j = 0; j < d.n; j++) {
+    const gr = g[i * d.n + j];
+    if (gr != null && gr >= FRONT_MIN) list.push({ lat: d.lat0 + (i + 0.5) * d.step, lng: d.lon0 + (j + 0.5) * d.step, temp: d.t[i * d.n + j], grad: gr });
+  }
+  list.sort((a, b) => b.grad - a.grad);
+  const out = [];
+  for (const f of list) {
+    if (out.length >= HOT_PER_TILE) break;
+    if (out.every(h => km(h.lat, h.lng, f.lat, f.lng) >= HOTSPOT_SPACING_KM)) out.push(f);
+  }
+  return out;
+}
+
 // Build the overlay for the tiles in view. Returns { layer, min, max, date, hotspots }.
 export function buildSstLayer(L, tiles, lang) {
   const layer = L.layerGroup();
   const vals = tiles.flatMap(d => d.t.filter(v => v != null)).sort((a, b) => a - b);
   if (!vals.length) return { layer, min: null, max: null, date: tiles[0]?.date || "", hotspots: [] };
+  // Range actually in view (for the legend text only — colours use the fixed scale).
   const min = vals[Math.floor(vals.length * 0.03)], max = vals[Math.floor(vals.length * 0.97)];
-  const span = Math.max(max - min, 0.5);
+  const span = SST_MAX - SST_MIN;
   // Draw every tile into ONE canvas so there are no seams where tiles meet.
   const n = tiles[0].n;
   const la0 = Math.min(...tiles.map(d => d.lat0)), la1 = Math.max(...tiles.map(d => d.lat0));
@@ -100,11 +122,10 @@ export function buildSstLayer(L, tiles, lang) {
       const v = d.t[i * d.n + j];
       if (v == null) continue;
       const p = ((oy + d.n - 1 - i) * c.width + ox + j) * 4;
-      const [r, gg, b] = colorFor(Math.min(1, Math.max(0, (v - min) / span)));
+      const [r, gg, b] = colorFor(Math.min(1, Math.max(0, (v - SST_MIN) / span)));
       img.data[p] = r; img.data[p + 1] = gg; img.data[p + 2] = b; img.data[p + 3] = 150;
-      const gr = g[i * d.n + j];
-      if (gr != null && gr >= FRONT_MIN) fronts.push({ lat: d.lat0 + (i + 0.5) * d.step, lng: d.lon0 + (j + 0.5) * d.step, temp: v, grad: gr });
     }
+    fronts.push(...(d._hot ||= tileHotspots(d, g)));
   }
   ctx.putImageData(img, 0, 0);
   L.imageOverlay(c.toDataURL(), [[la0, lo0], [la1 + TILE, lo1 + TILE]], { opacity: 0.85, interactive: false }).addTo(layer);
@@ -112,7 +133,7 @@ export function buildSstLayer(L, tiles, lang) {
   fronts.sort((a, b) => b.grad - a.grad);
   const hotspots = [];
   for (const f of fronts) {
-    if (hotspots.length >= MAX_HOTSPOTS) break;
+    if (hotspots.length >= MAX_HOTSPOTS * 3) break;
     if (hotspots.every(h => km(h.lat, h.lng, f.lat, f.lng) >= HOTSPOT_SPACING_KM)) hotspots.push(f);
   }
   const T = (ja, en, es) => (lang === "ja" ? ja : lang === "es" ? es : en);

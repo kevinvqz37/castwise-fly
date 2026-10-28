@@ -9,7 +9,7 @@ import { EXTRA_FISH, EXTRA_FISH_EMOJI } from "./fishDataExtra";
 import { FLY_SVG } from "./flyArt";
 import { shareCatchCard } from "./shareCard";
 import { buildCollection, makeSpeciesMatcher, shareCollectorCard } from "./catchCards";
-import { tilesForBounds, fetchSstTile, buildSstLayer, sstAtSpot } from "./sstLayer";
+import { tilesForBounds, fetchSstTile, buildSstLayer, sstAtSpot, SST_MIN, SST_MAX } from "./sstLayer";
 import { captureConditions, conditionChips, findPatterns } from "./conditions";
 import { pushSupported, needsHomeScreen, savedAlertSpots, enableAlerts, disableAlerts, sendTestAlert } from "./pushAlerts";
 import { initAnalytics, track } from "./analytics";
@@ -3236,7 +3236,8 @@ function LeafletMap({ spots, userLocation, activeSpot, setActiveSpot, lang, acti
             <>
               <div style={{ fontWeight: 700, marginBottom: 3 }}>🌡️ {lang === "ja" ? "海面水温" : lang === "es" ? "Temp. del mar" : "Sea temp"}</div>
               <div style={{ height: 6, borderRadius: 3, background: "linear-gradient(90deg,#313695,#45a0dc,#78d2be,#fadc5a,#f58c32,#d73027)" }} />
-              <div style={{ display: "flex", justifyContent: "space-between" }}><span>{sstInfo.min.toFixed(1)}℃</span><span>{sstInfo.max.toFixed(1)}℃</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}><span>{SST_MIN}℃</span><span>{Math.round((SST_MIN + SST_MAX) / 2)}℃</span><span>{SST_MAX}℃</span></div>
+              <div>{lang === "ja" ? `表示範囲: ${sstInfo.min.toFixed(1)}〜${sstInfo.max.toFixed(1)}℃` : lang === "es" ? `En pantalla: ${sstInfo.min.toFixed(1)}–${sstInfo.max.toFixed(1)}°C` : `In view: ${sstInfo.min.toFixed(1)}–${sstInfo.max.toFixed(1)}°C`}</div>
               <div style={{ marginTop: 2 }}>🔥 {lang === "ja" ? `潮目 ${sstInfo.hot}か所` : lang === "es" ? `${sstInfo.hot} frentes térmicos` : `${sstInfo.hot} thermal fronts`}</div>
               <div style={{ color: "#7a7a6a" }}>NOAA {sstInfo.date}{sstInfo.partial ? " *" : ""}</div>
             </>
