@@ -1,8 +1,10 @@
 // api/sst.js — cached proxy for NOAA sea-surface temperature (SST).
-// Source: NASA JPL MUR SST v4.1 (GHRSST L4, global 0.01°, daily, ~1–2 day latency), served by
-// NOAA CoastWatch's ERDDAP (West Coast node). We sample every 5th point → a 0.05° (~5 km) grid.
-// Fallback: NOAA OISST v2.1 near-real-time (0.25°), spread onto the same 0.05° grid.
-// (The old NOAA "Geo-polar Blended" ERDDAP datasets were retired in Oct 2026 — both IDs now 404.)
+// Tries several NOAA ERDDAP servers in order, because any single one can go down (the CoastWatch
+// West Coast node timed out for days in Oct 2026, and the old coastwatch.noaa.gov ERDDAP was retired):
+//   1. NOAA Geo-polar Blended SST Day+Night (GHRSST L4, 0.05° ≈ 5 km, daily) — NOAA PolarWatch ERDDAP
+//   2. NOAA Coral Reef Watch CoralTemp SST (0.05°, daily)                   — NOAA PolarWatch ERDDAP
+//   3. NASA JPL MUR SST v4.1 (0.01°, sampled every 5th point)               — CoastWatch West Coast ERDDAP
+//   4. NOAA OISST v2.1 NRT (0.25°, spread onto the 0.05° grid)              — CoastWatch West Coast ERDDAP
 // The app asks per 2°×2° tile; Vercel's CDN caches each tile for 6 h.
 //   GET /api/sst?tile=<lat0>,<lon0>   (lat0/lon0 = even integers, south-west corner)
 //   → { date, source, lat0, lon0, step: 0.05, n: 40, t: [ 1600 temps in °C ×100, row-major
@@ -10,15 +12,20 @@
 
 export const maxDuration = 30;
 
-const ERDDAP = "https://coastwatch.pfeg.noaa.gov/erddap/griddap";
+const POLAR = "https://polarwatch.noaa.gov/erddap/griddap";
+const PFEG = "https://coastwatch.pfeg.noaa.gov/erddap/griddap";
 const STEP = 0.05, N = 40; // 2° tile at 0.05°
-const TIMEOUT_MS = 20000;
-const f2 = v => v.toFixed(2);
+const TIMEOUT_MS = 6500;   // per source, so all four fit inside maxDuration
+const f2 = v => v.toFixed(2), f3 = v => v.toFixed(3);
+const grid05 = (base, id, v) => (la, lo) => `${base}/${id}.json?` + encodeURIComponent(
+  `${v}[(last)][(${f3(la + 0.025)}):1:(${f3(la + 1.975)})][(${f3(lo + 0.025)}):1:(${f3(lo + 1.975)})]`);
 
 const SOURCES = [
-  { name: "MUR", src: 0.01, url: (la, lo) => `${ERDDAP}/jplMURSST41.json?` + encodeURIComponent(
+  { name: "Blended", src: 0.05, url: grid05(POLAR, "noaacwBLENDEDsstDNDaily", "analysed_sst") },
+  { name: "CoralTemp", src: 0.05, url: grid05(POLAR, "noaacrwsstDaily", "analysed_sst") },
+  { name: "MUR", src: 0.01, url: (la, lo) => `${PFEG}/jplMURSST41.json?` + encodeURIComponent(
       `analysed_sst[(last)][(${f2(la + 0.02)}):5:(${f2(la + 1.99)})][(${f2(lo + 0.02)}):5:(${f2(lo + 1.99)})]`) },
-  { name: "OISST", src: 0.25, url: (la, lo) => `${ERDDAP}/ncdcOisst21NrtAgg_LonPM180.json?` + encodeURIComponent(
+  { name: "OISST", src: 0.25, url: (la, lo) => `${PFEG}/ncdcOisst21NrtAgg_LonPM180.json?` + encodeURIComponent(
       `sst[(last)][(0.0)][(${f2(la - 0.25)}):1:(${f2(la + 2.25)})][(${f2(lo - 0.25)}):1:(${f2(lo + 2.25)})]`) },
 ];
 
