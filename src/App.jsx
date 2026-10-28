@@ -1183,19 +1183,30 @@ const TOURNAMENTS = [
     leaderboard: []
   },
   {
-    id: 3,
-    name: { ja: "秋の大物チャレンジ", en: "Autumn Big Fish Challenge" },
-    status: "upcoming",
+    id: 4,
+    name: { ja: "🍁 11月の大物チャレンジ", en: "🍁 November Big Fish Challenge", es: "🍁 Reto del Pez Grande de Noviembre" },
+    // Opens/closes automatically (JST). Status is worked out from these dates — see tournamentStatus().
+    startsAt: "2026-11-01T00:00:00+09:00",
+    endsAt: "2026-11-30T23:59:59+09:00",
     participants: 0,
-    location: { ja: "全国（オンライン提出）", en: "Nationwide (online submission)" },
+    location: { ja: "全国（オンライン提出）", en: "Nationwide (online submission)", es: "Todo Japón (envío en línea)" },
     area: { bbox: [24, 122, 46, 146] }, // Japan
-    period: { ja: "10月1日〜11月30日", en: "Oct 1 – Nov 30" },
-    target: { ja: "全魚種", en: "All species" },
-    rule: { ja: "最大1匹の重量（写真証明）", en: "Largest single fish (photo proof)" },
-    prize: { ja: "🥇 Amazonギフト券 ¥3,000（PRO会員限定）", en: "🥇 ¥3,000 Amazon gift card (PRO members only)" },
+    period: { ja: "11月1日〜11月30日", en: "Nov 1 – Nov 30", es: "1 – 30 de noviembre" },
+    target: { ja: "全魚種", en: "All species", es: "Todas las especies" },
+    rule: { ja: "最大1匹の重量（写真証明）。誰でも無料でエントリーできます（ログインのみ必要）。", en: "Largest single fish (photo proof). Free for everyone — just sign in.", es: "El pez más grande (con foto). Gratis para todos — solo inicia sesión." },
+    prize: { ja: "🥇 Amazonギフト券 ¥3,000（誰でも参加OK・参加無料）", en: "🥇 ¥3,000 Amazon gift card — open to everyone, free entry", es: "🥇 Tarjeta Amazon de ¥3,000 — abierto a todos, gratis" },
     leaderboard: []
   },
 ];
+
+// "upcoming" before startsAt, "live" during, "ended" after (tournaments without dates keep their status).
+function tournamentStatus(t, now = Date.now()) {
+  if (!t.startsAt) return t.status;
+  if (now < Date.parse(t.startsAt)) return "upcoming";
+  if (t.endsAt && now > Date.parse(t.endsAt)) return "ended";
+  return "live";
+}
+TOURNAMENTS.forEach(t => { t.status = tournamentStatus(t); });
 
 // Launch period: anyone signed in can enter tournaments. Set to false to make entry PRO-only again
 // (and switch firestore.rules back to isPro() for tournamentSubmissions/tournamentVerifications).
@@ -1356,8 +1367,8 @@ function TournamentView({ lang, profile, myCatches, user, db, isPro: isProMember
 
         <div style={{ background: "#0d7377", borderRadius: 16, padding: 16, marginBottom: 12 }}>
           <div style={{ display: "inline-block", background: t.status === "live" ? "#74c69d" : "#555", color: t.status === "live" ? "#1a1a14" : "#74c69d", fontSize: "0.75rem", fontWeight: 800, padding: "3px 10px", borderRadius: 99, marginBottom: 8 }}>
-            {t.status === "live" ? (lang === "ja" ? "🔴 開催中" : lang === "es" ? "🔴 EN VIVO" : "🔴 LIVE") : (lang === "ja" ? "近日開催" : lang === "es" ? "PRÓXIMO" : "UPCOMING")}
-            {t.status === "live" && ` · ${lang === "ja" ? `参加者 ${t.participants}名` : lang === "es" ? `${t.participants} pescadores` : `${t.participants} anglers`}`}
+            {t.status === "live" ? (lang === "ja" ? "🔴 開催中" : lang === "es" ? "🔴 EN VIVO" : "🔴 LIVE") : t.status === "ended" ? (lang === "ja" ? "終了" : lang === "es" ? "FINALIZADO" : "ENDED") : (lang === "ja" ? "近日開催" : lang === "es" ? "PRÓXIMO" : "UPCOMING")}
+            {t.status === "live" && t.participants > 0 && ` · ${lang === "ja" ? `参加者 ${t.participants}名` : lang === "es" ? `${t.participants} pescadores` : `${t.participants} anglers`}`}
           </div>
           <div style={{ fontSize: "1.1rem", fontWeight: 900, color: "#74c69d", marginBottom: 6 }}>{(t.name?.[lang] || t.name?.en || t.name?.ja || "")}</div>
           <div style={{ fontSize: "0.82rem", color: "#aaa", marginBottom: 4 }}>📍 {(t.location?.[lang] || t.location?.en || t.location?.ja || "")} · {(t.period?.[lang] || t.period?.en || t.period?.ja || "")}</div>
@@ -1505,7 +1516,7 @@ function TournamentView({ lang, profile, myCatches, user, db, isPro: isProMember
         <div key={t.id} onClick={() => setActiveTournament(t)} style={{ background: t.status === "live" ? "#1a1a14" : "white", border: `2px solid ${t.status === "live" ? "#74c69d" : "#e0e0d8"}`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
             <span style={{ background: t.status === "live" ? "#74c69d" : "#555", color: t.status === "live" ? "#1a1a14" : "#74c69d", fontSize: "0.72rem", fontWeight: 800, padding: "2px 8px", borderRadius: 99 }}>
-              {t.status === "live" ? (lang === "ja" ? `🔴 開催中 · ${t.participants}名参加` : lang === "es" ? `🔴 EN VIVO · ${t.participants} pescadores` : `🔴 LIVE · ${t.participants} anglers`) : (lang === "ja" ? "近日開催" : lang === "es" ? "PRÓXIMO" : "UPCOMING")}
+              {t.status === "live" ? (t.participants > 0 ? (lang === "ja" ? `🔴 開催中 · ${t.participants}名参加` : lang === "es" ? `🔴 EN VIVO · ${t.participants} pescadores` : `🔴 LIVE · ${t.participants} anglers`) : (lang === "ja" ? "🔴 開催中 · エントリー無料" : lang === "es" ? "🔴 EN VIVO · gratis" : "🔴 LIVE · free entry")) : t.status === "ended" ? (lang === "ja" ? "終了" : lang === "es" ? "FINALIZADO" : "ENDED") : (lang === "ja" ? `近日開催 · ${t.period?.ja || ""}` : lang === "es" ? `PRÓXIMO · ${t.period?.es || t.period?.en || ""}` : `UPCOMING · ${t.period?.en || ""}`)}
             </span>
           </div>
           <div style={{ fontWeight: 800, fontSize: "0.95rem", color: t.status === "live" ? "#74c69d" : "#1a1a14", marginBottom: 4 }}>{(t.name?.[lang] || t.name?.en || t.name?.ja || "")}</div>
